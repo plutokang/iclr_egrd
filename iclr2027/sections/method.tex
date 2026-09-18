@@ -23,24 +23,18 @@ the target.
 \includegraphics[width=\textwidth]{pic/framework.png}
 \caption{Overview of EGRD. \textbf{(A)} Only priors predating the target are
 admissible; the retained top-$K$ evidence carries pair coverage features
-$\boldsymbol{f}_k$, and a multiple-instance model over target--prior pairs
-predicts joint coverage $C_J$ and its four-class distribution
-$\boldsymbol{\pi}^{J}$. These outputs enter the later stages as fixed inputs,
-marked $\mathrm{sg}[\cdot]$. \textbf{(B)} A
-residual cross-encoder builds a target token bank, which $M$ learned queries
-partition into semantic units $\boldsymbol{u}_m$. A learned support matrix
-$A_{km}$ aligns each unit with each prior; noisy-OR over priors gives unit
-coverage $c_m$, and the complementary residual $r_m$ weights the units into
-$\boldsymbol{z}_U$, with the covered part pooled into $\boldsymbol{z}_C$. The
-support matrix also yields co-support $b_{ij}$, so a unit pair that no single
-prior supports jointly contributes to the interaction residual
-$\boldsymbol{z}_I$. \textbf{(C)} A gate modulates global context within
-residual fusion; the fused representation, the covered and target
-representations, and global context form a shared representation.
-Auxiliary predictions and joint coverage further inform the novelty branches. Direct and ordinal probabilities enter both the fused distribution
-and the moderate-to-high refinement, while the continuous score head supplies
-auxiliary training supervision and is excluded from the inference-time
-grading rule.}
+$\boldsymbol{f}_k$, and a multiple-instance model predicts joint coverage
+$C_J$ and its four-class distribution $\boldsymbol{\pi}^{J}$. Stage~A outputs
+enter the later stages as fixed inputs, marked $\mathrm{sg}[\cdot]$.
+\textbf{(B)} $M$ learned queries partition a target token bank into semantic
+units $\boldsymbol{u}_m$; a learned support matrix $A_{km}$ aligns each unit
+with each prior, yielding the unit residual $\boldsymbol{z}_U$, the covered
+pooling $\boldsymbol{z}_C$, and---through co-support $b_{ij}$---the
+interaction residual $\boldsymbol{z}_I$. \textbf{(C)} A gate modulates global
+context within residual fusion; the fused, covered, target and context
+representations form the shared representation feeding three novelty branches
+and the moderate-to-high refinement. The continuous score head supplies
+training supervision only.}
 \label{fig:framework}
 \end{figure}
 
