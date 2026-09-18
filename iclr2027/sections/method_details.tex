@@ -38,13 +38,13 @@ $\beta_k$ and internal evidence scores $e_k$:
 \end{equation}
 For a nonempty evidence set, noisy-OR pools the evidence scores as
 \begin{equation}
- e_{\cup}=1-\prod_{k=1}^{n}(1-e_k)
+ e_{\cup}=1-\prod_{k=1}^{n}(1-e_k).
  \label{eq:noisy-or}
 \end{equation}
 The model summarizes these scores by their noisy-OR aggregate, maximum,
-mean, and the fraction of available evidence slots. It concatenates these
-statistics with attention-pooled and elementwise maximum-pooled pair
-representations:
+mean, and the fraction of the $K$ evidence slots that are filled. It
+concatenates these statistics with attention-pooled and elementwise
+maximum-pooled pair representations:
 \begin{align}
  \boldsymbol{v}_E
  &=\left[e_{\cup},\;
@@ -52,7 +52,7 @@ representations:
  \\
  \boldsymbol{z}_J
  &=f_J\left(\left[\sum_{k=1}^{n}\beta_k\boldsymbol{h}^{J}_k;
-              \operatorname{max}_{k}\boldsymbol{h}^{J}_k;
+              \max_{k}\boldsymbol{h}^{J}_k;
               \boldsymbol{v}_E\right]\right).
  \label{eq:joint-bag}
 \end{align}
@@ -89,7 +89,7 @@ where $f_P$ consists of a linear map, layer normalization, GELU, and dropout.
 The residual encoder shares parameters across all retained priors. To
 construct the target token bank, we average target-token states at matching
 positions across valid pairs. Masked mean pooling over this bank yields the
-target representation $\hbar_x$ used in residual fusion.
+target representation $\bar{\boldsymbol{h}}_x$ used in residual fusion.
 
 \paragraph{Coverage reconstruction.}
 To supervise the unit coverage estimates, we aggregate them into a scalar
@@ -175,8 +175,7 @@ All novelty branches receive the prediction features
 We encode \textsc{low}, \textsc{weak}, \textsc{moderate}, and \textsc{high}
 as $0$, $1$, $2$, and $3$, respectively. A direct linear classifier and a
 two-layer MLP classifier map $\boldsymbol{\xi}$ to class distributions
-$\boldsymbol{p}^{D}$ and $\boldsymbol{p}^{R}$. The MLP branch uses the
-full prediction features $\boldsymbol{\xi}$.
+$\boldsymbol{p}^{D}$ and $\boldsymbol{p}^{R}$.
 
 The ordinal branch models cumulative probabilities of reaching each grade
 threshold. It produces three sigmoid gates $g_1,g_2,g_3$ from
@@ -247,13 +246,11 @@ binary cross-entropy, weighting moderate examples scored as high more heavily.
 The type group $\mathcal{L}_{\mathrm{type}}$ combines the hierarchy's
 conditional losses, a flat classification loss, binary supervision for
 nontrivial combinations, and consistency penalties tying the combination branch
-to the type predictions. The separate novelty score regresses the continuous
-annotation target
-\begin{equation}
- s^*=(1-C^*)d^*e^*(1-0.45s^*_{\mathrm{surface}}),
-\end{equation}
-formed from annotated coverage, substantive difference, evidence sufficiency,
-and surface change.
+to the type predictions. The separate novelty score regresses $\nu^*$, the
+continuous annotation target defined by $\mathrm{raw}(x)$ in
+Eq.~(\ref{eq:novelty-rule}) and formed from the annotated coverage, substantive
+difference, evidence sufficiency, and surface change of the target. It is the
+quantity the dataset thresholds into the four grades.
 
 \paragraph{Scalar heads: level and ranking terms.}
 Let $\ell_\delta$ denote smooth-$L_1$ loss and $w_x$ the example weight. For

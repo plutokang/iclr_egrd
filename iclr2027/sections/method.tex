@@ -13,8 +13,10 @@ Stage~C predicts an ordered novelty grade from \textsc{low} to \textsc{high}
 from these residual representations.
 
 Throughout, $[\cdot;\cdot]$ denotes concatenation, $\odot$ elementwise
-multiplication, $d$ the encoder dimension, and $\sigma$ the sigmoid function;
-padded priors are masked out.
+multiplication, $d$ the encoder dimension, $\sigma$ the sigmoid function, and
+$\varepsilon$ a small positive constant added for numerical stability. Padded
+priors are masked out, and $\mathcal{V}$ denotes the non-padding positions of
+the target.
 
 \begin{figure}[t]
 \centering
@@ -101,9 +103,9 @@ assignments are then normalized over tokens within each unit:
  B_{mj}=\operatorname{softmax}_{m}
  \left(\frac{\boldsymbol{q}_m^\top\boldsymbol{h}_j}{\sqrt d}\right),
  \quad
- \alpha_{mj}=\frac{B_{mj}}{\sum_l B_{ml}+\varepsilon},
+ \alpha_{mj}=\frac{B_{mj}}{\sum_{j'\in\mathcal{V}}B_{mj'}+\varepsilon},
  \quad
- \boldsymbol{u}_m=\sum_j\alpha_{mj}\boldsymbol{h}_j.
+ \boldsymbol{u}_m=\sum_{j\in\mathcal{V}}\alpha_{mj}\boldsymbol{h}_j.
  \label{eq:semantic-units}
 \end{equation}
 The units have no predefined semantic roles. A learned activity score
@@ -121,19 +123,25 @@ through a learned support matrix:
  |\boldsymbol{u}_m-\widetilde{\boldsymbol{v}}_k|;\boldsymbol{f}_k])\right),
  \label{eq:unit-support}
 \end{equation}
-where $f_A$ is an MLP. For $n=|\mathcal{E}_x|$ retained
-priors, noisy-OR aggregates support across priors into unit coverage $c_m$.
-Its complement, weighted by unit activity, defines the residual weight $r_m$:
+where $f_A$ is an MLP. Support is estimated separately for every target--prior
+pair, so different priors can account for different units. For
+$n=|\mathcal{E}_x|$ retained priors, noisy-OR aggregates support across priors
+into unit coverage $c_m$. Its complement, weighted by unit activity, defines
+the residual weight $r_m$:
 \begin{equation}
  c_m=1-\prod_{k=1}^{n}(1-A_{km}),\qquad
  r_m=v_m(1-c_m),\qquad
  \boldsymbol{z}_U=\frac{1}{M}\sum_m r_m\boldsymbol{u}_m.
  \label{eq:unit-residual}
 \end{equation}
-This aggregation allows different priors to account for different units.
+Noisy-OR lets several partially relevant priors jointly cover a unit that none
+of them covers alone. We use it as a differentiable aggregation rule, not as a
+claim that the priors are independent sources of support
+(Appendix~\ref{app:method-representations}).
 An active unit with little historical support receives a large residual
-weight in $\boldsymbol{z}_U$. Dividing by the fixed number of units $M$
-retains the scale of these weights in the pooled representation. We also pool
+weight in $\boldsymbol{z}_U$. We normalize by the fixed number of units $M$
+rather than by $\sum_mr_m$, so that the pooled representation retains the total
+residual mass instead of dividing it away. We also pool
 the supported content as
 $\boldsymbol{z}_C=M^{-1}\sum_m v_mc_m\boldsymbol{u}_m$.
 To connect unit coverage to supervision, a learned, activity-weighted pooling
@@ -182,10 +190,10 @@ residual branch:
  \boldsymbol{z}_R=f_R([\boldsymbol{z}_U;\boldsymbol{z}_I;
                        \gamma\boldsymbol{z}_G]),\qquad
  \boldsymbol{h}=\operatorname{LayerNorm}([
- \boldsymbol{z}_R;\boldsymbol{z}_C;\hbar_x;\boldsymbol{z}_G]),
+ \boldsymbol{z}_R;\boldsymbol{z}_C;\bar{\boldsymbol{h}}_x;\boldsymbol{z}_G]),
  \label{eq:residual-fusion}
 \end{equation}
-where $\hbar_x$ is obtained by masked mean pooling over the target token bank.
+where $\bar{\boldsymbol{h}}_x$ is obtained by masked mean pooling over the target token bank.
 The shared representation $\boldsymbol{h}$ retains the covered content,
 the target representation, and a direct path for global context. The gate
 therefore controls context only within residual fusion.
