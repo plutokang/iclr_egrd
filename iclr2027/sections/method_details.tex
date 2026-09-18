@@ -103,6 +103,16 @@ prediction is learned from the full bag representation.
 \subsection{Residual representations and pooling}
 \label{app:method-representations}
 
+All representations introduced in Stages~B and~C---the queries
+$\boldsymbol{q}_m$, the token states $\boldsymbol{h}_j$, the units
+$\boldsymbol{u}_m$, the pair representations $\boldsymbol{v}_k$ and
+$\widetilde{\boldsymbol{v}}_k$, the interaction representations
+$\boldsymbol{t}_{ij}$, and the pooled vectors $\boldsymbol{z}_U$,
+$\boldsymbol{z}_I$, $\boldsymbol{z}_C$, $\boldsymbol{z}_G$, $\boldsymbol{z}_R$
+and $\hbar_x$---lie in $\mathbb{R}^{d}$. Eq.~(\ref{eq:unit-support})
+accordingly gives $f_A$ an input of dimension $4d+11$, $f_I$ takes $4d$, $f_R$
+takes $3d$, and the shared representation $\boldsymbol{h}$ has dimension $4d$.
+
 \paragraph{Pair encoding.}
 For each target--prior pair $(x,p_k)$, the residual cross-encoder produces
 token states $\boldsymbol{H}_k\in\mathbb{R}^{L\times d}$, where $L$ is the
@@ -158,6 +168,13 @@ weights. Multiplication by $r_{ij}$ during pooling also preserves the scale
 of the residual weights, allowing weak residuals to contribute less even
 after attention normalization.
 
+Padded evidence slots carry zero support: the support matrix is masked by the
+evidence-availability flag and clamped to $[0,0.995]$ before use. Both
+aggregations are therefore well defined when fewer than $K$ priors are
+retained---the product in Eq.~(\ref{eq:unit-residual}) runs over the retained
+priors, and the maximum in Eq.~(\ref{eq:interaction-residual}) is taken over
+all $K$ slots, so $b_{ij}=0$ when none is retained.
+
 \subsection{Residual fusion, prediction heads, and decision rules}
 \label{app:method-heads}
 
@@ -170,6 +187,9 @@ $\boldsymbol{\pi}^{J}$. The gate is
  \gamma=\sigma\left(f_\gamma([
  \boldsymbol{z}_U;\boldsymbol{z}_I;\boldsymbol{z}_G;H_J])\right).
 \end{equation}
+Here $f_\gamma$ is a two-layer MLP with a $d/2$ bottleneck and a scalar
+output, so $\gamma$ scales $\boldsymbol{z}_G$ uniformly rather than gating it
+per dimension.
 The gated context $\gamma\boldsymbol{z}_G$ enters residual fusion alongside
 $\boldsymbol{z}_U$ and $\boldsymbol{z}_I$. Global context
 $\boldsymbol{z}_G$ also enters the final shared representation directly.
