@@ -1,0 +1,92 @@
+\section{Introduction}
+\label{sec:intro}
+
+Deciding whether a research idea is new is not a property of the idea alone. The
+same proposal is a contribution in one year and a restatement in the next, and
+the difference lies entirely in what has been published in between. Reviewers,
+program committees, and, increasingly, automated idea-generation systems all
+make this judgment, and they make it by reading the idea against the record of
+prior work. As machine-generated research proposals become cheap to produce,
+the ability to assess them at scale has become a bottleneck: a system that
+proposes a thousand ideas is only useful if something can tell which of them
+are worth pursuing. This motivates a task we state explicitly as
+\emph{evidence-conditioned} novelty assessment, in which a model is asked to
+grade a target idea relative to a given, temporally admissible set of prior
+work, rather than against an unspecified notion of what the field knows.
+
+% TODO: replace the schematic A/B example below with the verified real case
+% once the case study in Section~\ref{sec:case} is finalized.
+Most existing approaches reduce this judgment to similarity: retrieve the
+nearest prior papers and score how close the target is to the closest of them.
+This misses how research contributions are actually distributed. The pieces of
+a target idea are typically spread across several papers rather than
+concentrated in one. A mechanism may already appear in one line of work, the
+training signal it is paired with in another, and the evaluation setting in a
+third, while no single paper is especially similar to the target as a whole.
+Under a nearest-neighbor comparison such an idea looks novel, because the
+maximum over single-document similarities is low; under any reading of the
+literature it is largely covered. What is needed is a notion of \emph{joint}
+coverage, in which several prior works together account for different parts of
+the same target.
+
+Joint coverage alone, however, is still a scalar, and a scalar cannot say
+\emph{which} part remains. Two ideas that are covered to the same degree are
+not equally novel if one leaves only an implementation detail uncovered while
+the other leaves its central mechanism unaccounted for. A second failure is
+subtler. Every component of an idea may be individually well covered, and the
+idea may nonetheless be new, because the way the components are combined has no
+precedent; conversely, a combination may look new simply because no single
+retrieved paper contains both parts. Aggregate similarity collapses both
+distinctions. This suggests decomposing the target instead of scoring it as a
+whole: identify its constituent semantic content, determine which parts the
+retrieved evidence supports, and treat what is left over, together with the
+interactions among the parts, as the object to be evaluated.
+
+We instantiate this idea as Evidence-Grounded Residual Decomposition (EGRD).
+Given a target idea and a set of temporally admissible prior works, EGRD first
+models historical coverage, scoring each target--prior pair, ranking candidates
+by coverage strength, and aggregating the retained evidence under a
+multiple-instance formulation that yields a joint coverage estimate. It then
+decomposes the target into latent semantic units through a set of learned
+queries, so that each unit attends to a distinct part of the target's content.
+The central step aligns these units with the evidence: EGRD learns a support
+matrix whose entries measure how strongly each retained prior supports each
+unit, combines the per-prior supports into a unit-level coverage through a
+noisy-OR aggregation, and defines a \emph{unit residual} as the part of each
+active unit that no prior accounts for. A second residual is defined over pairs
+of units, using the extent to which a single prior supports both units as an
+approximation of whether their combination has precedent, so that novel
+interactions among individually known components remain visible. Unit
+residuals, interaction residuals, and the coverage context are then fused to
+predict a novelty grade. Finally, because the model is trained under a fixed
+evidence budget, we introduce an inference-time scheme that partitions a larger
+evidence set into blocks, encodes each block independently, and combines the
+per-block predictions conservatively, allowing the same trained model to
+consume several times more evidence without retraining.
+
+Our contributions are as follows.
+\begin{itemize}
+  \item \textbf{An evidence-conditioned residual formulation.} We recast
+  novelty assessment from measuring overall similarity to locating the joint
+  coverage provided by prior work and then pricing what remains, and we give a
+  task definition that is explicitly relative to a temporally admissible
+  evidence set.
+  \item \textbf{A multi-domain, evidence-paired dataset.} We release a dataset
+  spanning three research areas, annotated at both the idea level and the
+  target--prior pair level under temporal admissibility constraints. Its
+  pairing is what makes evidence-conditioned evaluation and evidence
+  intervention experiments possible; its labels are model-generated, and we
+  describe it as a dataset rather than a benchmark for that reason.
+  \item \textbf{Unit and interaction residual modeling.} We design a mechanism
+  that aligns latent semantic units with historical support and jointly
+  represents the uncovered content and the potentially novel interactions among
+  covered components.
+  \item \textbf{Budget-scalable conservative evidence aggregation.} We propose
+  an inference-time procedure that lets a model trained with a small evidence
+  budget consume substantially larger evidence sets by blockwise encoding and
+  conservative cross-block aggregation, without retraining.
+\end{itemize}
+
+% TODO: add a closing sentence summarizing the frozen empirical results once the
+% main table is final. Do not pre-write claims of significance or of
+% across-the-board improvement over baselines.

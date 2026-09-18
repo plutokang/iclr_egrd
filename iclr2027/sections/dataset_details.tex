@@ -1,0 +1,156 @@
+% Appendix companion to Section 3. Procedure and validity evidence.
+% Dataset: dataset/multi_domain_dataset/.
+
+\subsection{Dataset construction}
+\label{app:dataset}
+
+\paragraph{Sources and idea extraction.}
+Papers are drawn from arXiv in three areas---graph machine learning, computer
+vision, and time series. Selection prefers work that was subsequently published
+and, among that, papers at major venues. From each paper's title, abstract and
+introduction an LLM extracts
+innovation claims and assigns each an innovation aspect; a second LLM pass
+discards claims that are not innovation claims at all---open-source and
+reproducibility statements, bare state-of-the-art assertions, and engineering
+deliverables---so that later stages judge substantive claims rather than
+boilerplate.
+
+\paragraph{Candidate priors.}
+Idea texts are embedded and indexed for top-$K$ nearest-neighbour recall, and
+candidate relations are formed under a hybrid rule: high similarity is accepted
+directly, low similarity is rejected directly, and the uncertain band is passed
+to an LLM. The base build pairs ideas of the same type only, which would record
+an idea whose closest relative is of another type---a theoretical contribution
+nearest to a method---as isolated; a cross-type pass recovers these. At most
+$K=5$ ranked priors are retained per target. Pairing stays within a source
+domain, and no cross-domain pair is labelled, so the three single-domain subsets
+and their union address the same ideas under identifiers namespaced by domain.
+The assembled dataset passes its own validation checks with no duplicate pair
+keys, no duplicate novelty targets, no invalid pair labels, no target left
+without a pair, and no temporal violation.
+
+\paragraph{Annotation.}
+All annotation stages use the same judge, \texttt{deepseek-v4-pro}. It labels
+pair coverage over the four classes, with the ambiguous band---related but not
+covering, partial cover, large cover, and high-similarity pairs the graph left
+unconnected---re-judged rather than accepted from the similarity rule. It then
+estimates, for each target, the substantive residual that survives the retained
+evidence, the sufficiency of that evidence, and the extent to which the claimed
+difference is surface-level. Idea-level grades follow by applying
+Eq.~(\ref{eq:novelty-rule}) to those quantities. Labels are model-generated;
+each stage was reviewed by sampled manual inspection.
+
+\paragraph{Splits and balancing.}
+Splits are date-ordered rather than random, so that no training target is dated
+after an evaluation target. The cuts fall at 2025-02 and 2025-11, giving
+$59{,}269/16{,}436/17{,}171$ pairs and $13{,}815/3{,}944/3{,}352$ ideas. The cut
+months are shared at the boundary, so the partition is ordered but not strictly
+month-disjoint, and isolation at the level of source papers has not been
+established. A balanced training variant resamples the pair training set to
+$1{,}000$ examples per coverage class, at most five copies of any example and
+marked as duplicates; dev and test keep their natural distribution and are never
+resampled. Pair coverage labels are skewed in the natural distribution: of
+$92{,}876$ pairs, $41{,}765$ are not covering, $38{,}775$ related but not
+covering, $9{,}582$ partial cover, and $2{,}754$ large cover.
+
+\subsection{Validation of Research Novelty Labels}
+\label{app:dataset-validity}
+
+Our novelty labels assess the substantive contribution of a target idea beyond
+its retrieved prior work. We validate this interpretation through complementary
+experiments. First, we examine how well metadata and retrieved prior content
+predict the existing labels. We then modify the evidence and repeat annotation
+to test whether novelty decreases when the target contribution is already
+covered and remains stable when its substantive contribution is unchanged.
+
+\paragraph{Prediction from metadata.}
+We first test whether simple metadata can account for the novelty labels
+without describing the technical content of prior work. We consider seven
+variables: character length, word count, publication year, three research-area
+attributes, and the number of retrieved priors. Over all $21{,}111$ ideas, we
+measure their individual associations with the novelty grade using Spearman
+$\rho$ for continuous variables and $\varepsilon^2$ for categorical variables.
+We set the thresholds in advance at $|\rho|\ge0.20$ and
+$\varepsilon^2\ge0.06$.
+
+Text length, word count, and publication year show weak associations
+($\rho=+0.049$, $+0.058$, and $-0.130$, respectively), while the three
+research-area attributes have $\varepsilon^2\le0.033$. All remain below the
+corresponding thresholds. The number of priors and their mean coverage are
+negatively correlated with novelty ($\rho=-0.286$ and $-0.471$, respectively).
+The negative association with coverage is consistent with the intended meaning
+of the labels: contributions already covered by prior work receive lower
+novelty grades.
+
+Individual associations may overlook information available from several
+variables together. We therefore train a classifier on all seven metadata
+variables to predict the four novelty grades. We use the date-ordered split in
+Section~\ref{sec:dataset-composition}, with $13{,}815$ training ideas and
+$3{,}352$ test ideas, and evaluate quadratic weighted kappa (QWK), which accounts
+for the ordering of the grades. For comparison, we train the same classifier
+using only mean prior coverage. QWK increases from $0.227$ with metadata to
+$0.539$ with coverage alone. Coverage thus predicts the labels more accurately
+than the metadata considered here, supporting the relevance of the relationship
+between the target and prior work.
+
+\paragraph{Prediction with retrieved and random priors.}
+We next examine whether the specific retrieved content matters for label
+prediction. In the \textsc{true} condition, each target is paired with its five
+retrieved priors. In the \textsc{random} condition, these are replaced by five
+ideas sampled uniformly from those published before the target. The two
+conditions use the same number of priors and total evidence text volume, and
+all priors precede the target. We hold the model, hyperparameters, date-ordered
+split, and random seeds fixed. Models are trained separately from scratch and
+evaluated on the same held-out targets against their original labels.
+
+Across the three seeds, QWK decreases from $0.196$ with retrieved priors to
+$0.005\pm0.021$ with random priors. The gap of $0.192$ is about an order of
+magnitude larger than the between-seed standard deviation of $0.015$.
+Replacing retrieved priors with random earlier work therefore reduces
+prediction to near-chance agreement. This comparison supports the importance
+of the retrieved content, beyond the amount of evidence supplied.
+
+\paragraph{Response to evidence covering the target contribution.}
+The prediction experiments keep the labels fixed. We now test whether the
+annotation procedure responds appropriately when the evidence changes.
+If an earlier study already contains the target contribution, the assigned
+novelty should decrease. We sample $30$ targets across the four grades and
+construct one synthetic prior for each target. This prior describes the same
+technical contribution and is dated before the target. After adding it to the
+evidence set, we repeat the complete annotation procedure: pair coverage
+labeling, residual contribution estimation, and grading according to
+Eq.~(\ref{eq:novelty-rule}). Synthetic priors have dedicated identifiers and
+are marked \texttt{synthetic\_control}. They do not refer to real papers,
+authors, or DOIs and are excluded from the released dataset.
+
+Each modified target is compared with five independent annotations of its
+original evidence set to account for variation across repeated annotations.
+We evaluate recognition of the added prior as large coverage, changes in joint
+coverage and residual contribution, and decreases in the novelty score and
+grade. Ties are excluded from the exact sign test.
+
+The added prior is labeled large coverage in all $29$ comparable cases.
+Joint coverage increases, while residual contribution and novelty score
+decrease. The novelty grade decreases for $82.8\%$ of targets
+(sign test $p=2.2\times10^{-7}$). These results show that the annotation
+procedure lowers novelty when the evidence covers the target contribution.
+
+\paragraph{Stability under changes that preserve the contribution.}
+A novelty judgment should also remain stable when the evidence changes without
+altering the substantive contribution of the target. For the same $30$ targets,
+we reorder the priors, duplicate existing priors, or add unrelated papers.
+The novelty grades before and after these changes show high agreement:
+$\kappa=0.970$, $0.902$, and $1.000$, respectively. These results complement
+the coverage experiment: the judgments respond to evidence that reduces the
+remaining contribution and remain comparatively stable under changes that
+preserve it.
+
+\paragraph{Evaluation scope.}
+The metadata analysis covers $21{,}111$ ideas, and the prediction experiments
+use $13{,}815/3{,}944/3{,}352$ training, validation, and test examples ordered
+by date. The evidence modification experiments cover $30$ targets, with $150$
+baseline repetitions, $30$ coverage comparisons, and $160$ stability
+comparisons. Sampling uses a fixed seed and groups ideas by source paper.
+Each modified example is compared with its own original version, and
+confidence intervals for component-level changes use $2{,}000$ bootstrap
+samples clustered by target.

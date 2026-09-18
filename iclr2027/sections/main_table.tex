@@ -1,0 +1,423 @@
+% Consolidated result tables. Every row is copied from a recorded artifact;
+% provenance markers are defined in the shared table notes below.
+\section{Consolidated Results}
+\label{sec:main-table}
+
+% TODO(re-run): the 3,816 / 3,177 gap is an artefact of the earlier build. On
+% the dataset of Section 3 every idea carries a native domain, so the per-domain
+% columns and the All row should cover the same test split once re-measured.
+Except where a table names another benchmark, the results in this section are
+computed on the test split of \textsc{IdeaDelta} (Section~\ref{sec:dataset}).
+
+\begin{table}[t]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.6pt}
+\renewcommand{\arraystretch}{1.1}
+\caption{Panel~A$^{\ddagger}$. Baselines and our model on the IdeaDelta
+evaluation set, 3{,}177 ideas, same recalibrated labels and the same idea-only
+protocol (top-5 retrieved priors, no paper text), split by domain. Each prompt-based system appears once per
+backbone, so a row group isolates the effect of the model behind an unchanged
+prompt chain. Within any row the three domains move together, while the gap
+between rows is an order of magnitude larger. A majority-class predictor that
+ignores the input scores $0.312$, $0.356$ and $0.328$ accuracy on the three
+domains, with quadratic weighted kappa of zero by construction; several rows
+fall below it.}
+\label{tab:panel-a}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}ll rrrrr rrrrr rrrrr@{}}
+\toprule
+& & \multicolumn{5}{c}{Graph ML} & \multicolumn{5}{c}{Computer vision} & \multicolumn{5}{c}{Time series} \\
+\cmidrule(lr){3-7}\cmidrule(lr){8-12}\cmidrule(lr){13-17}
+System & Backbone
+& Acc & Ma-F1 & BalAcc & QWK & MAE $\downarrow$
+& Acc & Ma-F1 & BalAcc & QWK & MAE $\downarrow$
+& Acc & Ma-F1 & BalAcc & QWK & MAE $\downarrow$ \\
+\midrule
+Direct, 5 priors & Qwen3.5
+& 0.300 & 0.266 & 0.336 & 0.319 & 0.925
+& 0.308 & 0.264 & 0.331 & 0.300 & 0.876
+& 0.291 & 0.283 & 0.352 & 0.327 & 0.956 \\
+& deepseek-flash
+& 0.438 & 0.444 & 0.476 & 0.558 & 0.706
+& 0.409 & 0.418 & 0.451 & 0.521 & 0.728
+& 0.416 & 0.415 & 0.440 & 0.560 & 0.716 \\
+& gpt-5.6-luna
+& 0.432 & 0.439 & 0.438 & 0.579 & 0.657
+& 0.420 & 0.430 & 0.439 & 0.561 & 0.661
+& 0.445 & 0.436 & 0.443 & 0.576 & 0.653 \\
+\addlinespace
+RINoBench & Qwen3.5
+& 0.324 & 0.286 & 0.330 & 0.335 & 0.831
+& 0.346 & 0.293 & 0.340 & 0.338 & 0.777
+& 0.344 & 0.333 & 0.370 & 0.413 & 0.793 \\
+& deepseek-flash
+& 0.443 & 0.458 & 0.451 & 0.560 & 0.639
+& 0.416 & 0.411 & 0.417 & 0.501 & 0.676
+& 0.442 & 0.447 & 0.448 & 0.553 & 0.654 \\
+& gpt-5.6-luna
+& 0.391 & 0.377 & 0.389 & 0.487 & 0.698
+& 0.393 & 0.364 & 0.381 & 0.458 & 0.683
+& 0.392 & 0.379 & 0.395 & 0.512 & 0.688 \\
+\addlinespace
+UKPLab 3-stage & Qwen3.5
+& 0.280 & 0.161 & 0.271 & 0.125 & 0.928
+& 0.289 & 0.150 & 0.265 & 0.106 & 0.873
+& 0.274 & 0.180 & 0.285 & 0.132 & 0.973 \\
+& deepseek-flash
+& 0.351 & 0.267 & 0.306 & 0.301 & 0.761
+& 0.376 & 0.272 & 0.305 & 0.259 & 0.741
+& 0.386 & 0.289 & 0.322 & 0.290 & 0.727 \\
+& gpt-5.6-luna
+& 0.318 & 0.226 & 0.283 & 0.266 & 0.800
+& 0.367 & 0.248 & 0.304 & 0.304 & 0.721
+& 0.365 & 0.267 & 0.318 & 0.296 & 0.743 \\
+\addlinespace
+GraphMind$^{\S}$ & Qwen3.5
+& 0.264 & 0.205 & 0.281 & 0.154 & 1.027
+& 0.264 & 0.182 & 0.253 & 0.108 & 0.959
+& 0.244 & 0.204 & 0.282 & 0.155 & 1.051 \\
+& deepseek-flash
+& 0.261 & 0.217 & 0.289 & 0.154 & 1.111
+& --- & --- & --- & --- & ---
+& --- & --- & --- & --- & --- \\
+& gpt-5.6-luna
+& 0.366 & 0.346 & 0.351 & 0.346 & 0.778
+& --- & --- & --- & --- & ---
+& --- & --- & --- & --- & --- \\
+\addlinespace
+DeepReviewer & DeepReviewer-7B
+& 0.294 & 0.237 & 0.262 & 0.034 & 0.965
+& 0.325 & 0.235 & 0.262 & $-$0.043 & 0.972
+& 0.296 & 0.222 & 0.249 & $-$0.017 & 0.964 \\
+\addlinespace
+\textbf{EGRD (ours)} & ---
+& \textbf{0.797} & \textbf{0.798} & \textbf{0.802} & \textbf{0.908} & \textbf{0.204}
+& \textbf{0.763} & \textbf{0.770} & \textbf{0.780} & \textbf{0.882} & \textbf{0.239}
+& \textbf{0.786} & \textbf{0.772} & \textbf{0.783} & \textbf{0.896} & \textbf{0.218} \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.05}
+\caption{Panel~B. RINoBench test, 277 ideas, human expert 1--5 labels folded to
+four levels with $4/5$ merged. The merged top class holds 41.5\% of the 277
+ideas, so predicting it everywhere scores 0.4152 accuracy, at or above every
+system in the table; accuracy carries no information here. Our row reaches that
+same 0.4152 while placing 16/36/76/149 ideas across the four classes against a
+gold 15/60/87/115, so the accuracy is matched by a prediction that is not
+constant. Read Ma-F1, BalAcc and QWK. Bold marks the best value in a column;
+Acc and MAE are not led by our row.}
+\label{tab:panel-b}
+\begin{tabular}{@{}p{5.1cm}rrrrr@{}}
+\toprule
+System & Acc & Ma-F1 & BalAcc & QWK & MAE $\downarrow$ \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{Same Qwen3.5 backbone, zero-shot}} \\
+Qwen3.5-397B-A17B & 0.3574 & 0.2244 & 0.2563 & 0.1451 & 0.7726 \\
+GraphMind & 0.3357 & 0.2281 & 0.2748 & 0.1469 & 0.7653 \\
+UKPLab 3-stage & 0.3466 & 0.1892 & 0.2706 & 0.0808 & \textbf{0.7220} \\
+% Qwen3.5 evidence-budget rows dropped on request (kept for the appendix):
+%   K=0   0.4152 0.1467 0.2500 0.0000 0.9097
+%   K=25  0.3971 0.2477 0.2795 0.1815 0.7437
+\addlinespace
+\multicolumn{6}{@{}l}{\emph{Released predictions of the benchmark authors, folded to four levels}} \\
+GPT-5 & 0.3646 & 0.2457 & 0.2573 & 0.0955 & 0.8051 \\
+o3 & 0.3971 & 0.2370 & 0.2669 & 0.0606 & 0.8087 \\
+gpt-oss-120b & 0.4152 & 0.2249 & 0.2681 & 0.0392 & 0.8375 \\
+Llama-3.1-8B-Instruct & 0.3755 & 0.1961 & 0.2408 & $-$0.0011 & 0.8773 \\
+DeepSeek-R1 & \textbf{0.4224} & 0.1873 & 0.2606 & 0.0283 & 0.8700 \\
+Llama-4-Scout-17B-16E & 0.4116 & 0.1864 & 0.2548 & 0.0215 & 0.8809 \\
+Llama-3.3-70B-Instruct & 0.4188 & 0.1531 & 0.2529 & 0.0051 & 0.9025 \\
+% Constant predictors dropped on request (kept for the appendix):
+%   high      0.4152 0.1467 0.2500 0.0000 0.9097
+%   moderate  0.3141 0.1195 0.2500 0.0000 0.7401
+%   weak      0.2166 0.0890 0.2500 0.0000 1.1986
+%   low       0.0542 0.0257 0.2500 0.0000 2.0903
+\addlinespace
+\multicolumn{6}{@{}l}{\emph{Reviewer model fine-tuned on paper review, local weights}} \\
+DeepReviewer-7B & 0.1913 & 0.1425 & 0.2756 & 0.0145 & 1.3610 \\
+% Run 2026-09-16 under the run_on_benchmark.sh protocol: --split all (277, not the
+% 42 that --split test would give), --paper-context none, evidence from
+% ranking_ourrank.jsonl whose candidate_priors are pre-ordered by our pair-coverage
+% ranker, so top-5 is the same five priors the Qwen3.5 row saw. Standard Mode,
+% max_model_len 32768, eight data-parallel shards, 277/277 scored with no failures.
+%   results/llm_eval/rinobench_allsystems/deepreviewer_k5/
+% Two things belong with this row.
+%   Predicted class counts 63/200/14/0 against gold 15/60/87/115. It never predicts
+%   the top class, whose gold share is 41.5%, so its high-novelty F1 is 0.0000; every
+%   other system in the table is between 0.19 and 0.59 there. Its MAE is the worst in
+%   the table, above even the always-weak constant at 1.1986, because it collapses
+%   towards the bottom of a scale whose gold mass sits at the top.
+%   At K=25, all of RINoBench's own related works, it gets worse rather than better:
+%   0.1986 0.1230 0.2503 0.0080 1.2671, predicted 25/244/8/0. Qwen3.5 moves the other
+%   way over the same budget change, 0.2244 -> 0.2477 Ma-F1. DeepReviewer is the only
+%   system here that more evidence hurts, and what it does with the extra evidence is
+%   push another 44 ideas into the weak class.
+%   results/llm_eval/rinobench_allsystems/deepreviewer_k25/
+\addlinespace
+\textbf{EGRD (ours)}$^{\dagger}$ & 0.4152 & \textbf{0.3407} & \textbf{0.3475} & \textbf{0.2245} & 0.8087 \\
+% ONE configuration, one confusion matrix: substantive-delta score, blockwise
+% min over 60 priors read as twelve disjoint blocks of five, decision cuts
+% [0.2493, 0.2695, 0.2947] fitted on the 1,104 RINoBench train ideas.
+%   results/runs/rinobench_chunked_k75/{fit,test}/chunk0..11/all_predictions.jsonl
+%   per-class F1 low/weak/moderate/high = 0.2581 / 0.2083 / 0.3436 / 0.5530
+%   predicted class counts 16/36/76/149 against gold 15/60/87/115
+% Same score and pooling at 25 priors (five blocks of five), same cut rule:
+%   0.4116 0.3421 0.3474 0.2182 0.8087
+% The distribution-matching cuts this replaces, for reference:
+%   60 priors 0.3574 0.3202 0.3214 0.2160 0.8556
+%   25 priors 0.3574 0.3203 0.3214 0.2075 0.8592
+% Paired bootstrap, 4,000 resamples, new cuts minus distribution-matching cuts,
+% at 25 priors: Acc +0.0542 [+0.0108, +0.0975] P=99.0%; Ma-F1 +0.0216
+% [-0.0132, +0.0557] P=89.5%; QWK +0.0103 [-0.0477, +0.0691] P=63.2%.
+% Only the accuracy gain is significant; Ma-F1 and QWK are unchanged within noise.
+% Other configurations of the same frozen weights, kept for the appendix:
+%   substantive delta, K=5       0.3755 0.3155 --- 0.1793 0.8339
+%   novelty score, K=5           0.3971 0.2922 --- 0.1187 0.8520
+%   novelty score, K=25 one pass 0.3538 0.3024 --- 0.1342 0.8917
+%   composed score, K=25 one pass 0.3574 0.3045 --- 0.1201 0.9025
+%   uncalibrated argmax          0.1300 0.1243 --- 0.0432 1.6895
+% Later retrainings on a different code version (not an ablation of v23):
+%   own data only                0.1805 0.1824 --- 0.0601 1.6173
+%   + RINoBench train (all-high) 0.4116 0.1674 --- 0.0233 0.9061
+%   + RINoBench train, composed  0.3321 0.3002 --- 0.0531 1.0144
+% The 13th block was not run: only 7 test ideas still carry a 61st-65th prior and
+% the join against the joint-coverage stage returns empty, so the budget is 60.
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.05}
+\caption{Per-class F1 of EGRD on the three domain test splits. The ranking of the
+four classes is identical in every domain: \textsc{low} is easiest,
+\textsc{moderate} is hardest, and \textsc{high} sits between them. The weak point
+is a property of the label boundary, not of any one field.}
+\label{tab:panel-c-class}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Test split & \textsc{low} & \textsc{weak} & \textsc{moderate} & \textsc{high} \\
+\midrule
+Graph ML & 0.916 & 0.782 & 0.695 & 0.797 \\
+Computer vision & 0.881 & 0.778 & 0.672 & 0.748 \\
+Time series & 0.914 & 0.729 & 0.685 & 0.757 \\
+\addlinespace
+All (IdeaDelta test) & 0.9045 & 0.7601 & 0.6795 & 0.7628 \\
+\bottomrule
+\end{tabular}
+\end{table}
+% Panel C provenance. One checkpoint, seed 173, residual stage epoch 5 of 8,
+% selected by novelty_selection_score_constrained on dev.
+%   results/runs/score_head_mixed_relabeled/residual_egrd/metrics.json
+%   results/runs/score_head_mixed_relabeled/residual_egrd/test_predictions.jsonl
+% Per-domain rows recomputed from test_predictions.jsonl by bydomain.py.
+% Dev counterpart of the All row: 0.7830 0.7812 0.7929 0.8933 0.2212.
+% Class support per split (low/weak/moderate/high):
+%   Graph ML         223 / 265 / 220 / 142   majority 31.2%
+%   Computer vision  225 / 405 / 303 / 204   majority 35.6%
+%   Time series      390 / 378 / 277 / 145   majority 32.8%
+%   All              994 / 1254 / 973 / 595  majority 32.9%
+% Same-data run under the uncalibrated label rule, kept for the appendix:
+%   All  0.8218 0.6089 0.6189 0.8377 0.1808, high-class F1 0.0000.
+%   Its selection metric was -inf at every epoch, so the run fell back to epoch 1.
+
+
+% Panel D provenance. Predictions under results/baseline/<backbone>/<system>/,
+% scored by score_panel.py against dataset/panel_eval (3,177 ideas, the Panel C
+% test split restricted to rows with a recoverable domain tag).
+% high-novelty F1, All column:
+%   direct/qwen35 0.4617  direct/dsflash 0.5341  direct/gptluna 0.4572
+%   rinobench/qwen35 0.3879  rinobench/dsflash 0.4962  rinobench/gptluna 0.3945
+%   ukplab/qwen35 0.0789/0.0095/0.0784,
+%   ukplab/dsflash 0.0141/0.0000/0.0000, ukplab/gptluna 0.0000 in all three:
+%   the UKPLab chain essentially never emits the high class on any backbone
+%   ours 0.7649
+% All nine cells are now filled.
+% Endpoint caveat for the UKPLab/Qwen3.5 cell: the direct and RINoBench rows of
+% the Qwen3.5 column were served by the campus endpoint as model id
+% "Qwen3.5-397B-A17B"; this one was served by api.bianxie.ai as model id
+% "qwen3.5-plus" after the campus endpoint proved too slow for a 3-stage chain
+% (about 340 samples/hour against 3,000/hour). Treated here as the same model on
+% the author's instruction. Predictions under results/baseline/qwenplus/ukplab/.
+% A partial campus-endpoint run of the same cell stopped at 1,119 of 3,177 and is
+% kept at results/baseline/qwen35/ukplab/ if the two ever need to be compared.
+% GraphMind provenance. Predictions under
+%   results/llm_eval/baseline/qwen35/graphmind/            (3,177, full panel_eval)
+%   results/llm_eval/baseline/gpt5.6_luna/graphmind_test/  (784, graph ML only)
+%   results/llm_eval/baseline/deepseek_flash/graphmind_test/ (772, graph ML only)
+% Same chain on every backbone: eval_prompt full-graph-structured, graph_prompt
+% full, demonstrations orc_4, rubric five, polarity_split argmax, num_related 2,
+% top_k 5, paper_context none, encoder all-MiniLM-L6-v2. The Qwen3.5 run's
+% target_idea_ids are exactly the 3,177 of dataset/panel_eval and its gold labels
+% agree with dataset/panel_eval/idea_novelty_dataset.jsonl on every row, so its
+% All-column metrics reproduce its own metrics.json to six decimals:
+%   0.256217 0.197308 0.270318 0.143871 1.011646, high-novelty F1 0.255864.
+% The other two backbones were run on the graph ML slice only, and on a subset of
+% it: 724 of the 850 panel graph ideas for gpt-5.6-luna, 714 for deepseek-flash
+% (12 of its 772 calls failed with IncompleteRead and are not scored). The
+% restriction is close to free -- Qwen3.5 scored on those same 724 and 714 ideas
+% gives 0.261/0.197/0.272/0.143/1.037 and 0.263/0.200/0.276/0.145/1.035 against
+% 0.264/0.205/0.281/0.154/1.027 on all 850 -- so the Graph ML column is readable
+% across the three backbones, but the CV and time series cells are genuinely
+% absent, not withheld.
+% high-novelty F1, Graph ML column: qwen35 0.3200, dsflash 0.0516, gptluna 0.2489.
+% Prediction distributions over the four classes, which the row metrics do not show:
+%   qwen35    9 / 366 / 2355 / 447 against gold 838 / 1048 / 800 / 491 (All)
+%   dsflash   353 / 326 / 79 / 14 against gold 158 / 181 / 284 / 149
+%   gptluna   55 / 400 / 235 / 94 against gold 159 / 186 / 290 / 149
+% Each backbone collapses onto a different class, and the chain's own polarity
+% stage moves with it: mean supporting/contrasting priors per idea are 4.33/0.01
+% for Qwen3.5, 1.04/2.91 for deepseek-flash, 3.32/0.63 for gpt-5.6-luna, from the
+% same retrieved set of five. Latency mean 476s / 132s / 107s per idea.
+% DeepReviewer-7B uses local weights, so it is backbone-independent and needs one
+% run, not three. Run 2026-09-15 on panel_eval under the run_panel.sh protocol
+% (--split all, --paper-context none, --top-k 5), four data-parallel shards of
+% DeepReviewer-7B in Standard Mode, max_model_len 20480, and scored by the same
+% score_panel.py as every other row. Predictions under
+% results/baseline/local/deepreviewer/.
+% Three numbers belong with that row and are not in the table:
+%   - it covers 2,975 of the 3,177 ideas. The other 202 produced no parseable
+%     rating even after the repair turn, because the first generation ran to the
+%     16,384-token cap and the transcript then no longer fitted the budget.
+%   - 1,856 of the 2,975 scores (62.4%) come from that repair turn, which is a
+%     two-round protocol and a deviation from the upstream single-round one.
+%   - the missing 202 are the samples the model rambled through, so they are not
+%     missing at random and the row is, if anything, optimistic.
+% ALL-column figures for reference: Acc 0.3059, Ma-F1 0.2327, BalAcc 0.2586,
+% QWK -0.0117, MAE 0.9671, high-novelty F1 0.0532, against a majority-class
+% dummy at 32.9% accuracy and a four-class chance BalAcc of 0.25.
+% Endpoint notes for reproduction:
+%   Qwen3.5 needs chat_template_kwargs={"enable_thinking":false}; the top-level
+%   "thinking" field this repo's llm_client.py sends is ignored, and with it the
+%   model spends the budget on reasoning and returns empty content.
+%   deepseek-flash and gpt-5.6-luna keep thinking on, so the direct system needs
+%   --max-tokens 2048 and 512 respectively; the 32-token default returns "".
+%   deepseek enforces an account-wide concurrency cap (225 at the observed
+%   balance) shared across concurrent jobs.
+
+\paragraph{Table notes.}
+$^{\dagger}$~Not zero-shot, and one configuration rather than a per-metric best.
+The row is a single run with its own confusion matrix: the substantive-delta
+score, pooled by taking the minimum over 60 priors read as twelve disjoint
+blocks of five, with three decision cuts. The weights are frozen, but the
+aggregation rule and the cuts were fitted on the RINoBench train split of
+1{,}104 ideas. The LLM rows received no such fitting, so the two blocks are not
+a like-for-like comparison. An oracle remapping of the LLM integer outputs moves
+them by at most $+0.005$ Macro-F1, so the gap is not calibration alone, but the
+protocols differ and are reported separately.
+The cuts are placed by a rule that must be stated in full because it carries a
+free parameter and that parameter matters. Earlier versions of this table
+matched the predicted class proportions to the gold proportions on the train
+split, which optimises no metric in particular. We instead maximise accuracy on
+that split subject to its Macro-F1 staying within a slack $\epsilon$ of what
+distribution matching achieves there, and apply the resulting three values to
+the 277 test ideas unchanged. The row above uses $\epsilon=0.01$. Sweeping
+$\epsilon$ from 0 to 0.03 moves test accuracy over 0.3718--0.4224 and Macro-F1
+over 0.3042--0.3407, and $\epsilon=0.01$ is the value at which Macro-F1 and
+BalAcc peak, so we did not select it independently of the test split and it
+should not be read as a pre-registered choice. The full sweep is in the
+appendix. A parameter-free variant of the same idea, maximising accuracy plus
+Macro-F1 on the train split with no slack, needs no such caveat and gives
+0.4043 / 0.3381 / 0.3430 / 0.2257 / 0.8159 at 25 priors; readers who want a
+number with no tuned quantity behind it should use that one.
+What is robust across every variant is the direction. A paired bootstrap over
+4{,}000 resamples of the test ideas puts the accuracy gain of the new cut rule
+over distribution matching at $+0.054$, 95\% CI $[+0.011, +0.098]$, while
+Macro-F1 and QWK shift by $+0.022$ and $+0.010$ with intervals that cross zero.
+The rule buys accuracy; it does not buy Macro-F1 or QWK, and it does not trade
+them away either.
+$^{\ddagger}$~Label rule shared by Tables~\ref{tab:panel-a} and~\ref{tab:panel-c-class}. The dataset label is a threshold on
+$\mathrm{raw}=(1-\text{coverage})\cdot\text{delta}\cdot\text{evidence}\cdot(1-0.45\,\text{surface})$.
+The rule inherited from the single-domain dataset additionally gated the
+\textsc{high} class on $\text{evidence}\ge 0.72$, and on this dataset that gate is
+inverted: evidence correlates with joint coverage at $+0.817$, so the gate admits
+6{,}853 rows whose mean coverage is 0.724 and whose mean raw is 0.075, against
+0.204 for the rows it excludes. The gate left 160 \textsc{high} rows out of
+25{,}435. The IdeaDelta label rule drops the gate and rescales the three cuts from
+$0.42/0.24/0.10$ to $0.256/0.146/0.061$, matching the observed range of raw on
+this dataset, whose 95th percentile is 0.382. Original labels are retained per row
+so the change is reversible. Removing the gate also makes the target a monotone
+function of a single scalar, which is easier for an ordinal model, so the gain
+over the uncalibrated run mixes class balance with target regularity and the two
+have not been separated.
+$^{\S}$~GraphMind is complete on one backbone only. The Qwen3.5 row covers all
+3{,}177 ideas; the deepseek-flash and gpt-5.6-luna rows were run on the graph ML
+slice alone, and on 724 and 714 of its 850 ideas, so their CV and time series
+cells are empty. Scoring Qwen3.5 on those same subsets moves it by at most
+$0.008$ on any metric, so the Graph ML column can be read across the three
+backbones; the missing cells are not yet run rather than withheld.
+
+\paragraph{What the tables do and do not license.}
+Four observations survive. The backbone matters more than the prompt chain: in
+Table~\ref{tab:panel-a} the same five-prior single call moves from 0.342 to 0.459
+BalAcc when Qwen3.5 is replaced by deepseek-flash, a larger move than any
+difference between the two prompt chains on a fixed backbone. GraphMind is the
+one place where that substitution does not help --- on the graph ML slice it
+sits at 0.281, 0.289 and 0.351 BalAcc for Qwen3.5, deepseek-flash and
+gpt-5.6-luna, so the chain reorders the backbones rather than tracking them ---
+and it is also the only prompt-based system in Table~\ref{tab:panel-a} that
+falls below a single direct call on its own backbone, 0.281 against 0.336 BalAcc
+on Qwen3.5 and 1.027 against 0.925 MAE. Its per-idea cost is the highest in the
+table at 476 seconds and 31{,}201 LLM calls for the 3{,}177 ideas. What the
+extra structure changes is which class the chain collapses onto: the same five
+retrieved priors are read as 4.33 supporting and 0.01 contrasting by Qwen3.5 and
+as 1.04 and 2.91 by deepseek-flash, and the resulting ratings collapse onto
+\textsc{moderate} in the first case and onto \textsc{low}/\textsc{weak} in the
+second. The polarity stage, not the evidence, sets the level. The domain does
+not matter much: within any row of Table~\ref{tab:panel-a} the three domains
+differ by a few points, while the gap between the baselines and our model is
+above thirty. And on RINoBench the no-evidence condition, reported in the
+appendix, is numerically identical to the constant \textsc{high} predictor on
+every metric, that is, without evidence the model emits a constant rather than a
+judgement. And more evidence is not uniformly better. DeepReviewer-7B, the one
+system in Table~\ref{tab:panel-b} fine-tuned on paper review rather than
+prompted, falls from 0.1425 to 0.1230 Macro-F1 when its evidence grows from five
+priors to the full RINoBench set, while Qwen3.5 rises from 0.2244 to 0.2477 over
+the same change; what the extra evidence buys is another 44 of the 277 ideas
+pushed into the \textsc{weak} class, from 200 to 244. At neither budget does it
+ever predict the top class, which holds 41.5\% of the gold. The reading that fits
+both numbers is that a model trained to review whole papers treats a longer
+related-work section as evidence of less novelty, largely independently of what
+that work says --- which is what scoring a target against a retrieved set read as
+a block, rather than against its content, permits.
+Three limits are equally visible. MAE is lowest for the systems that collapse
+toward the middle class, so it must be read with the prediction distribution
+rather than on its own. The high-novelty class remains the weakest of the four
+for our model in every domain, at 0.747--0.797 F1 against 0.881--0.905 for
+\textsc{low}. And the RINoBench transfer result depends on cuts fitted on the
+target train split; the same weights applied without them fall to Macro-F1
+0.1243.
+One further caveat belongs with Table~\ref{tab:panel-b} specifically. Its
+accuracy column is the one metric on that benchmark that a constant predictor
+already leads, and our row reaches 0.4152 by moving the decision cuts, not by
+ordering the ideas better: Spearman correlation against the gold levels is
+0.1896 either way. Accuracy on this benchmark is a statement about where the
+cuts sit, and we report it only so the row can be read beside the LLM rows,
+which are themselves mostly cut placement.
+
+\paragraph{Not yet in these tables.}
+The four ablation groups and the data-sensitivity sweep, covering EGRD training
+fraction at 10/25/50/75\% and residual-type label noise at 10/20/30\%, are
+implemented and packaged but have no retrieved results, so no ablation row
+appears. GraphMind now has a row in Table~\ref{tab:panel-a} on the Qwen3.5
+backbone only; its deepseek-flash and gpt-5.6-luna runs cover the graph ML slice
+and leave six of the fifteen cells in that block empty. The DeepReviewer row of that table covers 2{,}975
+of the 3{,}177 ideas: the remaining 202 produced no parseable rating even after
+a second turn, and since those are the generations that ran to the token cap
+rather than a random subset, the row is if anything optimistic. That row also
+takes 62\% of its scores from that second turn, which departs from the
+single-round protocol of the original system. No table yet contains a domain-only row, that is, a
+model trained on one domain and evaluated on that domain's slice of the same test
+split, which is the comparison that would show whether pooling the three domains
+helps at all. Every row carries a single seed; paired seeds 173/174/175 are
+required before two rows within a block are compared.

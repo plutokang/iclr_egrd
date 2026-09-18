@@ -1,0 +1,73 @@
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Automated research and idea generation.} Language models are
+increasingly used to carry out parts of the research process itself.
+\citet{wang2024scimon} retrieve inspirations from past literature and optimise
+explicitly for novelty by comparing a candidate against prior papers;
+\citet{baek2025researchagent} refine proposals against a set of LLM reviewing
+agents that give structured feedback along several dimensions; and
+\citet{lu2024aiscientist} close the loop from ideation through experiments to a
+written paper and a simulated review. \citet{si2024llmideas} evaluate what such
+pipelines produce, finding the generated ideas rated more novel than
+human-written ones but less feasible.
+Every one of these systems contains an internal novelty check, and it is the
+check rather than the generator that bounds them: once proposals are cheap, the
+output of the pipeline is whatever its filter admits. The filter is nonetheless
+the component these systems evaluate least directly, judged only through the
+ideas that eventually emerge downstream of it.
+
+\paragraph{Judging the novelty of scientific work.} Studied on its own, the
+check has passed through several generations of method. The earliest operate on
+citation statistics, measuring how unusual the combinations of references in a
+paper are against historical co-occurrence \citep{uzzi2013atypical}; they
+require the work to already exist and be cited, and reduce novelty to patterns
+of co-occurrence rather than to what a paper says. Document-level semantic
+representations replace surface statistics with learned relatedness, scoring how
+close a submission is to prior papers through citation-informed embeddings
+\citep{cohan2020specter,ostendorff2022scincl}, but they compare documents as
+points and recover nothing about which content is shared. Most recent systems
+retrieve related literature and hand the comparison to a language model.
+\citet{liang2024llmfeedback} obtain structured feedback from a single prompt, of
+which significance and novelty is one section, and report partial overlap with
+human reviews; \citet{zhu2025deepreview} train a
+reviewer model on a multi-stage process of structured analysis, retrieval, and
+evidence-based argumentation; \citet{afzal2026beyond} split the judgment into
+claim extraction, retrieval and synthesis of related work, and structured
+comparison, motivating the design with an analysis of human-written novelty
+reviews; and \citet{dasilva2025graphmind} build an interactive system on the
+same retrieve-then-compare pattern. \citet{schopf2026rinobench} supply the
+evaluation counterpart and report that model ratings still diverge substantially
+from expert ones even when the accompanying reasoning appears sound. Two
+properties persist across these generations, and both are structural rather
+than incidental. The evidence is retrieved by the system under evaluation, so
+its verdicts are unattributable: an error cannot be assigned to the retrieval or
+to the judgment, and the two therefore cannot be improved, or even measured,
+separately. We remove this by conditioning on a given, temporally admissible
+evidence set, which additionally turns the evidence into a variable that can be
+intervened on. The second property is that the target is scored as an undivided
+whole, against the closest prior work or against a retrieved set read as a
+block. Such a comparison returns one number per target, and no post-processing
+of that number can recover which part of the idea it is about; the information
+is discarded before the score is formed, not lost afterwards.
+
+\paragraph{Decomposed verification against evidence.} Saying which part remains
+requires decomposing the target, and outside novelty assessment this has become
+the standard recipe for factuality evaluation: break a text into smaller
+propositions and check each against retrieved evidence.
+\citet{min2023factscore} decompose a passage into atomic facts, verify each
+against a knowledge source, and report the supported fraction;
+\citet{wei2024safe} scale the same procedure with search as the evidence source;
+and in the scientific domain the corresponding task checks a stated claim
+against candidate abstracts while identifying the supporting rationales
+\citep{wadden2020scifact,wadden2022multivers}. Three properties of the recipe do
+not survive the move to research ideas. The propositions are assumed to be
+given, whereas an idea carries no stated claims, and the decomposition step is
+not a neutral preprocessor: \citet{wanner2024decomposition} show that scores of
+this family shift materially with the decomposition used. Support is treated as
+a label, whereas a prior work can cover part of a unit and not the rest. And
+each unit is verified independently before the results are averaged, so the
+score is a function of the per-unit coverages alone and cannot express whether
+a combination of units has precedent. We accordingly induce the units rather
+than reading them off the text, measure support as a graded quantity, and add a
+residual defined over pairs of units.

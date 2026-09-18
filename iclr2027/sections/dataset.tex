@@ -1,0 +1,122 @@
+% Dataset section. Main text is deliberately short: design and composition
+% here, procedure and validity evidence in Appendix A (sections/dataset_details).
+%
+% Dataset: dataset/multi_domain_dataset/. Every number below was read from the
+% data files themselves, not from any summary document:
+%   */dataset_manifest.json              counts, label distributions, date range
+%   mixed/idea_novelty_dataset.jsonl     per-domain novelty distribution (the
+%       dataset carries a native `domain` field; nothing is recovered by matching)
+%   mixed/pair_staged/*.jsonl            pair split sizes
+% Idea-level split sizes follow from applying the pair_staged date cuts
+% (< 202502, 202502--202510, >= 202511) to target_date; they are reproducible
+% from idea_novelty_dataset.jsonl alone.
+%
+% OPEN: Section 5 and Section 6 still carry numbers from the earlier 25,435-row
+% build (3,816 test / 3,177 domain-identified / 17,804-3,815-3,816 splits) and
+% need replacing with results measured on this dataset.
+
+\section{Dataset}
+\label{sec:dataset}
+
+Novelty can only be assessed relative to earlier work. Each evaluation example
+must therefore specify a target idea, the prior ideas available when it was
+proposed, and the contribution that remains after accounting for those priors.
+We construct \textsc{IdeaDelta} to provide these three elements.
+
+\subsection{Task and labels}
+\label{sec:dataset-task}
+
+The unit of annotation is a research \emph{idea}: one innovation claim extracted
+from a paper. For example, a paper that introduces both a new objective and a
+new architecture contributes two ideas, which are evaluated separately. Let
+$x$ denote a target idea published at time $t_x$. Its admissible priors are
+$\mathcal{P}_x=\{p_k\mid t_{p_k}<t_x\}$. This temporal constraint is essential:
+an idea published after the target cannot serve as evidence about the target's
+novelty, regardless of its semantic similarity. We annotate each target--prior
+pair with one of four coverage levels and each target with an ordered novelty
+grade from \textsc{low} to \textsc{high}.
+
+Rather than assign novelty as a single overall impression, we derive it from
+four annotated quantities:
+\begin{equation}
+ \mathrm{raw}(x)=\bigl(1-C_x\bigr)\cdot\Delta_x\cdot E_x\cdot
+                 \bigl(1-\lambda S_x\bigr),
+ \qquad \lambda=0.45,
+ \label{eq:novelty-rule}
+\end{equation}
+where $C_x$ measures how much of the target is jointly covered by the retained
+priors, $\Delta_x$ measures the substantive contribution that remains,
+$E_x$ measures whether the retrieved evidence is sufficient for assessment,
+and $S_x$ measures how much of the claimed difference is merely surface-level.
+We convert the resulting score into the four ordered novelty grades. The rule
+assigns lower novelty when prior work already covers the target, when the
+remaining difference is not substantive, when the available evidence is
+insufficient, or when the difference consists mainly of renaming or other
+surface changes.
+
+\subsection{Construction}
+\label{sec:dataset-construction}
+
+\paragraph{Paper selection and idea extraction.}
+We collect arXiv papers from graph machine learning, computer vision, and time
+series. We prioritize papers that were subsequently published, especially at
+major venues. An LLM extracts innovation claims from the title, abstract, and
+introduction. A second pass removes statements that do not describe a
+substantive research contribution, including open-source announcements, bare
+state-of-the-art claims, and engineering deliverables.
+
+\paragraph{Prior retrieval.}
+For each target, nearest-neighbor search over idea embeddings retrieves
+candidate priors published before the target. An LLM adjudicates candidates in
+the uncertain similarity range. We also perform a cross-type retrieval pass so
+that a target can be linked to relevant prior work of another contribution type.
+All target--prior pairs remain within the same research domain.
+
+\paragraph{Annotation.}
+The same judge, \texttt{deepseek-v4-pro}, annotates all stages. It first assigns
+pairwise coverage labels, with ambiguous cases judged from their technical
+content. It then estimates joint coverage, the remaining substantive
+contribution, evidence sufficiency, and surface-level difference for each
+target. Equation~(\ref{eq:novelty-rule}) converts these quantities into the
+idea-level novelty grade. The labels are model-generated, and we manually
+inspect samples from each stage. Appendix~\ref{app:dataset} describes the full
+pipeline.
+
+\subsection{Composition}
+\label{sec:dataset-composition}
+
+\textsc{IdeaDelta} contains $21{,}111$ annotated ideas and $92{,}876$ annotated
+target--prior pairs, with target dates ranging from 2019-01 to 2026-09
+(Table~\ref{tab:dataset-composition}). Each idea records its source domain, and
+the \emph{All} column is the union of the three domain subsets rather than an
+additional collection. We order the train, validation, and test splits by date,
+with cut points at 2025-02 and 2025-11. The resulting splits contain
+$59{,}269/16{,}436/17{,}171$ pairs and $13{,}815/3{,}944/3{,}352$ ideas.
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\caption{Dataset composition. Counts of ideas and of target--prior pairs, and the
+idea-level novelty distribution. Pairs are formed within a source domain only.}
+\label{tab:dataset-composition}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+& Graph ML & Computer vision & Time series & All \\
+\midrule
+Ideas & 5{,}225 & 8{,}291 & 7{,}595 & 21{,}111 \\
+Pairs & 21{,}183 & 36{,}238 & 35{,}455 & 92{,}876 \\
+\addlinespace
+\textsc{low} & 819 & 901 & 1{,}724 & 3{,}444 \\
+\textsc{weak} & 1{,}240 & 1{,}711 & 1{,}614 & 4{,}565 \\
+\textsc{moderate} & 2{,}247 & 2{,}777 & 2{,}173 & 7{,}197 \\
+\textsc{high} & 919 & 2{,}902 & 2{,}084 & 5{,}905 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Because the labels are model-generated, we further test whether they behave as
+novelty labels should. Appendix~\ref{app:dataset-validity} examines whether
+metadata can predict the labels, whether the retrieved prior content matters,
+and whether the assigned novelty changes appropriately when the evidence is
+modified.

@@ -1,0 +1,376 @@
+\subsection{Historical coverage models}
+\label{app:method-evidence}
+
+\paragraph{Pair coverage and evidence selection.}
+For each target--prior pair $(x,p_k)$, the pair coverage model estimates how
+much of the target the prior accounts for. It outputs a score $s_k\in[0,1]$
+and a distribution over four classes: unrelated, related but uncovered,
+partially covered, and largely covered. A cross-encoder predicts relatedness
+$a_k$, coverage conditional on relatedness $b_k$, and large coverage
+conditional on coverage $d_k$. These probabilities define the class
+distribution
+\begin{equation}
+ \boldsymbol{\pi}^{\mathrm{pair}}_k
+ = [1-a_k,\;a_k(1-b_k),\;a_kb_k(1-d_k),\;a_kb_kd_k].
+ \label{eq:pair-probs}
+\end{equation}
+With classes indexed from $0$ to $3$, the coverage score is
+$s_k=\tfrac12\pi^{\mathrm{pair}}_{k,2}+\pi^{\mathrm{pair}}_{k,3}$.
+The reference pipeline ranks temporally admissible candidates by
+$s_k+0.02\ell_k/3$, where $\ell_k$ is the predicted ordinal coverage label,
+and retains at most $K$ priors. The reported IdeaDelta checkpoint instead
+uses the ordering and pair annotations supplied in the dataset ranking
+records, as detailed under the evidence-source protocol below. In both
+cases, the retained priors and their pair coverage features form the evidence
+inputs to the subsequent stages.
+
+\paragraph{Joint coverage.}
+Different priors may cover different parts of the target. We therefore
+estimate their joint coverage with a multiple-instance model, treating each
+pair $(x,p_k)$ as an instance and the retained evidence set as a bag
+\citep{ilse2018attentionmil}. Let $n=|\mathcal{E}_x|$ denote the number of
+retained priors. A shared cross-encoder maps each pair to a representation
+$\boldsymbol{h}^{J}_k$, from which the model computes attention weights
+$\beta_k$ and internal evidence scores $e_k$:
+\begin{equation}
+ \beta_k=\operatorname{softmax}_{k}(\boldsymbol{w}_a^\top\boldsymbol{h}^{J}_k+b_a),
+ \qquad e_k=\sigma(\boldsymbol{w}_e^\top\boldsymbol{h}^{J}_k+b_e).
+\end{equation}
+For a nonempty evidence set, noisy-OR pools the evidence scores as
+\begin{equation}
+ e_{\cup}=1-\prod_{k=1}^{n}(1-e_k)
+ \label{eq:noisy-or}
+\end{equation}
+The model summarizes these scores by their noisy-OR aggregate, maximum,
+mean, and the fraction of available evidence slots. It concatenates these
+statistics with attention-pooled and elementwise maximum-pooled pair
+representations:
+\begin{align}
+ \boldsymbol{v}_E
+ &=\left[e_{\cup},\;
+          \max_k e_k,\;\frac{1}{n}\sum_{k=1}^{n}e_k,\;\frac{n}{K}\right],
+ \\
+ \boldsymbol{z}_J
+ &=f_J\left(\left[\sum_{k=1}^{n}\beta_k\boldsymbol{h}^{J}_k;
+              \operatorname{max}_{k}\boldsymbol{h}^{J}_k;
+              \boldsymbol{v}_E\right]\right).
+ \label{eq:joint-bag}
+\end{align}
+Here $f_J$ is an MLP. Attention pooling aggregates
+evidence across priors, while maximum pooling retains the strongest feature
+values. A hierarchical head maps $\boldsymbol{z}_J$ to three probabilities:
+any coverage, substantial coverage conditional on any coverage, and mostly
+covered conditional on substantial coverage. Using the factorization in
+Eq.~(\ref{eq:pair-probs}), these probabilities yield
+$\boldsymbol{\pi}^{J}$ over four joint-coverage classes: \emph{not},
+\emph{weakly}, \emph{partially}, and \emph{mostly} covered. The scalar
+joint-coverage estimate is
+$C_J=\sum_{\ell=0}^{3}\mu_\ell\pi^J_\ell$, where $\mu_\ell$ is the mean
+annotated coverage score for class $\ell$ on the training split.
+Both $C_J$ and $\boldsymbol{\pi}^{J}$ are supplied as fixed inputs to the
+residual and novelty modules. The noisy-OR aggregate $e_{\cup}$ contributes
+one of the four statistics in $\boldsymbol{v}_E$; the joint-coverage
+prediction is learned from the full bag representation.
+
+\subsection{Residual representations and pooling}
+\label{app:method-representations}
+
+\paragraph{Pair encoding.}
+For each target--prior pair $(x,p_k)$, the residual cross-encoder produces
+token states $\boldsymbol{H}_k\in\mathbb{R}^{L\times d}$, where $L$ is the
+input sequence length. We apply masked mean pooling to obtain the pair
+representation and augment it with projected pair coverage features:
+\begin{equation}
+ \boldsymbol{v}_k=\operatorname{MeanPool}(\boldsymbol{H}_k),
+ \qquad
+ \widetilde{\boldsymbol{v}}_k=\boldsymbol{v}_k+f_P(\boldsymbol{f}_k),
+\end{equation}
+where $f_P$ consists of a linear map, layer normalization, GELU, and dropout.
+The residual encoder shares parameters across all retained priors. To
+construct the target token bank, we average target-token states at matching
+positions across valid pairs. Masked mean pooling over this bank yields the
+target representation $\hbar_x$ used in residual fusion.
+
+\paragraph{Coverage reconstruction.}
+To supervise the unit coverage estimates, we aggregate them into a scalar
+joint-coverage prediction. The pooling weights depend on both the semantic
+representation and the activity of each unit:
+\begin{equation}
+ \widehat C_U=\sum_{m=1}^{M}\omega_m c_m,\qquad
+ \omega_m=\frac{v_m\exp(\boldsymbol{w}_c^\top\boldsymbol{u}_m+b_c)}
+ {\sum_{r=1}^{M}v_r\exp(\boldsymbol{w}_c^\top\boldsymbol{u}_r+b_c)}.
+ \label{eq:reconstructed-coverage}
+\end{equation}
+The resulting estimate $\widehat C_U$ is supervised by annotated coverage
+and the fixed Stage~A prediction. This aggregate supervision constrains unit
+coverage but does not uniquely determine the latent support matrix. We use
+noisy-OR as a differentiable rule for aggregating support; its use does not
+establish that support from different priors is statistically independent.
+
+\paragraph{Interaction encoding and attention.}
+For each unit pair $i<j$, an MLP $f_I$ encodes the two units and their
+elementwise comparisons into an interaction representation. A sigmoid head
+then predicts the interaction strength:
+\begin{equation}
+ \boldsymbol{t}_{ij}=f_I([\boldsymbol{u}_i;\boldsymbol{u}_j;
+ \boldsymbol{u}_i\odot\boldsymbol{u}_j;|\boldsymbol{u}_i-\boldsymbol{u}_j|]),
+ \qquad g_{ij}=\sigma(\boldsymbol{w}_g^\top\boldsymbol{t}_{ij}+b_g).
+\end{equation}
+Using the interaction residual weights $r_{ij}$ defined in Stage~B, we
+compute attention over all $\binom{M}{2}$ unit pairs:
+\begin{equation}
+ \eta_{ij}=\operatorname{softmax}_{i<j}
+ \left(\boldsymbol{w}_I^\top\boldsymbol{t}_{ij}+b_I+
+ \log(r_{ij}+\varepsilon)\right),\qquad
+ \boldsymbol{z}_I=\sum_{i<j}\eta_{ij}r_{ij}\boldsymbol{t}_{ij}.
+ \label{eq:interaction-pooling}
+\end{equation}
+The logarithmic bias directs attention toward pairs with larger residual
+weights. Multiplication by $r_{ij}$ during pooling also preserves the scale
+of the residual weights, allowing weak residuals to contribute less even
+after attention normalization.
+
+\subsection{Residual fusion, prediction heads, and decision rules}
+\label{app:method-heads}
+
+\paragraph{Context gate.}
+The fusion gate conditions the contribution of global context on the two
+residual representations and the uncertainty of the joint-coverage
+prediction. Let $H_J$ denote the normalized entropy of
+$\boldsymbol{\pi}^{J}$. The gate is
+\begin{equation}
+ \gamma=\sigma\left(f_\gamma([
+ \boldsymbol{z}_U;\boldsymbol{z}_I;\boldsymbol{z}_G;H_J])\right).
+\end{equation}
+The gated context $\gamma\boldsymbol{z}_G$ enters residual fusion alongside
+$\boldsymbol{z}_U$ and $\boldsymbol{z}_I$. Global context
+$\boldsymbol{z}_G$ also enters the final shared representation directly.
+Thus, $\gamma$ controls the context contribution within the residual branch,
+while the direct context path remains available to the prediction heads.
+
+\paragraph{Auxiliary predictions.}
+The auxiliary heads use the shared representation $\boldsymbol{h}$ to predict
+substantive difference $\widehat d$, surface change $\widehat s$, evidence
+sufficiency $\widehat e$, and residual-type probabilities
+$\boldsymbol{\pi}^{T}$. The first three outputs are sigmoid scores; the type
+prediction uses the hierarchy described below.
+
+\paragraph{Residual types.}
+The type hierarchy distinguishes a minor variant from six substantive families:
+conceptual innovation, mechanism or system, task or application, training or
+evaluation, data-related innovation, and combination. Conditional fine heads
+yield eleven types in total. The minor/substantive gate additionally reads
+$\widehat d$, $\widehat s$, and $\max_{i<j}r_{ij}$. The probability assigned
+to the combination type is multiplied by
+$0.70+0.30\sigma(f_{\mathrm{comb}}(\boldsymbol{z}_I))$ before the hierarchical
+distribution is renormalized. The final type distribution is a convex mixture
+of the hierarchical and flat predictions, with flat weight $0.15$.
+
+\paragraph{Novelty branches.}
+All novelty branches receive the prediction features
+\begin{equation}
+ \boldsymbol{\xi}=[\boldsymbol{h};\widehat d;\widehat s;\widehat e;
+                    \boldsymbol{\pi}^{T};C_J;\boldsymbol{\pi}^{J}].
+\end{equation}
+We encode \textsc{low}, \textsc{weak}, \textsc{moderate}, and \textsc{high}
+as $0$, $1$, $2$, and $3$, respectively. A direct linear classifier and a
+two-layer MLP classifier map $\boldsymbol{\xi}$ to class distributions
+$\boldsymbol{p}^{D}$ and $\boldsymbol{p}^{R}$. The MLP branch uses the
+full prediction features $\boldsymbol{\xi}$.
+
+The ordinal branch models cumulative probabilities of reaching each grade
+threshold. It produces three sigmoid gates $g_1,g_2,g_3$ from
+$\boldsymbol{\xi}$ and defines
+\begin{equation}
+ q_1=g_1,\quad q_2=g_1g_2,\quad q_3=g_1g_2g_3,
+ \qquad \boldsymbol{p}^{O}=[1-q_1,\;q_1-q_2,\;q_2-q_3,\;q_3].
+\end{equation}
+Here $q_\ell$ estimates the probability that $y\geq\ell$, with
+$q_1\geq q_2\geq q_3$ by construction.
+
+\paragraph{Probability fusion.}
+We aggregate the three branch distributions through a convex mixture:
+\begin{equation}
+ \boldsymbol{p}=\lambda_D\boldsymbol{p}^{D}
+               +\lambda_O\boldsymbol{p}^{O}
+               +\lambda_R\boldsymbol{p}^{R},\qquad
+ \lambda_D+\lambda_O+\lambda_R=1,
+ \quad \lambda_D,\lambda_O,\lambda_R\geq0.
+ \label{eq:novelty-fusion}
+\end{equation}
+The fused distribution provides the initial grade for the refinement below.
+
+\paragraph{Moderate-to-high refinement.}
+A separate binary head $h_{MH}=\sigma(f_{MH}(\boldsymbol{\xi}))$ scores
+the distinction between moderate and high novelty. At inference, let
+$y_0=\arg\max_\ell p_\ell$ for the mixture in
+Eq.~(\ref{eq:novelty-fusion}), and define
+\begin{equation}
+ h_{\mathrm{high}}=\alpha_Dp^D_3+\alpha_Op^O_3+\alpha_{MH}h_{MH},\qquad
+ \widehat y=
+ \begin{cases}
+ 3,&y_0=2\ \text{and}\ h_{\mathrm{high}}\geq\theta_{MH},\\
+ y_0,&\text{otherwise}.
+ \end{cases}
+\end{equation}
+where $\alpha_D,\alpha_O,\alpha_{MH}\geq0$ and
+$\alpha_D+\alpha_O+\alpha_{MH}=1$. The refinement applies a threshold to
+this weighted score and does not require separate agreement from all three
+heads. For example, an initial \textsc{moderate} prediction is promoted to
+\textsc{high} if the combined score reaches $\theta_{MH}$, even if the
+individual heads favor different grades. The distribution-mixture weights
+and refinement threshold are selected on development data and fixed for
+testing. Appendix~\ref{app:method-training} reports the implementation values.
+
+\paragraph{Continuous outputs.}
+A separate sigmoid head predicts a continuous novelty score. At inference,
+novelty grades are determined by probability fusion and the moderate-to-high
+refinement; the continuous score output does not enter that decision rule.
+The continuous score head and the substantive-difference head are separate
+readouts; the latter is used in the blockwise RINoBench evaluation.
+
+\subsection{Training and implementation details}
+\label{app:method-training}
+
+This section supplements the training objective in
+Eq.~(\ref{eq:training-objective}) with the loss definitions and implementation
+settings for the prediction modules of Appendix~\ref{app:method-heads} and the
+residual decomposition of Appendix~\ref{app:method-representations}.
+
+\paragraph{Supervision.}
+The classification group $\mathcal{L}_{\mathrm{nov}}$ trains the direct and MLP
+classifiers with class-weighted cross-entropy, the ordinal outputs against
+$\mathbf{1}[y\geq\ell]$, $\ell=1,2,3$, with weighted binary cross-entropy, and
+the fused distribution with a negative log-likelihood. The moderate-to-high head
+sees only moderate and high examples and adds a positive--negative margin to its
+binary cross-entropy, weighting moderate examples scored as high more heavily.
+The type group $\mathcal{L}_{\mathrm{type}}$ combines the hierarchy's
+conditional losses, a flat classification loss, binary supervision for
+nontrivial combinations, and consistency penalties tying the combination branch
+to the type predictions. The separate novelty score regresses the continuous
+annotation target
+\begin{equation}
+ s^*=(1-C^*)d^*e^*(1-0.45s^*_{\mathrm{surface}}),
+\end{equation}
+formed from annotated coverage, substantive difference, evidence sufficiency,
+and surface change.
+
+\paragraph{Scalar heads: level and ranking terms.}
+Let $\ell_\delta$ denote smooth-$L_1$ loss and $w_x$ the example weight. For
+$a\in\mathcal{A}$, the level loss is
+$\mathcal{L}_a=\sum_xw_x\ell_\delta(\widehat a_x-a^*_x)/\sum_xw_x$, where
+$a^*_x$ is the annotation and $\widehat a_x$ the prediction. The corresponding
+ranking term takes within-minibatch pairs separated by
+$|a^*_x-a^*_{x'}|\geq0.05$ and contributes
+$[0.02-\operatorname{sgn}(a^*_x-a^*_{x'})(\widehat a_x-\widehat a_{x'})]_+$,
+weighted by $\sqrt{w_xw_{x'}}$; it is dropped when a minibatch holds no
+eligible pair. The ranking terms of $\Delta$, $S$, $E$, and $C$ are summed into
+$\mathcal{L}_{\mathrm{rank}}$ with the internal weights of
+Table~\ref{tab:method-settings}; the novelty score's ranking term is carried
+inside $\mathcal{L}_{\nu}$ instead, where it takes most of the weight because
+the grade is read off the score by thresholding and therefore depends only on
+order.
+
+The ranking terms are not redundant with the level losses. At the transition
+$\delta$ and target spread used here the level losses operate in their $L_1$
+regime, whose optimum is the median of the target, and a head supervised by the
+level loss alone drifts towards emitting a near-constant value; the evidence
+head is the clearest case. Ranking is scale-free and counteracts this.
+
+\paragraph{Coverage term.}
+Beyond its level loss against the annotated joint value $C^*$,
+$\mathcal{L}_{C}$ adds a consistency loss against the upstream score $C_J$ at
+relative weight $0.2$, reweighted by $1-H_J$ so that examples with uncertain
+upstream coverage count for less. No observed unit-level support matrix is
+supplied as a target.
+
+\paragraph{Decomposition regularization and variance floor.}
+$\mathcal{L}_{\mathrm{dec}}$ combines three terms. Attention regularization
+penalizes the squared entries of $\widetilde\alpha\widetilde\alpha^\top-I$ for
+the row-normalized attention matrix $\widetilde\alpha$, plus half the mean
+off-diagonal cosine similarity. Query diversity penalizes the mean squared
+cosine similarity between distinct queries. A usage penalty
+$D_{\mathrm{KL}}(\boldsymbol{\rho}\|\boldsymbol{u})$, with
+$\rho_m=\sum_jB_{mj}/\sum_{r,j}B_{rj}$ and $\boldsymbol{u}$ uniform over the $M$
+units, keeps units from going unused. Their relative weights are given in
+Table~\ref{tab:method-settings}.
+
+The variance floor is a separate term rather than a component of
+$\mathcal{L}_{\mathrm{dec}}$, and enters
+Eq.~(\ref{eq:training-objective}) under its own coefficient:
+\begin{equation}
+ \mathcal{L}_{\mathrm{var}}
+ =\mathbb{E}_x\bigl[[\nu-\operatorname{Var}_m(c_{x,m})]_+/\nu\bigr].
+\end{equation}
+It acts on the unit coverages rather than on the token assignments, and keeps
+the $c_m$ within an example from coinciding. The reported configuration uses
+softmax competition with dot-product scores.
+
+\paragraph{Curriculum and feature perturbation.}
+For a randomly sampled fraction of training examples the joint-coverage features,
+together with the associated probability and entropy features, are replaced by
+values derived from annotated joint coverage, with probability $0.50$ in epoch
+1, $0.20$ in epoch 2, and $0$ thereafter. This is training-time supervision
+only: development and test runs always use the upstream joint predictions.
+Selected joint-coverage features on the global-context path also receive
+Gaussian noise of standard deviation $0.03$ and independent feature dropout at
+probability $0.10$, which leaves untouched both the direct coverage inputs to
+the novelty heads and the entropy input to the fusion gate.
+
+\paragraph{Inputs and initialization.}
+Pair probabilities missing from a supplied ranking record are reconstructed by
+the input adapter from the available coverage label and score; pair labels and
+scores also appear in the pair text input. The two facet embeddings entering
+$\boldsymbol{z}_G$ have dimension $32$ each. The model uses DeBERTa-v3-base
+with hidden dimension $768$, maximum pair-input length $384$, $K=5$, and $M=8$;
+the residual encoder is initialized from the learned joint model and upstream
+checkpoints stay fixed. Padded priors have zero support, support values are
+capped at $0.995$ for numerical stability, and an empty evidence set falls back
+to a target-containing input with all prior support masked out. Fusion uses
+refinement weights $(\alpha_D,\alpha_O,\alpha_{MH})=(0.40,0.30,0.30)$ and
+mixture weights $(\lambda_D,\lambda_O,\lambda_R)=(0.50,0.35,0.15)$ in training;
+development-set calibration selects $(0.60,0.20,0.20)$ and $\theta_{MH}=0.32$
+for inference, fixed thereafter. Table~\ref{tab:method-settings} lists the
+remaining settings.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Residual-stage settings for the reported IdeaDelta checkpoint.
+The checkpoint was selected on development data at epoch 5 of 8.}
+\label{tab:method-settings}
+\begin{tabular}{@{}lr@{}}
+\toprule
+Setting & Value \\
+\midrule
+Training batch size / evaluation batch size & 2 / 8 \\
+Head learning rate / encoder learning rate & $1.5\times10^{-5}$ / $3\times10^{-6}$ \\
+Weight decay / dropout & 0.01 / 0.15 \\
+Smooth-$L_1$ transition $\delta$ & 0.25 \\
+\addlinespace
+$\lambda_\Delta$ / $\lambda_S$ / $\lambda_E$ & 1.0 / 0.6 / 0.8 \\
+$\lambda_C$ / $\lambda_\nu$ & 0.3 / 0.6 \\
+$\lambda_{\mathrm{nov}}$ / $\lambda_{\mathrm{type}}$ & 0.8 / 1.0 \\
+$\lambda_{\mathrm{rank}}$ & 0.5 \\
+$\lambda_{\mathrm{dec}}$ / $\lambda_{\mathrm{var}}$ & 0.05 / 0.02 \\
+\addlinespace
+Within $\mathcal{L}_{\mathrm{rank}}$: $\Delta$ / $S$ / $E$ / $C$ & 1.0 / 0.5 / 0.5 / 0.5 \\
+Within $\mathcal{L}_{\nu}$: ranking weight & 2.0 \\
+Within $\mathcal{L}_{C}$: Stage~A consistency weight & 0.2 \\
+Within $\mathcal{L}_{\mathrm{dec}}$: attention / query / usage & 0.7 / 0.1 / 0.2 \\
+Variance floor $\nu$ & 0.0025 \\
+\addlinespace
+Seed & 173 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Evidence-source protocol.}
+The reference pair pipeline predicts coverage features and ranks priors by the
+rule in Appendix~\ref{app:method-evidence}, while the upstream joint model is
+trained with bag-level coverage supervision and an auxiliary pair-score
+regression objective. For the reported checkpoint the evidence order and pair
+annotations come from the dataset ranking records, so the configuration
+evaluates novelty prediction with supplied pair annotations and predicted joint
+coverage. Applying the model to an unseen idea additionally requires computing
+the pair evidence features.
