@@ -24,6 +24,34 @@ records, as detailed under the evidence-source protocol below. In both
 cases, the retained priors and their pair coverage features form the evidence
 inputs to the subsequent stages.
 
+\paragraph{Pair feature vector.}
+The features carried into Stages~B and~C are
+\begin{equation}
+ \boldsymbol{f}_k=\bigl[\,s_k;\;s_k+0.02\ell_k/3;\;
+ \boldsymbol{\pi}^{\mathrm{pair}}_k;\;a_k;\;a_kb_k;\;d_k;\;
+ \kappa_k/K;\;\mathbb{1}[\text{prior text available}]\,\bigr]
+ \in\mathbb{R}^{11},
+ \label{eq:pair-features}
+\end{equation}
+where $\kappa_k$ is the prior's rank within $\mathcal{E}_x$. The first seven
+entries are deterministic functions of $(a_k,b_k,d_k)$ through
+Eq.~(\ref{eq:pair-probs}), so $\boldsymbol{f}_k$ carries three degrees of
+freedom from the pair model alongside the two ranking quantities and the
+availability flag. We keep the redundant parameterization because the
+downstream projections consume these quantities at different scales.
+
+\paragraph{Global context features.}
+The twenty-one scalars projected into $\boldsymbol{z}_G$ are the scaled target
+timestamp; ten statistics of the pair scores over $\mathcal{E}_x$---the
+fraction of the $K$ evidence slots that are filled, the maximum, mean,
+standard deviation and sum of the $s_k$, a union score over them, the
+fractions of retained priors judged covering and judged related, the margin
+between the top two ranking scores, and the entropy of the pair scores; and
+ten joint-coverage features---two scalar coverage estimates, the raw and
+normalized entropies of $\boldsymbol{\pi}^{J}$, an indicator for whether a
+joint prediction is available, the gap between the joint estimate and the
+pair-score union, and $\boldsymbol{\pi}^{J}$ itself.
+
 \paragraph{Joint coverage.}
 Different priors may cover different parts of the target. We therefore
 estimate their joint coverage with a multiple-instance model, treating each

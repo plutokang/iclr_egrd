@@ -54,8 +54,9 @@ $\mathcal{P}_x=\{p_k\mid t_{p_k}<t_x\}$, where $t_{p_k}$ denotes the timestamp
 of prior idea $p_k$. We retain the top-$K$ ranked priors, or all candidates if
 fewer are available, to form the evidence set
 $\mathcal{E}_x\subseteq\mathcal{P}_x$ ($K=5$ in our experiments). Each retained
-prior $p_k$ is associated with coverage features $\boldsymbol{f}_k$ for the
-target--prior pair.
+prior $p_k$ carries a vector of pair coverage features
+$\boldsymbol{f}_k\in\mathbb{R}^{11}$, listed in
+Appendix~\ref{app:method-evidence}.
 
 To estimate coverage across the evidence set, we use a multiple-instance
 model \citep{ilse2018attentionmil}. A cross-encoder encodes each target--prior
@@ -69,9 +70,9 @@ as fixed inputs to Stages~B and~C, grounding the residual decomposition and
 providing coverage information for novelty prediction.
 
 We summarize the evidence set in a global context vector $\boldsymbol{z}_G$,
-a learned projection of twenty-one scalars---the scaled target timestamp,
-pair-score statistics over $\mathcal{E}_x$, and the joint coverage score,
-entropy, and distribution $\boldsymbol{\pi}^{J}$---concatenated with
+a learned projection of twenty-one scalars---the scaled target timestamp, ten
+pair-score statistics over $\mathcal{E}_x$, and ten joint-coverage features
+(Appendix~\ref{app:method-evidence})---concatenated with
 embeddings of two target facets (aspect and contribution type).
 Apart from the timestamp and the facets, $\boldsymbol{z}_G$ is a
 re-encoding of the Stage~A outputs, and Stage~C consumes it as a summary of
