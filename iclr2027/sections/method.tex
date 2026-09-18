@@ -190,10 +190,10 @@ residual branch:
  \boldsymbol{z}_R=f_R([\boldsymbol{z}_U;\boldsymbol{z}_I;
                        \gamma\boldsymbol{z}_G]),\qquad
  \boldsymbol{h}=\operatorname{LayerNorm}([
- \boldsymbol{z}_R;\boldsymbol{z}_C;\bar{\boldsymbol{h}}_x;\boldsymbol{z}_G]),
+ \boldsymbol{z}_R;\boldsymbol{z}_C;\hbar_x;\boldsymbol{z}_G]),
  \label{eq:residual-fusion}
 \end{equation}
-where $\bar{\boldsymbol{h}}_x$ is obtained by masked mean pooling over the target token bank.
+where $\hbar_x$ is obtained by masked mean pooling over the target token bank.
 The shared representation $\boldsymbol{h}$ retains the covered content,
 the target representation, and a direct path for global context. The gate
 therefore controls context only within residual fusion.
