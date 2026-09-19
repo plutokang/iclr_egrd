@@ -1,81 +1,71 @@
 \section{Introduction}
 \label{sec:intro}
 
-Judging whether a research idea is new is difficult, and the growing volume of
-published work makes it harder. Novelty is not a monotone function of textual
-similarity to any single prior work, and separating a genuine advance from a
-restatement is in practice a judgment that draws on familiarity with the field.
-We therefore study \emph{evidence-conditioned} novelty assessment: grading a
-target idea relative to an explicit set of prior works published before it.
-Fixing this set makes the basis of each judgment inspectable and turns the
-evidence into a variable that can be controlled.
+Language models now propose research ideas faster than anyone can vet them, and
+deciding which of those ideas is new is the step that does not scale. Novelty is
+not a monotone function of textual similarity to any single prior work. We
+therefore study \emph{evidence-conditioned} novelty assessment: grading a target
+idea against an explicit set of prior works published before it, which makes the
+basis of each judgment inspectable and turns the evidence into a variable we can
+intervene on.
 
-Much existing work takes a paper as the unit of assessment, from citation-pattern
+Most prior work takes a paper as the unit of assessment, from citation-pattern
 measures \citep{uzzi2013atypical} to document-level embeddings
-\citep{cohan2020specter,ostendorff2022scincl} and to systems that review a
-submission as a whole \citep{zhu2025deepreview}. A paper bundles contributions of
-uneven novelty: a central mechanism may sit beside incidental variants, and one
-score over the bundle does not say which contribution it is about. The decision
-of what to pursue is made one idea at a time.
-
-Systems that do operate on ideas assemble the judgment as a language-model
-workflow, retrieving related work and then prompting a model to compare against
-it \citep{wang2024scimon,dasilva2025graphmind,afzal2026beyond}. Both halves are
-fragile. The evidence is selected by the system being evaluated, so a verdict
-cannot be attributed to the retrieval or to the comparison, and neither can be
-measured or improved on its own. The comparison itself is elicited by a prompt
-rather than learned against supervision. \citet{schopf2026rinobench} evaluate
-this arrangement against expert judgments and report that although the reasoning
-such models produce closely mirrors human rationales, that alignment does not
-reliably translate into accurate novelty judgments, which diverge significantly
-from the expert gold standard.
+\citep{cohan2020specter,ostendorff2022scincl} to systems that review a
+submission as a whole \citep{zhu2025deepreview}. But a paper bundles
+contributions of uneven novelty, and one score over the bundle does not say
+which contribution it describes. Systems that do operate on ideas assemble the
+judgment as a language-model workflow: retrieve related work, then prompt a
+model to compare against it
+\citep{wang2024scimon,dasilva2025graphmind,afzal2026beyond}. Here the evidence
+is selected by the system being evaluated, so no verdict can be attributed to
+the retrieval or to the comparison, and the comparison itself is elicited by a
+prompt rather than learned against supervision. Evaluating this arrangement
+against expert judgments, \citet{schopf2026rinobench} find that the reasoning
+such models produce mirrors human rationales, yet that alignment does not
+translate into accurate grades.
 
 Such a workflow also compresses the comparison into a single score, and three
-distinctions do not survive that compression. Historical coverage can be
-\emph{dispersed}: several papers may jointly account for an idea even when no
-single paper closely resembles it, so a comparison against the nearest prior
-work misses it. Ideas at equal coverage differ in \emph{what remains}: one may
-leave only an implementation detail unexplained while another introduces a new
-mechanism. And components that are individually covered may form a
-\emph{combination} that no single prior work puts together. Each is a question
-about a particular part of the idea and the particular prior work responsible
-for it, and a score that discards this correspondence cannot be post-processed
-to recover it. Assessing novelty calls instead for a representation that keeps
-it: which prior work accounts for which part of the target, and what is left
-over.
-
-Studying this setting requires ideas paired with the evidence admissible at the
-time they were proposed, which existing novelty benchmarks do not provide. We
-therefore construct \textsc{IdeaDelta}, a dataset spanning graph machine
-learning, computer vision, and time series, in which every entry is an
-idea-length statement paired with
-temporally admissible priors and annotated at both the idea and target--prior
-levels. The pairing supports the proposed task and makes controlled changes to
-the supplied evidence possible.
+distinctions do not survive. Coverage can be \emph{dispersed}: several papers
+may jointly account for an idea that no single paper resembles. Ideas at equal
+coverage differ in \emph{what remains}: one leaves an implementation detail
+unexplained, another introduces a new mechanism. And individually covered
+components may form a \emph{combination} that no single prior work puts
+together. Each distinction asks about a particular part of the idea and the
+particular prior work responsible for it, and a score that discards that
+correspondence cannot be post-processed to recover it. Assessing novelty calls
+instead for a representation that keeps it.
 
 We propose Evidence-Grounded Residual Decomposition (EGRD), which decomposes a
 target against ranked historical evidence into what that evidence accounts for
-and what it leaves, and predicts an ordered novelty grade from the two. For
-larger evidence sets, a conservative blockwise inference rule extends the
-evidence budget without retraining. Our contributions are:
+and what it leaves, then predicts an ordered novelty grade from the two. Because
+existing benchmarks do not pair ideas with the evidence admissible when they
+were proposed, we also construct \textsc{IdeaDelta} to supply that pairing. Our
+contributions are:
 \begin{itemize}
-  \item \textbf{\textsc{IdeaDelta}, a multi-domain, evidence-paired dataset.}
-  We provide ideas paired
-  with temporally admissible priors and annotations of coverage, residual
-  contribution, and novelty across three research areas. Because the evidence is
-  supplied rather than retrieved, it can be intervened on: permuting the priors
-  while holding the target fixed drops the model to near-chance in every domain.
-  \item \textbf{Unit-level coverage over dispersed evidence.} We model how much
-  of the target the supplied priors account for at the level of latent semantic
-  units rather than of the idea as a whole. A learned support matrix aligns each
-  unit with each prior, and noisy-OR aggregation lets several partially relevant
-  papers jointly cover a unit that none of them covers alone.
-  \item \textbf{Typed residuals.} We represent what the priors leave unaccounted
-  for as two distinct quantities: unit residuals, for content that no prior
-  supports, and interaction residuals, for combinations of individually covered
-  components that no single prior puts together. Both are read off the same
-  support matrix, so the distinction between an unexplored contribution and an
-  effective recombination is produced by the model rather than asserted.
+  \item \textbf{\textsc{IdeaDelta}, a multi-domain evidence-paired dataset.}
+  $21{,}111$ ideas paired with temporally admissible priors and annotated at the
+  idea and pair levels ($92{,}876$ pairs) across graph machine learning,
+  computer vision, and time series. Supplied rather than retrieved, the evidence
+  can be intervened on: permuting priors while holding targets fixed drops
+  accuracy from $0.78$ to $0.35$, the majority-class band.
+  \item \textbf{Unit-level coverage over dispersed evidence.} We model coverage
+  at the level of latent semantic units, aligning each unit with each prior
+  through a learned support matrix. Noisy-OR aggregation lets several partially
+  relevant papers jointly cover a unit none covers alone; removing it costs
+  $0.27$ quadratic weighted kappa (QWK).
+  \item \textbf{Typed residuals.} We split what the priors leave over into unit
+  residuals (content no prior supports) and interaction residuals (combinations
+  no single prior puts together). Both read off the same support matrix, so an
+  unexplored contribution and an effective recombination are distinguished by
+  the model rather than by assertion.
+  \item \textbf{Evidence that the decomposition, not the backbone, carries the
+  result.} EGRD reaches $0.909/0.882/0.898$ QWK across the three domains against
+  $0.579$ for the best prompted system, whose scores vary more with the backbone
+  than with the prompt chain. A blockwise rule extends the frozen checkpoint
+  beyond its training evidence budget, leading every RINoBench
+  \citep{schopf2026rinobench} baseline on QWK ($0.2245$ against $0.1469$) and
+  Macro-F1 ($0.3407$ against $0.2457$); that margin is modest.
 \end{itemize}
 
 Appendix~\ref{app:related} situates EGRD against automated idea generation,
