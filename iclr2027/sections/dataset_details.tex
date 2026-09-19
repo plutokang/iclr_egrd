@@ -37,21 +37,44 @@ unconnected---re-judged rather than accepted from the similarity rule. It then
 estimates, for each target, the substantive residual that survives the retained
 evidence, the sufficiency of that evidence, and the extent to which the claimed
 difference is surface-level. Idea-level grades follow by applying
-Eq.~(\ref{eq:novelty-rule}) to those quantities. Labels are model-generated;
+the novelty rule of Sec.~\ref{sec:dataset-task} to those quantities. Labels are model-generated;
 each stage was reviewed by sampled manual inspection.
 
-\paragraph{Splits and balancing.}
+\paragraph{Composition.}
+\textsc{IdeaDelta} contains $21{,}111$ annotated ideas and $92{,}876$ annotated
+target--prior pairs, with target dates from 2019-01 to 2026-09
+(Table~\ref{tab:dataset-composition}). Each idea carries its source domain, and
+the \emph{All} column is the union of the three domain subsets rather than a
+fourth collection.
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\caption{Composition of \textsc{IdeaDelta}: counts of ideas and of
+target--prior pairs, and the idea-level novelty distribution, by source domain.
+Pairs are formed within a source domain only, so \emph{All} is the union of the
+three subsets rather than a fourth collection.}
+\label{tab:dataset-composition}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+& Graph ML & Computer vision & Time series & All \\
+\midrule
+Ideas & 5{,}225 & 8{,}291 & 7{,}595 & 21{,}111 \\
+Pairs & 21{,}183 & 36{,}238 & 35{,}455 & 92{,}876 \\
+\addlinespace
+\textsc{low} & 819 & 901 & 1{,}724 & 3{,}444 \\
+\textsc{weak} & 1{,}240 & 1{,}711 & 1{,}614 & 4{,}565 \\
+\textsc{moderate} & 2{,}247 & 2{,}777 & 2{,}173 & 7{,}197 \\
+\textsc{high} & 919 & 2{,}902 & 2{,}084 & 5{,}905 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Splits.}
 Splits are date-ordered rather than random, so that no training target is dated
 after an evaluation target. The cuts fall at 2025-02 and 2025-11, giving
-$59{,}269/16{,}436/17{,}171$ pairs and $13{,}815/3{,}944/3{,}352$ ideas. The cut
-months are shared at the boundary, so the partition is ordered but not strictly
-month-disjoint, and isolation at the level of source papers has not been
-established. A balanced training variant resamples the pair training set to
-$1{,}000$ examples per coverage class, at most five copies of any example and
-marked as duplicates; dev and test keep their natural distribution and are never
-resampled. Pair coverage labels are skewed in the natural distribution: of
-$92{,}876$ pairs, $41{,}765$ are not covering, $38{,}775$ related but not
-covering, $9{,}582$ partial cover, and $2{,}754$ large cover.
+$13{,}815/3{,}944/3{,}352$ ideas for training, validation, and test.
 
 \subsection{Validation of Research Novelty Labels}
 \label{app:dataset-validity}
@@ -65,17 +88,17 @@ covered and remains stable when its substantive contribution is unchanged.
 
 \paragraph{Prediction from metadata.}
 We first test whether simple metadata can account for the novelty labels
-without describing the technical content of prior work. We consider seven
-variables: character length, word count, publication year, three research-area
-attributes, and the number of retrieved priors. Over all $21{,}111$ ideas, we
+without describing the technical content of prior work. We consider six
+variables: character length, word count, publication year, the innovation
+aspect and contribution type, and the number of retrieved priors. Over all $21{,}111$ ideas, we
 measure their individual associations with the novelty grade using Spearman
 $\rho$ for continuous variables and $\varepsilon^2$ for categorical variables.
 We set the thresholds in advance at $|\rho|\ge0.20$ and
 $\varepsilon^2\ge0.06$.
 
 Text length, word count, and publication year show weak associations
-($\rho=+0.049$, $+0.058$, and $-0.130$, respectively), while the three
-research-area attributes have $\varepsilon^2\le0.033$. All remain below the
+($\rho=+0.049$, $+0.058$, and $-0.130$, respectively), while the innovation
+aspect and contribution type have $\varepsilon^2\le0.033$. All remain below the
 corresponding thresholds. The number of priors and their mean coverage are
 negatively correlated with novelty ($\rho=-0.286$ and $-0.471$, respectively).
 The negative association with coverage is consistent with the intended meaning
@@ -83,9 +106,9 @@ of the labels: contributions already covered by prior work receive lower
 novelty grades.
 
 Individual associations may overlook information available from several
-variables together. We therefore train a classifier on all seven metadata
-variables to predict the four novelty grades. We use the date-ordered split in
-Section~\ref{sec:dataset-composition}, with $13{,}815$ training ideas and
+variables together. We therefore train a classifier on all six metadata
+variables to predict the four novelty grades. We use the date-ordered split of
+Appendix~\ref{app:dataset}, with $13{,}815$ training ideas and
 $3{,}352$ test ideas, and evaluate quadratic weighted kappa (QWK), which accounts
 for the ordering of the grades. For comparison, we train the same classifier
 using only mean prior coverage. QWK increases from $0.227$ with metadata to
@@ -119,7 +142,7 @@ construct one synthetic prior for each target. This prior describes the same
 technical contribution and is dated before the target. After adding it to the
 evidence set, we repeat the complete annotation procedure: pair coverage
 labeling, residual contribution estimation, and grading according to
-Eq.~(\ref{eq:novelty-rule}). Synthetic priors have dedicated identifiers and
+the novelty rule of Sec.~\ref{sec:dataset-task}. Synthetic priors have dedicated identifiers and
 are marked \texttt{synthetic\_control}. They do not refer to real papers,
 authors, or DOIs and are excluded from the released dataset.
 
@@ -144,13 +167,3 @@ $\kappa=0.970$, $0.902$, and $1.000$, respectively. These results complement
 the coverage experiment: the judgments respond to evidence that reduces the
 remaining contribution and remain comparatively stable under changes that
 preserve it.
-
-\paragraph{Evaluation scope.}
-The metadata analysis covers $21{,}111$ ideas, and the prediction experiments
-use $13{,}815/3{,}944/3{,}352$ training, validation, and test examples ordered
-by date. The evidence modification experiments cover $30$ targets, with $150$
-baseline repetitions, $30$ coverage comparisons, and $160$ stability
-comparisons. Sampling uses a fixed seed and groups ideas by source paper.
-Each modified example is compared with its own original version, and
-confidence intervals for component-level changes use $2{,}000$ bootstrap
-samples clustered by target.
