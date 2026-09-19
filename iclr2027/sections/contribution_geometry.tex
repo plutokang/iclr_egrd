@@ -1,5 +1,5 @@
 % Representation analysis on the contribution-type head. One frozen checkpoint, one
-% forward pass over the 3,816 mixed-dataset test ideas, six stage representations dumped
+% forward pass over the 3,352 IdeaDelta test ideas, six stage representations dumped
 % from that pass. Provenance and the numbers behind every claim:
 %   results/runs/embdump_mixed_relabeled/{test_predictions.jsonl,test_embeddings.npz}
 %   docs/casestudy/{stage_embeddings.npz,residual_type_map.npz}
@@ -10,7 +10,7 @@
 The grade our model predicts and the representation it predicts it from are not the same
 object, and the second is the more informative one to inspect. This section reads six
 stage representations out of a single forward pass of one frozen checkpoint over the
-3{,}816 test ideas: the target encoding, the covered pathway $z_C$, the two residual
+3{,}352 test ideas: the target encoding, the covered pathway $z_C$, the two residual
 pathways $z_U$ and $z_I$, the global feature context, and the fused vector the prediction
 heads receive.
 

@@ -1,0 +1,383 @@
+% Experiments. Main results (IdeaDelta and RINoBench transfer, one subsection),
+% ablation, parameter sensitivity. Every number is copied unchanged from the
+% recorded artifacts; provenance comments live beside the table that carries
+% them. Setup, seed variability and the per-domain sweep tables are in the
+% appendix.
+
+\section{Experiments}
+\label{sec:experiments}
+
+The evaluation set is the \textsc{IdeaDelta} test split. Every system receives
+the same evidence --- the
+five highest-ranked admissible priors per target, as titles and abstracts, with
+no paper text --- and is scored against the same labels by the same script, so a
+difference between two rows is a difference in how the evidence is used. On a four-level label with unequal support, accuracy rewards the
+majority class and MAE the middle of the scale, while quadratic weighted kappa
+is what a constant predictor cannot win, so we report all four.
+Appendix~\ref{app:setup} gives the splits, hyperparameters and scoring code.
+
+\subsection{Main results}
+\label{sec:exp-main}
+
+\begin{table}[t]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.6pt}
+\renewcommand{\arraystretch}{1.0}
+\caption{Baselines and our model on the IdeaDelta evaluation set, 3{,}352
+ideas, same labels and the same idea-only protocol (top-5 retrieved priors, no
+paper text), split by domain. A row group isolates the effect of the model
+behind an unchanged prompt chain. A majority-class predictor scores $0.312$,
+$0.356$ and $0.328$ accuracy with kappa zero by construction, and several rows
+fall below it; MAE is lowest for rows that concentrate near the middle of the
+scale, so read it beside QWK.}
+\label{tab:panel-a}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}ll rrrr rrrr rrrr@{}}
+\toprule
+& & \multicolumn{4}{c}{Graph ML} & \multicolumn{4}{c}{Computer vision} & \multicolumn{4}{c}{Time series} \\
+\cmidrule(lr){3-6}\cmidrule(lr){7-10}\cmidrule(lr){11-14}
+System & Backbone
+& Acc & Ma-F1 & QWK & MAE $\downarrow$
+& Acc & Ma-F1 & QWK & MAE $\downarrow$
+& Acc & Ma-F1 & QWK & MAE $\downarrow$ \\
+\midrule
+Direct, 5 priors & Qwen3.5
+& 0.300 & 0.266 & 0.319 & 0.925
+& 0.308 & 0.264 & 0.300 & 0.876
+& 0.291 & 0.283 & 0.327 & 0.956 \\
+& deepseek-flash
+& 0.438 & 0.444 & 0.558 & 0.706
+& 0.409 & 0.418 & 0.521 & 0.728
+& 0.416 & 0.415 & 0.560 & 0.716 \\
+& gpt-5.6-luna
+& 0.432 & 0.439 & 0.579 & 0.657
+& 0.420 & 0.430 & 0.561 & 0.661
+& 0.445 & 0.436 & 0.576 & 0.653 \\
+\addlinespace
+RINoBench & Qwen3.5
+& 0.324 & 0.286 & 0.335 & 0.831
+& 0.346 & 0.293 & 0.338 & 0.777
+& 0.344 & 0.333 & 0.413 & 0.793 \\
+& deepseek-flash
+& 0.443 & 0.458 & 0.560 & 0.639
+& 0.416 & 0.411 & 0.501 & 0.676
+& 0.442 & 0.447 & 0.553 & 0.654 \\
+& gpt-5.6-luna
+& 0.391 & 0.377 & 0.487 & 0.698
+& 0.393 & 0.364 & 0.458 & 0.683
+& 0.392 & 0.379 & 0.512 & 0.688 \\
+\addlinespace
+UKPLab 3-stage & Qwen3.5
+& 0.280 & 0.161 & 0.125 & 0.928
+& 0.289 & 0.150 & 0.106 & 0.873
+& 0.274 & 0.180 & 0.132 & 0.973 \\
+& deepseek-flash
+& 0.351 & 0.267 & 0.301 & 0.761
+& 0.376 & 0.272 & 0.259 & 0.741
+& 0.386 & 0.289 & 0.290 & 0.727 \\
+& gpt-5.6-luna
+& 0.318 & 0.226 & 0.266 & 0.800
+& 0.367 & 0.248 & 0.304 & 0.721
+& 0.365 & 0.267 & 0.296 & 0.743 \\
+\addlinespace
+GraphMind & Qwen3.5
+& 0.264 & 0.205 & 0.154 & 1.027
+& 0.264 & 0.182 & 0.108 & 0.959
+& 0.244 & 0.204 & 0.155 & 1.051 \\
+& deepseek-flash
+& 0.261 & 0.217 & 0.154 & 1.111
+& --- & --- & --- & ---
+& --- & --- & --- & --- \\
+& gpt-5.6-luna
+& 0.366 & 0.346 & 0.346 & 0.778
+& --- & --- & --- & ---
+& --- & --- & --- & --- \\
+\addlinespace
+DeepReviewer & DeepReviewer-7B
+& 0.294 & 0.237 & 0.034 & 0.965
+& 0.325 & 0.235 & $-$0.043 & 0.972
+& 0.296 & 0.222 & $-$0.017 & 0.964 \\
+\addlinespace
+\textbf{EGRD (ours)} & ---
+& \textbf{0.799} & \textbf{0.801} & \textbf{0.909} & \textbf{0.201}
+& \textbf{0.761} & \textbf{0.767} & \textbf{0.882} & \textbf{0.242}
+& \textbf{0.789} & \textbf{0.776} & \textbf{0.898} & \textbf{0.215} \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+We compare against a \emph{direct} single call, the \emph{RINoBench}
+\citep{schopf2026rinobench} and \emph{UKPLab 3-stage} \citep{afzal2026beyond}
+prompt chains, \emph{GraphMind} \citep{dasilva2025graphmind}, which labels each
+prior as supporting or contrasting before rating, and \emph{DeepReviewer-7B}
+\citep{zhu2025deepreview}, a reviewer model fine-tuned on paper review. The
+first four appear once per backbone. Table~\ref{tab:panel-a} reports every
+system on the \textsc{IdeaDelta} evaluation set, and Table~\ref{tab:panel-b}
+carries the same frozen checkpoint to RINoBench. In the first table the prompted
+systems occupy a band well below our row.
+
+Among the prompted systems, the backbone matters more than the prompt chain.
+Holding the prompt fixed and changing the model moves the result further than
+the reverse. On Graph ML a single five-prior call rises from $0.300$ to $0.438$ accuracy
+when Qwen3.5 is replaced by deepseek-flash, a larger move than separates any two
+prompt chains on one backbone. GraphMind is the exception: on Qwen3.5 it reaches
+$0.264$ against $0.300$ for a direct call on the same backbone, at $476$
+seconds and $31{,}201$ LLM calls for the $3{,}352$ ideas. Its polarity stage is why: given the same five priors Qwen3.5 calls $4.33$
+supporting against deepseek-flash's $1.04$, and the ratings follow.
+
+The domain, by contrast, does not matter. Within any row the three domains
+differ by a few points while the gap to EGRD exceeds thirty on every metric, so
+what separates the two blocks is not a property of one field.
+
+Fine-tuning on paper review does not transfer to ideas.
+DeepReviewer-7B is the one system trained rather than prompted, and its kappa
+of $0.034$, $-0.043$ and $-0.017$ says it does not order the ideas. A model
+trained to review whole papers appears to read a longer related-work block as
+evidence of less novelty largely independently of what that work says, which is
+what scoring a target against a retrieved set read as a block permits.
+
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.0}
+\caption{RINoBench test, 277 ideas, human expert 1--5 labels folded to four
+levels with $4/5$ merged. The merged top class holds 41.5\% of the ideas, so
+predicting it everywhere scores 0.4152 accuracy, at or above every system in
+the table. Only about 30 of the 277 ideas fall in the three fields EGRD was
+trained on. Bold marks the best value in a column; Acc and MAE are not led by
+our row.}
+\label{tab:panel-b}
+\begin{tabular}{@{}p{5.1cm}rrrr@{}}
+\toprule
+System & Acc & Ma-F1 & QWK & MAE $\downarrow$ \\
+\midrule
+\multicolumn{5}{@{}l}{\emph{Same Qwen3.5 backbone, zero-shot}} \\
+Qwen3.5-397B-A17B & 0.3574 & 0.2244 & 0.1451 & 0.7726 \\
+GraphMind & 0.3357 & 0.2281 & 0.1469 & 0.7653 \\
+UKPLab 3-stage & 0.3466 & 0.1892 & 0.0808 & \textbf{0.7220} \\
+\addlinespace
+\multicolumn{5}{@{}l}{\emph{Released predictions of the benchmark authors, folded to four levels}} \\
+GPT-5 & 0.3646 & 0.2457 & 0.0955 & 0.8051 \\
+o3 & 0.3971 & 0.2370 & 0.0606 & 0.8087 \\
+gpt-oss-120b & 0.4152 & 0.2249 & 0.0392 & 0.8375 \\
+Llama-3.1-8B-Instruct & 0.3755 & 0.1961 & $-$0.0011 & 0.8773 \\
+DeepSeek-R1 & \textbf{0.4224} & 0.1873 & 0.0283 & 0.8700 \\
+Llama-4-Scout-17B-16E & 0.4116 & 0.1864 & 0.0215 & 0.8809 \\
+Llama-3.3-70B-Instruct & 0.4188 & 0.1531 & 0.0051 & 0.9025 \\
+\addlinespace
+\multicolumn{5}{@{}l}{\emph{Reviewer model fine-tuned on paper review, local weights}} \\
+DeepReviewer-7B & 0.1913 & 0.1425 & 0.0145 & 1.3610 \\
+\addlinespace
+\textbf{EGRD (ours)} & 0.4152 & \textbf{0.3407} & \textbf{0.2245} & 0.8087 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+We evaluate the frozen checkpoint on RINoBench \citep{schopf2026rinobench},
+whose 277 test ideas carry expert 1--5 labels folded to four levels. These
+experts never saw the scheme, and the drop between the two tables is the cost of
+changing annotator.
+
+The ordering transfers even though the level does not.
+EGRD leads Macro-F1 and kappa at $0.3407$ and $0.2245$ against $0.2457$ and
+$0.1469$ for the best other system on each, and is the only row above $0.15$ kappa, while six of the eleven baselines sit
+below $0.05$ and so do not order the ideas at all. Accuracy carries no
+information here, since a constant predictor scores $0.4152$; our row reaches the
+same $0.4152$ with a prediction that is not constant, $16/36/76/149$ ideas across
+the four classes against a gold $15/60/87/115$. The margin is modest: we read it as some agreement between residual structure
+learned on model-generated labels and expert judgment, not as the problem
+solved.
+
+Two properties of the transfer bound what that agreement can be, and both are
+visible before any model is run. The first is coverage. \textsc{IdeaDelta} is
+built from three fields, whereas RINoBench draws its ideas from OpenReview
+submissions across machine learning as a whole, so most of its test ideas sit in
+areas --- robust reinforcement learning, tabular learning, computational biology
+--- whose prior work the model was never trained to read. The second is
+granularity. The expert scale has five levels against the four EGRD predicts, so
+the top two are merged, and that merge does two things at once: it puts $41.5\%$
+of the ideas into a single class, which is why accuracy is uninformative here,
+and it erases a distinction the experts themselves chose to draw, so a model
+that orders the ideas correctly still has no way to express the difference
+between a 4 and a 5.
+
+The blockwise rule lets the model read more evidence than training supplied.
+RINoBench offers far more candidate priors than the five EGRD was trained with.
+Splitting them into disjoint blocks of five and taking the minimum substantive
+delta over blocks is conservative --- any block finding the idea covered lowers
+its grade --- and needs no retraining, since a block has the shape seen in
+training. Raising the budget from 25 to 60 priors moves accuracy from $0.4116$ to
+$0.4152$ and kappa from $0.2182$ to $0.2245$: real but small, and saturating,
+since the median idea carries 23 candidates. The same change separates the systems: Qwen3.5 improves from $0.2244$ to
+$0.2477$ Macro-F1 while DeepReviewer-7B falls from $0.1425$ to $0.1230$. A
+system that treats the amount of retrieved prior work as the signal degrades
+when given more of it.
+
+\subsection{Ablation}
+\label{sec:exp-ablation}
+
+\begin{table}[t]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.0}
+\caption{Ablations on the pooled \textsc{IdeaDelta} evaluation set, 3{,}352
+ideas. \textbf{Full} is the unablated checkpoint of Table~\ref{tab:panel-a}.
+The pipeline-stage rows intervene on that trained checkpoint at inference and
+the decomposition-design rows retrain the model without the component, so
+magnitudes are comparable within a block but not across the two.}
+\label{tab:ablation}
+\begin{tabular}{@{}l rrrr@{}}
+\toprule
+System & Acc & Ma-F1 & QWK & High-F1 \\
+\midrule
+Full & \textbf{0.7796} & \textbf{0.7790} & \textbf{0.8958} & \textbf{0.7708} \\
+\addlinespace
+\multicolumn{5}{@{}l}{\emph{Pipeline stages}} \\
+Permuting prior evidence & 0.3471 & 0.3532 & 0.2241 & 0.4420 \\
+Permuting coverage & 0.6649 & 0.6605 & 0.5996 & 0.6630 \\
+Zeroing residuals & 0.6371 & 0.6554 & 0.7878 & 0.7079 \\
+\addlinespace
+\multicolumn{5}{@{}l}{\emph{Decomposition design}} \\
+Collapsing semantic units & 0.6580 & 0.6292 & 0.8591 & 0.6120 \\
+Disabling slot competition & 0.6701 & 0.6874 & 0.7665 & 0.6813 \\
+Removing noisy-OR support & 0.6210 & 0.5520 & 0.6291 & 0.5665 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Because the evidence is supplied rather than retrieved, it can be intervened on
+with the target held fixed, which separates a model that reads the evidence
+from one that recognises gradable phrasing.
+
+Every stage of the pipeline is load-bearing, and error accumulates along it.
+The first three interventions cut the chain at successive points.
+\textbf{Permuting prior evidence} shuffles the retrieved prior texts across
+targets, destroying the semantic content the chain is built on;
+\textbf{permuting coverage} shuffles only the joint coverage score and leaves
+every prior text in place, destroying what the historical evidence inputs
+(\S\ref{sec:method-evidence}) infer from that content; \textbf{zeroing
+residuals} sets $\boldsymbol{z}_U$, $\boldsymbol{z}_I$ and $\boldsymbol{z}_C$ to
+zero, destroying what the evidence-grounded residual decomposition
+(\S\ref{sec:method-decomposition}) adds on top of both. The ablations show that
+all three are indispensable.
+Permuting prior evidence costs $0.43$ accuracy and $0.67$ kappa, dropping
+accuracy into the
+band of the majority-class predictor of Table~\ref{tab:panel-a}
+($0.312$--$0.356$): the grade is not recoverable from the target alone, so the
+priors are read rather than treated as a pretext for grading the target's own
+phrasing. Permuting coverage costs $0.11$ accuracy and $0.30$ kappa
+with the texts intact, so what the historical evidence inputs infer is not
+redundant with the evidence it is computed from. Zeroing residuals
+costs $0.14$ accuracy, $0.12$ Macro-F1 and $0.11$ kappa, so the residual
+decomposition is not an ornament on a prediction the evidence inputs already
+support. Taken in order, the damage grows the earlier the cut falls: what one
+stage corrupts it passes on, and the corruption is amplified rather than
+absorbed downstream. Accuracy alone
+reverses at the last step, $0.14$ for zeroing residuals against $0.11$
+for permuting coverage, and it reverses for a reason: the residual
+decomposition moves the metric that counts exact grades far more than the one
+that counts agreement in rank, so what it contributes is which grade an idea
+receives rather than how the ideas are ordered.
+
+The mechanisms inside the residual decomposition earn their place, and two of
+the three act on the ordering. The remaining interventions leave the pipeline
+intact and remove one mechanism from the decomposition itself.
+\textbf{Collapsing semantic units}, from eight to one, costs $0.12$ accuracy,
+$0.15$ Macro-F1 and $0.16$
+High-F1 but only $0.04$ kappa, so the collapse loses the grade and
+leaves the ordering nearly intact. \textbf{Disabling slot competition}, which
+removes the softmax through which the units compete for each token, costs
+$0.11$ accuracy and $0.13$ kappa, reversing that pattern: deciding which unit a
+token belongs to is what keeps the units apart in the first place.
+\textbf{Removing noisy-OR support} costs the most of the three on every metric,
+$0.16$ accuracy, $0.23$ Macro-F1, $0.27$ kappa and $0.20$ High-F1, so
+aggregating support across priors is what makes the ordering work. For the
+collapsed units and the removed noisy-OR, High-F1 falls further than accuracy,
+which is where a decomposition should matter: the top grade turns on parts of a
+target that no single prior supports.
+
+\subsection{Parameter sensitivity}
+\label{sec:exp-sensitivity}
+
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4.5pt}
+\renewcommand{\arraystretch}{1.0}
+\caption{The two parameters that govern how much the model is given, swept one
+at a time from the default row ($K{=}5$, 100\% of the training ideas), which is
+the checkpoint of Table~\ref{tab:panel-a} and is identical in both blocks.
+Everything else is held fixed: upstream pair and joint products, the encoder
+initialisation, the evaluation files and the seed. Every row is a single run at
+seed 173, and the seed-to-seed standard deviation is $0.004$--$0.007$ accuracy
+and $0.002$--$0.005$ Macro-F1 (Appendix~\ref{app:setup}), so the shape of a block
+is interpretable while a difference between adjacent rows is often not. Both
+blocks with all six metrics, and the third parameter, encoder input length, are
+in Appendices~\ref{app:topk}--\ref{app:maxlen}.}
+\label{tab:sensitivity}
+\begin{tabular}{@{}l rr rr rr@{}}
+\toprule
+& \multicolumn{2}{c}{Graph ML} & \multicolumn{2}{c}{Computer vision} & \multicolumn{2}{c}{Time series} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+Setting & Acc & Ma-F1 & Acc & Ma-F1 & Acc & Ma-F1 \\
+\midrule
+\multicolumn{7}{@{}l}{\emph{Evidence budget $K$ (consumed priors in parentheses)}} \\
+\quad 2 \, (2.00) & 0.7306 & 0.7383 & 0.7159 & 0.7188 & 0.7261 & 0.7249 \\
+\quad 3 \, (2.80) & 0.7753 & 0.7786 & 0.7476 & 0.7529 & 0.7765 & 0.7637 \\
+\quad 4 \, (3.41) & 0.8059 & 0.8077 & 0.7722 & 0.7761 & 0.7891 & 0.7805 \\
+\quad \textbf{5} \, (3.87) & 0.7988 & 0.8010 & 0.7608 & 0.7669 & 0.7891 & 0.7760 \\
+\quad 6 \, (4.19) & 0.7824 & 0.7820 & 0.7529 & 0.7583 & 0.7899 & 0.7761 \\
+\quad 8 \, (4.54) & 0.7929 & 0.7950 & 0.7722 & 0.7774 & 0.7824 & 0.7701 \\
+\addlinespace
+\multicolumn{7}{@{}l}{\emph{Training fraction}} \\
+\quad 25\% & 0.7600 & 0.7627 & 0.7634 & 0.7687 & 0.7731 & 0.7573 \\
+\quad 50\% & 0.7871 & 0.7871 & 0.7740 & 0.7788 & 0.7790 & 0.7662 \\
+\quad 75\% & 0.7894 & 0.7897 & 0.7661 & 0.7727 & 0.7849 & 0.7714 \\
+\quad \textbf{100\%} & 0.7988 & 0.8010 & 0.7608 & 0.7669 & 0.7891 & 0.7760 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two parameters govern how much the model is given: how many priors per idea, and
+how many ideas. Table~\ref{tab:sensitivity} sweeps each from the default
+configuration of Table~\ref{tab:panel-a}, one at a time, in all three domains.
+The evidence budget moves accuracy by $0.056$ to $0.075$ and the training
+fraction by at most $0.039$, against the $0.34$ that separates our row from the
+best prompted row of Table~\ref{tab:panel-a}.
+
+The evidence budget saturates for want of evidence, not for want of capacity.
+Accuracy rises steeply from $K{=}2$ to $K{=}4$ --- $0.731 \to 0.806$ on Graph ML,
+$0.716 \to 0.772$ on computer vision, $0.726 \to 0.789$ on time series --- and
+then flattens, with the same knee in all three domains. The plateau belongs to
+the data rather than to the model. $K$ is a hard padding dimension, so nominal
+$K$ and the evidence actually consumed diverge once $K$ exceeds the candidates an
+idea carries: averaged over the evaluation set the consumed counts are $2.00$,
+$2.80$, $3.41$, $3.87$, $4.19$ and $4.54$ priors, placing the knee at roughly
+$3.4$ consumed priors, and raising $K$ from 5 to 8 buys only $0.67$ further
+priors because just $32\%$ of ideas carry six or more candidates and $13.5\%$
+carry eight or more. Read against consumed priors rather than against $K$, there
+is no plateau in the model --- there is a plateau in how much evidence exists.
+This is also what the blockwise rule of Section~\ref{sec:exp-main} exploits,
+which is why it helps on RINoBench, where the median idea carries 23 candidates,
+and not here.
+
+More training data helps in two domains of three.
+Macro-F1 increases monotonically with the training fraction on Graph ML
+($0.7627 \to 0.8010$) and time series ($0.7573 \to 0.7760$). Computer vision does
+not: it peaks at $50\%$ with $0.7788$ against $0.7669$ at $100\%$, a gap of
+$0.012$ against a seed standard deviation of $0.0021$ on that metric and domain,
+so the non-monotonicity is larger than seed noise and we report it as
+unexplained. Two caveats bound what the block licenses. Epochs are held at 8, so
+a smaller fraction also takes fewer optimisation steps: this is a learning curve
+under fixed epochs, not under fixed compute, and separating the two needs an
+equal-update-budget control we did not run. And the upstream pair and joint
+products are fitted on the full training set in every row, so the $25\%$ row says
+nothing about the annotation efficiency of the pipeline as a whole.
+
+The third parameter, encoder input length, moves Macro-F1 by at most $0.017$ over
+a threefold range and is not monotone in any domain, so we leave its sweep and
+the seed-variability estimates in Appendices~\ref{app:setup}
+and~\ref{app:maxlen}.

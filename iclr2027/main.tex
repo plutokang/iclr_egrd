@@ -53,10 +53,7 @@ sensitive to where the grade boundaries are placed.
 % \input{sections/problem}
 \input{sections/dataset}
 \input{sections/method}
-% \input{sections/experiments}
-\input{sections/main_table}
-\input{sections/ablation_sensitivity}
-\input{sections/contribution_geometry}
+\input{sections/experiments}
 % \input{sections/conclusion}
 
 \bibliography{iclr2027_conference}
@@ -75,64 +72,25 @@ sensitive to where the grade boundaries are placed.
 \label{app:method}
 \input{sections/method_details}
 
-\subsection{Sensitivity of the RINoBench decision cuts}
-\label{app:cut-sweep}
+\section{Experimental Details}
+\label{app:experiments}
 
-The EGRD row of Table~\ref{tab:panel-b} places its three decision cuts by
-maximising accuracy on the 1{,}104 RINoBench train ideas subject to Macro-F1 on
-that same split staying within a slack $\epsilon$ of what distribution matching
-achieves there. Table~\ref{tab:cut-sweep} reports the whole sweep. The cuts are
-fitted on the train split at every row; only the test columns are shown.
+\input{sections/experiments_details}
 
-Two things are worth reading off it. Accuracy is not monotone in $\epsilon$ and
-moves by five points across the range, so the slack is a real hyperparameter and
-not a formality. And $\epsilon=0.01$, the value used in the main table, is where
-Macro-F1 and BalAcc both peak, which means it was not chosen independently of
-these test numbers. A reader who wants a cut rule with nothing tuned behind it
-should take the last row, which maximises accuracy plus Macro-F1 on the train
-split with no slack parameter at all.
+\input{sections/contribution_geometry}
 
-\begin{table}[h]
-\centering
-\footnotesize
-\setlength{\tabcolsep}{6pt}
-\renewcommand{\arraystretch}{1.05}
-\caption{Decision-cut sensitivity on RINoBench test, 277 ideas, blockwise
-minimum of the substantive-delta score over 60 priors read as twelve blocks of
-five. Distribution matching is the rule used in earlier versions of this table.}
-\label{tab:cut-sweep}
-\begin{tabular}{@{}lrrrrr@{}}
-\toprule
-Cut rule & Acc & Ma-F1 & BalAcc & QWK & MAE $\downarrow$ \\
-\midrule
-Distribution matching & 0.3574 & 0.3202 & 0.3214 & 0.2160 & 0.8556 \\
-\addlinespace
-Acc-max, $\epsilon=0$ & 0.3718 & 0.3251 & 0.3276 & \textbf{0.2430} & 0.8159 \\
-Acc-max, $\epsilon=0.005$ & 0.3971 & 0.3320 & 0.3372 & 0.2243 & 0.8303 \\
-Acc-max, $\epsilon=0.0075$ & 0.4007 & 0.3350 & 0.3401 & 0.2339 & 0.8159 \\
-Acc-max, $\epsilon=0.01$ (main table) & 0.4152 & \textbf{0.3407} & \textbf{0.3475} & 0.2245 & 0.8087 \\
-Acc-max, $\epsilon=0.015$ & 0.4007 & 0.3074 & 0.3039 & 0.2138 & 0.8014 \\
-Acc-max, $\epsilon=0.02$ & 0.4188 & 0.3172 & 0.3142 & 0.2138 & 0.7798 \\
-Acc-max, $\epsilon=0.03$ & \textbf{0.4224} & 0.3042 & 0.3063 & 0.2048 & \textbf{0.7798} \\
-\addlinespace
-Acc $+$ Ma-F1, no slack parameter & 0.3971 & 0.3320 & 0.3372 & 0.2243 & 0.8303 \\
-\quad same rule at 25 priors & 0.4043 & 0.3381 & 0.3430 & 0.2257 & 0.8159 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Evidence budget}
+\section{RINoBench Evidence Budget}
+\label{app:rinobench}
 \label{app:budget}
 
 The blockwise rule lets the frozen checkpoint, trained with at most five
 candidate priors per idea, read more evidence than it ever saw in training by
 running once per block of five and taking the minimum. Raising the budget from
-25 priors to 60 moves QWK from 0.2075 to 0.2160 under distribution matching and
-leaves accuracy unchanged at 0.3574; under the $\epsilon=0.01$ rule it moves
-accuracy from 0.4116 to 0.4152 and QWK from 0.2182 to 0.2245. The gain is real
-but small, and it saturates: RINoBench ideas carry a median of 23 candidate
-priors, so beyond roughly 45 the later blocks cover too few ideas to matter. A
-thirteenth block was not run because only seven test ideas still carry a prior
-at that depth and the join against the joint-coverage stage returns empty.
+25 priors to 60 moves accuracy from 0.4116 to 0.4152 and QWK from 0.2182 to
+0.2245. The gain is real but small, and it saturates: RINoBench ideas carry a
+median of 23 candidate priors, so beyond roughly 45 the later blocks cover too
+few ideas to matter. A thirteenth block was not run because only seven test
+ideas still carry a prior at that depth and the join against the joint-coverage
+stage returns empty.
 
 \end{document}

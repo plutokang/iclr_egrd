@@ -1,0 +1,168 @@
+% Appendix companion to Section 5. Setup, seed variability, and the per-domain
+% full-metric versions of the three sweeps summarised in Table 6 (evidence
+% budget, training fraction, encoder input length), plus the label-rule note for
+% Table 1.
+
+\subsection{Setup}
+\label{app:setup}
+
+\paragraph{Splits.}
+The split is a date-ordered $13{,}815/3{,}944/3{,}352$ partition of the
+$21{,}111$ idea-level samples in \textsc{IdeaDelta}.
+
+\paragraph{Configuration.}
+All runs share one configuration and vary a single parameter at a time:
+\texttt{deberta-v3-base} backbone, 8 epochs, batch size 2, learning rate
+$1.5\times10^{-5}$ with an encoder learning-rate ratio of $0.2$, eight semantic
+units with slot competition enabled, and a fixed joint-prediction checkpoint
+supplying the encoder initialisation. The checkpoint reported in the main text
+is selected on dev; test is traversed once, at final evaluation, and is not used
+to select a checkpoint.
+
+\paragraph{Seeds.}
+Every row in Section~\ref{sec:experiments} is a single run at seed 173.
+Table~\ref{tab:seed-noise} gives the spread of the same configuration over
+seeds 173, 174 and 175 for context.
+
+\paragraph{Per-domain metrics.}
+Per-domain figures are recomputed from the stored predictions rather than read
+from the trainer, and reconcile with the trainer's own pooled figures to within
+$5\times10^{-5}$ on all six metrics.
+
+\begin{table}[h]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.05}
+\caption{Per-domain seed variability for the metrics of
+Table~\ref{tab:ablation} and ordinal mean absolute error. Entries are sample
+standard deviations across seeds 173, 174 and 175 with identical data, code and
+configuration.}
+\label{tab:seed-noise}
+\begin{tabular}{@{}l rrrrr@{}}
+\toprule
+Domain & Acc & Ma-F1 & QWK & MAE & High-F1 \\
+\midrule
+Graph ML & 0.0066 & 0.0050 & 0.0048 & 0.0067 & 0.0022 \\
+Computer vision & 0.0040 & 0.0021 & 0.0032 & 0.0027 & 0.0037 \\
+Time series & 0.0050 & 0.0045 & 0.0031 & 0.0051 & 0.0069 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Evidence budget}
+\label{app:topk}
+
+Table~\ref{tab:topk} is the $K$ block of Table~\ref{tab:sensitivity} with all six
+metrics. Only $K$ is varied; upstream pair and joint products, the encoder
+initialisation and the evaluation files are shared across all rows.
+
+\input{sections/topk_table}
+
+\subsection{Training-set size}
+\label{app:train-frac}
+
+\begin{table}[h]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.05}
+\caption{Sensitivity to the amount of EGRD training data, per domain. Training
+ideas are subsampled stratified by domain and novelty label, and the four
+fractions are nested prefixes of one deterministic random order
+($25\% \subset 50\% \subset 75\% \subset 100\%$), so consecutive rows add
+samples without reordering what came before. Development and test sets are
+fixed. Epochs are held at 8, so a row with less data also takes fewer
+optimisation steps: this is a learning curve under a fixed epoch count rather
+than under a fixed compute budget, and separating the two requires an
+equal-update-budget control that was not run. Upstream pair and joint products
+are held fixed and were fitted on the full training data, so the 25\% row does
+not license a claim about the annotation efficiency of the whole pipeline. The
+10\% condition was not run.}
+\label{tab:train-frac}
+\begin{tabular}{@{}l rrrrr@{}}
+\toprule
+Fraction & Acc & Ma-F1 & QWK & MAE $\downarrow$ & High-F1 \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{Graph ML}} \\
+\quad 25\%  & 0.7600 & 0.7627 & 0.8865 & 0.2424 & 0.7829 \\
+\quad 50\%  & 0.7871 & 0.7871 & 0.9021 & 0.2129 & 0.7838 \\
+\quad 75\%  & 0.7894 & 0.7897 & 0.9032 & 0.2106 & 0.7907 \\
+\quad \textbf{100\%} & 0.7988 & 0.8010 & 0.9094 & 0.2012 & 0.8155 \\
+\addlinespace
+\multicolumn{6}{@{}l}{\emph{Computer vision}} \\
+\quad 25\%  & 0.7634 & 0.7687 & 0.8756 & 0.2410 & 0.7494 \\
+\quad 50\%  & 0.7740 & 0.7788 & 0.8839 & 0.2287 & 0.7537 \\
+\quad 75\%  & 0.7661 & 0.7727 & 0.8799 & 0.2375 & 0.7581 \\
+\quad \textbf{100\%} & 0.7608 & 0.7669 & 0.8818 & 0.2419 & 0.7448 \\
+\addlinespace
+\multicolumn{6}{@{}l}{\emph{Time series}} \\
+\quad 25\%  & 0.7731 & 0.7573 & 0.8862 & 0.2319 & 0.7188 \\
+\quad 50\%  & 0.7790 & 0.7662 & 0.8911 & 0.2252 & 0.7492 \\
+\quad 75\%  & 0.7849 & 0.7714 & 0.8917 & 0.2202 & 0.7452 \\
+\quad \textbf{100\%} & 0.7891 & 0.7760 & 0.8975 & 0.2151 & 0.7697 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:train-frac} is the training-fraction block of
+Table~\ref{tab:sensitivity} with all six metrics; the absolute counts are
+$4{,}451$, $8{,}902$, $13{,}353$ and $17{,}804$ training ideas. Balanced accuracy
+and High-F1 follow Macro-F1 in every domain, including the non-monotone computer
+vision curve discussed in Section~\ref{sec:exp-sensitivity}. High-F1 does not: it
+peaks at $75\%$ on computer vision and is non-monotone on time series, which is
+consistent with its seed standard deviation being the largest of the five metrics
+on time series ($0.0069$) and the second largest on computer vision ($0.0037$).
+
+\subsection{Encoder input length}
+\label{app:maxlen}
+
+\begin{table}[h]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.05}
+\caption{Sensitivity to encoder input length on the three domain test splits.
+The default is 384; all settings use seed 173 and the same test ideas and
+labels. These single-seed results do not establish an optimal length; runtime
+and token-length distributions were not measured.}
+\label{tab:maxlen}
+\begin{tabular}{@{}l rrrrr@{}}
+\toprule
+\texttt{max\_length} & Acc & Ma-F1 & QWK & MAE $\downarrow$ & High-F1 \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{Graph ML}} \\
+\quad 128 & 0.7953 & 0.7974 & 0.9018 & 0.2082 & 0.8065 \\
+\quad 192 & 0.7918 & 0.7917 & 0.9056 & 0.2082 & 0.7960 \\
+\quad 256 & 0.7953 & 0.7978 & 0.9090 & 0.2047 & 0.8228 \\
+\quad \textbf{384} & 0.7988 & 0.8010 & 0.9094 & 0.2012 & 0.8155 \\
+\addlinespace
+\multicolumn{6}{@{}l}{\emph{Computer vision}} \\
+\quad 128 & 0.7766 & 0.7829 & 0.8841 & 0.2278 & 0.7816 \\
+\quad 192 & 0.7634 & 0.7687 & 0.8832 & 0.2392 & 0.7653 \\
+\quad 256 & 0.7599 & 0.7662 & 0.8831 & 0.2427 & 0.7613 \\
+\quad \textbf{384} & 0.7608 & 0.7669 & 0.8818 & 0.2419 & 0.7448 \\
+\addlinespace
+\multicolumn{6}{@{}l}{\emph{Time series}} \\
+\quad 128 & 0.7941 & 0.7840 & 0.9003 & 0.2084 & 0.7799 \\
+\quad 192 & 0.7840 & 0.7696 & 0.8948 & 0.2193 & 0.7582 \\
+\quad 256 & 0.7941 & 0.7813 & 0.9010 & 0.2101 & 0.7768 \\
+\quad \textbf{384} & 0.7891 & 0.7760 & 0.8975 & 0.2151 & 0.7697 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:maxlen} is the third sweep, held out of
+Table~\ref{tab:sensitivity} because it moves the metrics least. No domain
+improves monotonically with encoder input length, and the two ends disagree about
+which is better: Graph ML peaks at the default 384, while computer vision and
+time series both peak at 128, the shortest setting tried ($0.7829$ and $0.7840$
+Macro-F1 against $0.7669$ and $0.7760$ at 384). Tripling the input moves Macro-F1
+by at most $0.017$ in any domain, which is consistent with the decomposition
+reading a target and its priors through short unit-level comparisons rather than
+through long spans of text. We do not read these single-seed rows as identifying
+an optimal length; runtime and token-length distributions were not measured, so
+the practical case for 128 is untested. QWK is the flattest column: it
+spans $0.0076$ on Graph ML, $0.0023$ on computer vision and $0.0062$ on time
+series across the four lengths, so the ordering the model produces is close to
+invariant to how much of the text it reads.
