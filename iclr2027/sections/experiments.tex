@@ -1,7 +1,7 @@
 % Experiments. Main results (IdeaDelta and RINoBench transfer, one subsection),
 % ablation, parameter sensitivity. Every number is copied unchanged from the
 % recorded artifacts; provenance comments live beside the table that carries
-% them. Setup, seed variability and the per-domain sweep tables are in the
+% them. Setup, seed variability and the sweep protocol notes are in the
 % appendix.
 
 \section{Experiments}
@@ -299,85 +299,11 @@ collapsed units and the removed noisy-OR, High-F1 falls further than accuracy,
 which is where a decomposition should matter: the top grade turns on parts of a
 target that no single prior supports.
 
-\subsection{Parameter sensitivity}
-\label{sec:exp-sensitivity}
-
-\begin{table}[t]
-\centering
-\footnotesize
-\setlength{\tabcolsep}{4.5pt}
-\renewcommand{\arraystretch}{1.0}
-\caption{The two parameters that govern how much the model is given, swept one
-at a time from the default row ($K{=}5$, 100\% of the training ideas), which is
-the checkpoint of Table~\ref{tab:panel-a} and is identical in both blocks.
-Everything else is held fixed: upstream pair and joint products, the encoder
-initialisation, the evaluation files and the seed. Every row is a single run at
-seed 173, and the seed-to-seed standard deviation is $0.004$--$0.007$ accuracy
-and $0.002$--$0.005$ Macro-F1 (Appendix~\ref{app:setup}), so the shape of a block
-is interpretable while a difference between adjacent rows is often not. Both
-blocks with all six metrics, and the third parameter, encoder input length, are
-in Appendices~\ref{app:topk}--\ref{app:maxlen}.}
-\label{tab:sensitivity}
-\begin{tabular}{@{}l rr rr rr@{}}
-\toprule
-& \multicolumn{2}{c}{Graph ML} & \multicolumn{2}{c}{Computer vision} & \multicolumn{2}{c}{Time series} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
-Setting & Acc & Ma-F1 & Acc & Ma-F1 & Acc & Ma-F1 \\
-\midrule
-\multicolumn{7}{@{}l}{\emph{Evidence budget $K$ (consumed priors in parentheses)}} \\
-\quad 2 \, (2.00) & 0.7306 & 0.7383 & 0.7159 & 0.7188 & 0.7261 & 0.7249 \\
-\quad 3 \, (2.80) & 0.7753 & 0.7786 & 0.7476 & 0.7529 & 0.7765 & 0.7637 \\
-\quad 4 \, (3.41) & 0.8059 & 0.8077 & 0.7722 & 0.7761 & 0.7891 & 0.7805 \\
-\quad \textbf{5} \, (3.87) & 0.7988 & 0.8010 & 0.7608 & 0.7669 & 0.7891 & 0.7760 \\
-\quad 6 \, (4.19) & 0.7824 & 0.7820 & 0.7529 & 0.7583 & 0.7899 & 0.7761 \\
-\quad 8 \, (4.54) & 0.7929 & 0.7950 & 0.7722 & 0.7774 & 0.7824 & 0.7701 \\
-\addlinespace
-\multicolumn{7}{@{}l}{\emph{Training fraction}} \\
-\quad 25\% & 0.7600 & 0.7627 & 0.7634 & 0.7687 & 0.7731 & 0.7573 \\
-\quad 50\% & 0.7871 & 0.7871 & 0.7740 & 0.7788 & 0.7790 & 0.7662 \\
-\quad 75\% & 0.7894 & 0.7897 & 0.7661 & 0.7727 & 0.7849 & 0.7714 \\
-\quad \textbf{100\%} & 0.7988 & 0.8010 & 0.7608 & 0.7669 & 0.7891 & 0.7760 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Two parameters govern how much the model is given: how many priors per idea, and
-how many ideas. Table~\ref{tab:sensitivity} sweeps each from the default
-configuration of Table~\ref{tab:panel-a}, one at a time, in all three domains.
-The evidence budget moves accuracy by $0.056$ to $0.075$ and the training
-fraction by at most $0.039$, against the $0.34$ that separates our row from the
-best prompted row of Table~\ref{tab:panel-a}.
-
-The evidence budget saturates for want of evidence, not for want of capacity.
-Accuracy rises steeply from $K{=}2$ to $K{=}4$ --- $0.731 \to 0.806$ on Graph ML,
-$0.716 \to 0.772$ on computer vision, $0.726 \to 0.789$ on time series --- and
-then flattens, with the same knee in all three domains. The plateau belongs to
-the data rather than to the model. $K$ is a hard padding dimension, so nominal
-$K$ and the evidence actually consumed diverge once $K$ exceeds the candidates an
-idea carries: averaged over the evaluation set the consumed counts are $2.00$,
-$2.80$, $3.41$, $3.87$, $4.19$ and $4.54$ priors, placing the knee at roughly
-$3.4$ consumed priors, and raising $K$ from 5 to 8 buys only $0.67$ further
-priors because just $32\%$ of ideas carry six or more candidates and $13.5\%$
-carry eight or more. Read against consumed priors rather than against $K$, there
-is no plateau in the model --- there is a plateau in how much evidence exists.
-This is also what the blockwise rule of Section~\ref{sec:exp-main} exploits,
-which is why it helps on RINoBench, where the median idea carries 23 candidates,
-and not here.
-
-More training data helps in two domains of three.
-Macro-F1 increases monotonically with the training fraction on Graph ML
-($0.7627 \to 0.8010$) and time series ($0.7573 \to 0.7760$). Computer vision does
-not: it peaks at $50\%$ with $0.7788$ against $0.7669$ at $100\%$, a gap of
-$0.012$ against a seed standard deviation of $0.0021$ on that metric and domain,
-so the non-monotonicity is larger than seed noise and we report it as
-unexplained. Two caveats bound what the block licenses. Epochs are held at 8, so
-a smaller fraction also takes fewer optimisation steps: this is a learning curve
-under fixed epochs, not under fixed compute, and separating the two needs an
-equal-update-budget control we did not run. And the upstream pair and joint
-products are fitted on the full training set in every row, so the $25\%$ row says
-nothing about the annotation efficiency of the pipeline as a whole.
-
-The third parameter, encoder input length, moves Macro-F1 by at most $0.017$ over
-a threefold range and is not monotone in any domain, so we leave its sweep and
-the seed-variability estimates in Appendices~\ref{app:setup}
-and~\ref{app:maxlen}.
+We also sweep the three parameters that govern how much the model is given (the
+evidence budget $K$, the training fraction and the encoder input length) one at
+a time from the default configuration of Table~\ref{tab:panel-a}, in all three
+domains. The largest of the three moves accuracy by at most $0.075$, against the
+$0.34$ that separates our row from the best prompted row of
+Table~\ref{tab:panel-a}, so none of them is what the main comparison turns on.
+The sweeps, and what they do and do not license, are in
+Appendix~\ref{app:sensitivity}.
