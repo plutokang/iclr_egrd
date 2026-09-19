@@ -92,18 +92,4 @@ sensitive to where the grade boundaries are placed.
 
 \input{sections/contribution_geometry}
 
-\section{RINoBench Evidence Budget}
-\label{app:rinobench}
-\label{app:budget}
-
-The blockwise rule lets the frozen checkpoint, trained with at most five
-candidate priors per idea, read more evidence than it ever saw in training by
-running once per block of five and taking the minimum. Raising the budget from
-25 priors to 60 moves accuracy from 0.4116 to 0.4152 and QWK from 0.2182 to
-0.2245. The gain is real but small, and it saturates: RINoBench ideas carry a
-median of 23 candidate priors, so beyond roughly 45 the later blocks cover too
-few ideas to matter. A thirteenth block was not run because only seven test
-ideas still carry a prior at that depth and the join against the joint-coverage
-stage returns empty.
-
 \end{document}
