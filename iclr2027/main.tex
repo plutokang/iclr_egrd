@@ -10,6 +10,19 @@
 \usepackage{multirow}
 \usepackage{graphicx}
 
+% The ICLR style sets \flushbottom, which forces every page to the full text
+% height; on pages that cannot be filled the slack is stretched into
+% \textfloatsep, leaving a large gap under each table. Let pages run short
+% instead.
+\raggedbottom
+
+% Tighten the default float separations (\textfloatsep is 20pt in article).
+\setlength{\textfloatsep}{2pt plus 1pt minus 1pt}
+\setlength{\floatsep}{2pt plus 1pt minus 1pt}
+\setlength{\intextsep}{2pt plus 1pt minus 1pt}
+\setlength{\abovecaptionskip}{4pt}
+\setlength{\belowcaptionskip}{2pt}
+
 \title{EGRD: Assessing Research Idea Novelty through\\
 Evidence-Grounded Residual Decomposition}
 
