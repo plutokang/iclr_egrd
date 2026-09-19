@@ -1,28 +1,90 @@
+\subsection{Notation and dimensions}
+\label{app:method-notation}
+
+Table~\ref{tab:method-notation} collects the symbols of all three stages.
+Every vector representation lies in $\mathbb{R}^{d}$, so the MLPs take inputs
+of dimension $4d+11$ for $f_A$, $4d$ for $f_I$ and $3d$ for $f_R$, and the
+shared representation $\boldsymbol{h}$ has dimension $4d$.
+Section~\ref{sec:method} defines the symbols themselves; the remainder of this
+appendix supplies the components each stage leaves unspecified.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Symbols used in Stages~A--C. Indices: $k$ ranges over retained priors,
+$m$ over semantic units, $j$ over target tokens, and $i<j$ over unit pairs.}
+\label{tab:method-notation}
+\begin{tabular}{llc}
+\toprule
+Symbol & Meaning & Size \\
+\midrule
+\multicolumn{3}{l}{\emph{Sizes and index sets}} \\
+$d$ & encoder dimension & $768$ \\
+$K$ & retained priors per target & $5$ \\
+$M$ & semantic units & $8$ \\
+$N$ & target tokens & --- \\
+$n$ & retained priors, $|\mathcal{E}_x|$ & $\leq K$ \\
+$\mathcal{E}_x$ & evidence set of target $x$ & --- \\
+$\mathcal{V}$ & non-padding target positions & --- \\
+\addlinespace
+\multicolumn{3}{l}{\emph{Stage~A: historical evidence}} \\
+$\boldsymbol{\pi}^{\mathrm{pair}}_k$ & pair coverage distribution & $\mathbb{R}^{4}$ \\
+$s_k$ & pair coverage score & $[0,1]$ \\
+$\boldsymbol{f}_k$ & pair coverage features & $\mathbb{R}^{11}$ \\
+$\boldsymbol{h}^{J}_k$ & pair representation (joint model) & $\mathbb{R}^{d}$ \\
+$\boldsymbol{z}_J$ & bag representation & $\mathbb{R}^{d}$ \\
+$\boldsymbol{\pi}^{J}$ & joint coverage distribution & $\mathbb{R}^{4}$ \\
+$C_J$ & scalar joint coverage & $[0,1]$ \\
+$\boldsymbol{z}_G$ & global context & $\mathbb{R}^{d}$ \\
+\addlinespace
+\multicolumn{3}{l}{\emph{Stage~B: residual decomposition}} \\
+$\boldsymbol{v}_k,\widetilde{\boldsymbol{v}}_k$ & pair representation, augmented & $\mathbb{R}^{d}$ \\
+$\boldsymbol{h}_j$ & target token state & $\mathbb{R}^{d}$ \\
+$\boldsymbol{q}_m$ & learned unit query & $\mathbb{R}^{d}$ \\
+$\boldsymbol{u}_m$ & semantic unit & $\mathbb{R}^{d}$ \\
+$\phi_m$ & unit activity & $[0,1]$ \\
+$A_{km}$ & support of prior $k$ for unit $m$ & $[0,1]$ \\
+$c_m$ & unit coverage (noisy-OR) & $[0,1]$ \\
+$r_m$ & unit residual weight & $[0,1]$ \\
+$\widehat C_U$ & reconstructed joint coverage & $[0,1]$ \\
+$\boldsymbol{t}_{ij}$ & interaction representation & $\mathbb{R}^{d}$ \\
+$g_{ij}$ & interaction strength & $[0,1]$ \\
+$\bar{A}_{ij}$ & co-support, $\max_k A_{ki}A_{kj}$ & $[0,1]$ \\
+$r_{ij}$ & interaction residual weight & $[0,1]$ \\
+$\eta_{ij}$ & interaction attention & $[0,1]$ \\
+$\boldsymbol{z}_U,\boldsymbol{z}_I,\boldsymbol{z}_C$ & unit, interaction, covered pooling & $\mathbb{R}^{d}$ \\
+\addlinespace
+\multicolumn{3}{l}{\emph{Stage~C: novelty prediction}} \\
+$\hbar_x$ & target representation & $\mathbb{R}^{d}$ \\
+$\gamma$ & context gate & $[0,1]$ \\
+$\boldsymbol{z}_R$ & fused residual & $\mathbb{R}^{d}$ \\
+$\boldsymbol{h}$ & shared representation & $\mathbb{R}^{4d}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \subsection{Historical coverage models}
 \label{app:method-evidence}
 
 \paragraph{Pair coverage and evidence selection.}
 For each target--prior pair $(x,p_k)$, the pair coverage model estimates how
-much of the target the prior accounts for. It outputs a score $s_k\in[0,1]$
-and a distribution over four classes: unrelated, related but uncovered,
-partially covered, and largely covered. A cross-encoder predicts relatedness
-$a_k$, coverage conditional on relatedness $b_k$, and large coverage
-conditional on coverage $d_k$. These probabilities define the class
-distribution
+much of the target the prior accounts for. A cross-encoder predicts
+relatedness $a_k$, coverage conditional on relatedness $b_k$, and large
+coverage conditional on coverage $d_k$, which factorize into a distribution
+over four ordered classes---unrelated, related but uncovered, partially
+covered, and largely covered:
 \begin{equation}
  \boldsymbol{\pi}^{\mathrm{pair}}_k
  = [1-a_k,\;a_k(1-b_k),\;a_kb_k(1-d_k),\;a_kb_kd_k].
  \label{eq:pair-probs}
 \end{equation}
-With classes indexed from $0$ to $3$, the coverage score is
-$s_k=\tfrac12\pi^{\mathrm{pair}}_{k,2}+\pi^{\mathrm{pair}}_{k,3}$.
-The reference pipeline ranks temporally admissible candidates by
-$s_k+0.02\ell_k/3$, where $\ell_k$ is the predicted ordinal coverage label,
-and retains at most $K$ priors. The reported IdeaDelta checkpoint instead
-uses the ordering and pair annotations supplied in the dataset ranking
-records, as detailed under the evidence-source protocol below. In both
-cases, the retained priors and their pair coverage features form the evidence
-inputs to the subsequent stages.
+Indexing the classes from $0$ to $3$, the model scores the pair as
+$s_k=\tfrac12\pi^{\mathrm{pair}}_{k,2}+\pi^{\mathrm{pair}}_{k,3}$, counting
+partial coverage at half the weight of large coverage. The pipeline ranks
+temporally admissible candidates by $s_k+0.02\ell_k/3$, where $\ell_k$ is the
+predicted ordinal coverage label, and retains at most $K$ of them. The
+retained priors and their pair coverage features form the evidence inputs to
+the subsequent stages.
 
 \paragraph{Pair feature vector.}
 The features carried into Stages~B and~C are
@@ -31,31 +93,19 @@ The features carried into Stages~B and~C are
  \boldsymbol{\pi}^{\mathrm{pair}}_k;\;a_k;\;a_kb_k;\;d_k;\;
  \kappa_k/K;\;\mathbb{1}[\text{prior text available}]\,\bigr]
  \in\mathbb{R}^{11},
- \label{eq:pair-features}
 \end{equation}
-where $\kappa_k$ is the prior's rank within $\mathcal{E}_x$. The first seven
-entries are deterministic functions of $(a_k,b_k,d_k)$ through
-Eq.~(\ref{eq:pair-probs}), so $\boldsymbol{f}_k$ carries three degrees of
-freedom from the pair model alongside the two ranking quantities and the
-availability flag. We keep the redundant parameterization because the
-downstream projections consume these quantities at different scales.
-
-\paragraph{Global context features.}
-The twenty-one scalars projected into $\boldsymbol{z}_G$ are the scaled target
-timestamp; ten statistics of the pair scores over $\mathcal{E}_x$---the
-fraction of the $K$ evidence slots that are filled, the maximum, mean,
-standard deviation and sum of the $s_k$, a union score over them, the
-fractions of retained priors judged covering and judged related, the margin
-between the top two ranking scores, and the entropy of the pair scores; and
-ten joint-coverage features---two scalar coverage estimates, the raw and
-normalized entropies of $\boldsymbol{\pi}^{J}$, an indicator for whether a
-joint prediction is available, the gap between the joint estimate and the
-pair-score union, and $\boldsymbol{\pi}^{J}$ itself.
+where $\kappa_k$ is the rank of the prior within $\mathcal{E}_x$. Through
+Eq.~(\ref{eq:pair-probs}), the first seven entries are deterministic functions
+of $(a_k,b_k,d_k)$, so $\boldsymbol{f}_k$ carries three degrees of freedom
+from the pair model alongside the two ranking quantities and the availability
+flag. We keep the redundant parameterization because the downstream
+projections consume these quantities at different scales.
 
 \paragraph{Joint coverage.}
-Different priors may cover different parts of the target. We therefore
-estimate their joint coverage with a multiple-instance model, treating each
-pair $(x,p_k)$ as an instance and the retained evidence set as a bag
+Different priors may cover different parts of the target, so a single pair
+score understates what the evidence establishes together. We therefore
+estimate joint coverage with a multiple-instance model that treats each pair
+$(x,p_k)$ as an instance and the retained evidence set as a bag
 \citep{ilse2018attentionmil}. Let $n=|\mathcal{E}_x|$ denote the number of
 retained priors. A shared cross-encoder maps each pair to a representation
 $\boldsymbol{h}^{J}_k$, from which the model computes attention weights
@@ -65,13 +115,9 @@ $\beta_k$ and internal evidence scores $e_k$:
  \qquad e_k=\sigma(\boldsymbol{w}_e^\top\boldsymbol{h}^{J}_k+b_e).
 \end{equation}
 For a nonempty evidence set, noisy-OR pools the evidence scores as
-\begin{equation}
- e_{\cup}=1-\prod_{k=1}^{n}(1-e_k).
- \label{eq:noisy-or}
-\end{equation}
-The model summarizes these scores by their noisy-OR aggregate, maximum,
-mean, and the fraction of the $K$ evidence slots that are filled. It
-concatenates these statistics with attention-pooled and elementwise
+$e_{\cup}=1-\prod_{k=1}^{n}(1-e_k)$. Four statistics summarize the scores---
+that aggregate, their maximum and mean, and the fraction of the $K$ evidence
+slots that are filled---and join the attention-pooled and elementwise
 maximum-pooled pair representations:
 \begin{align}
  \boldsymbol{v}_E
@@ -81,53 +127,57 @@ maximum-pooled pair representations:
  \boldsymbol{z}_J
  &=f_J\left(\left[\sum_{k=1}^{n}\beta_k\boldsymbol{h}^{J}_k;
               \max_{k}\boldsymbol{h}^{J}_k;
-              \boldsymbol{v}_E\right]\right).
- \label{eq:joint-bag}
+              \boldsymbol{v}_E\right]\right),
 \end{align}
-Here $f_J$ is an MLP. Attention pooling aggregates
-evidence across priors, while maximum pooling retains the strongest feature
-values. A hierarchical head maps $\boldsymbol{z}_J$ to three probabilities:
-any coverage, substantial coverage conditional on any coverage, and mostly
-covered conditional on substantial coverage. Using the factorization in
-Eq.~(\ref{eq:pair-probs}), these probabilities yield
-$\boldsymbol{\pi}^{J}$ over four joint-coverage classes: \emph{not},
+where $f_J$ is an MLP. Attention pooling aggregates evidence across priors,
+while maximum pooling retains the strongest feature values; the noisy-OR
+aggregate enters only as one of the four statistics, and the prediction itself
+is learned from the full bag representation. A hierarchical head maps
+$\boldsymbol{z}_J$ to three probabilities: any coverage, substantial coverage
+conditional on any coverage, and mostly covered conditional on substantial
+coverage. Under the same factorization as
+Eq.~(\ref{eq:pair-probs}), these probabilities yield $\boldsymbol{\pi}^{J}$
+over four joint-coverage classes mirroring the pair classes: \emph{not},
 \emph{weakly}, \emph{partially}, and \emph{mostly} covered. The scalar
-joint-coverage estimate is
-$C_J=\sum_{\ell=0}^{3}\mu_\ell\pi^J_\ell$, where $\mu_\ell$ is the mean
-annotated coverage score for class $\ell$ on the training split.
-Both $C_J$ and $\boldsymbol{\pi}^{J}$ are supplied as fixed inputs to the
-residual and novelty modules. The noisy-OR aggregate $e_{\cup}$ contributes
-one of the four statistics in $\boldsymbol{v}_E$; the joint-coverage
-prediction is learned from the full bag representation.
+estimate is $C_J=\sum_{\ell=0}^{3}\mu_\ell\pi^J_\ell$, where $\mu_\ell$ is the
+mean annotated coverage score for class $\ell$ on the training split. Both
+$C_J$ and $\boldsymbol{\pi}^{J}$ are supplied as fixed inputs to the residual
+and novelty modules.
+
+\paragraph{Global context features.}
+The twenty-one scalars projected into $\boldsymbol{z}_G$ are the scaled target
+timestamp, ten pair-score statistics, and ten joint-coverage features. The
+pair-score statistics over $\mathcal{E}_x$ are the fraction of the $K$
+evidence slots that are filled; the maximum, mean, standard deviation and sum
+of the $s_k$; a union score over them; the fractions of retained priors judged
+covering and judged related; the margin between the top two ranking scores;
+and the entropy of the pair scores. The joint-coverage features are two
+scalar coverage estimates, the raw and normalized entropies of
+$\boldsymbol{\pi}^{J}$, an indicator for whether a joint prediction is
+available, the gap between the joint estimate and the pair-score union, and
+$\boldsymbol{\pi}^{J}$ itself.
 
 \subsection{Residual representations and pooling}
 \label{app:method-representations}
 
-All representations introduced in Stages~B and~C---the queries
-$\boldsymbol{q}_m$, the token states $\boldsymbol{h}_j$, the units
-$\boldsymbol{u}_m$, the pair representations $\boldsymbol{v}_k$ and
-$\widetilde{\boldsymbol{v}}_k$, the interaction representations
-$\boldsymbol{t}_{ij}$, and the pooled vectors $\boldsymbol{z}_U$,
-$\boldsymbol{z}_I$, $\boldsymbol{z}_C$, $\boldsymbol{z}_G$, $\boldsymbol{z}_R$
-and $\hbar_x$---lie in $\mathbb{R}^{d}$. Eq.~(\ref{eq:unit-support})
-accordingly gives $f_A$ an input of dimension $4d+11$, $f_I$ takes $4d$, $f_R$
-takes $3d$, and the shared representation $\boldsymbol{h}$ has dimension $4d$.
+This section specifies the encoders, pooling rules, and masking behavior that
+Section~\ref{sec:method-decomposition} leaves implicit.
 
 \paragraph{Pair encoding.}
-For each target--prior pair $(x,p_k)$, the residual cross-encoder produces
-token states $\boldsymbol{H}_k\in\mathbb{R}^{L\times d}$, where $L$ is the
-input sequence length. We apply masked mean pooling to obtain the pair
-representation and augment it with projected pair coverage features:
+The residual cross-encoder shares parameters across all retained priors. For
+each target--prior pair $(x,p_k)$ it produces token states
+$\boldsymbol{H}_k\in\mathbb{R}^{L\times d}$, where $L$ is the input sequence
+length. Masked mean pooling over these states gives the pair representation,
+which we augment with projected pair coverage features:
 \begin{equation}
  \boldsymbol{v}_k=\operatorname{MeanPool}(\boldsymbol{H}_k),
  \qquad
  \widetilde{\boldsymbol{v}}_k=\boldsymbol{v}_k+f_P(\boldsymbol{f}_k),
 \end{equation}
 where $f_P$ consists of a linear map, layer normalization, GELU, and dropout.
-The residual encoder shares parameters across all retained priors. To
-construct the target token bank, we average target-token states at matching
-positions across valid pairs. Masked mean pooling over this bank yields the
-target representation $\hbar_x$ used in residual fusion.
+The target token bank averages target-token states at matching positions
+across valid pairs, and masked mean pooling over the bank yields the target
+representation $\hbar_x$ that Stage~C fuses.
 
 \paragraph{Coverage reconstruction.}
 To supervise the unit coverage estimates, we aggregate them into a scalar
@@ -135,15 +185,16 @@ joint-coverage prediction. The pooling weights depend on both the semantic
 representation and the activity of each unit:
 \begin{equation}
  \widehat C_U=\sum_{m=1}^{M}\omega_m c_m,\qquad
- \omega_m=\frac{v_m\exp(\boldsymbol{w}_c^\top\boldsymbol{u}_m+b_c)}
- {\sum_{r=1}^{M}v_r\exp(\boldsymbol{w}_c^\top\boldsymbol{u}_r+b_c)}.
+ \omega_m=\frac{\phi_m\exp(\boldsymbol{w}_c^\top\boldsymbol{u}_m+b_c)}
+ {\sum_{r=1}^{M}\phi_r\exp(\boldsymbol{w}_c^\top\boldsymbol{u}_r+b_c)}.
  \label{eq:reconstructed-coverage}
 \end{equation}
-The resulting estimate $\widehat C_U$ is supervised by annotated coverage
-and the fixed Stage~A prediction. This aggregate supervision constrains unit
-coverage but does not uniquely determine the latent support matrix. We use
-noisy-OR as a differentiable rule for aggregating support; its use does not
-establish that support from different priors is statistically independent.
+Annotated coverage and the fixed Stage~A prediction supervise the resulting
+estimate $\widehat C_U$. This supervision is aggregate: it constrains the unit
+coverages without determining the latent support matrix uniquely. Noisy-OR
+likewise serves as a differentiable rule for aggregating support, and using it
+does not establish that support from different priors is statistically
+independent.
 
 \paragraph{Interaction encoding and attention.}
 For each unit pair $i<j$, an MLP $f_I$ encodes the two units and their
@@ -164,19 +215,24 @@ compute attention over all $\binom{M}{2}$ unit pairs:
  \label{eq:interaction-pooling}
 \end{equation}
 The logarithmic bias directs attention toward pairs with larger residual
-weights. Multiplication by $r_{ij}$ during pooling also preserves the scale
-of the residual weights, allowing weak residuals to contribute less even
-after attention normalization.
+weights. Multiplying by $r_{ij}$ after normalization then restores their
+scale, so that weak residuals contribute less than the softmax alone would
+allow---the same reason $\boldsymbol{z}_U$ is normalized by $M$ rather than by
+$\sum_m r_m$.
 
-Padded evidence slots carry zero support: the support matrix is masked by the
-evidence-availability flag and clamped to $[0,0.995]$ before use. Both
-aggregations are therefore well defined when fewer than $K$ priors are
-retained---the product in Eq.~(\ref{eq:unit-residual}) runs over the retained
-priors, and the maximum in Eq.~(\ref{eq:interaction-residual}) is taken over
-all $K$ slots, so $b_{ij}=0$ when none is retained.
+\paragraph{Masking and edge cases.}
+Padded evidence slots carry zero support: the evidence-availability flag masks
+the support matrix, which is clamped to $[0,0.995]$ before use. Both
+aggregations remain well defined when fewer than $K$ priors are retained. The
+noisy-OR product runs over the retained priors only, while the co-support
+maximum is taken over all $K$ slots, so $\bar{A}_{ij}=0$ when none is
+retained---an empty record yields no evidence that the combination exists.
 
 \subsection{Residual fusion, prediction heads, and decision rules}
 \label{app:method-heads}
+
+This section specifies the gate, the heads, and the decision rules that
+Section~\ref{sec:method-prediction} states only in outline.
 
 \paragraph{Context gate.}
 The fusion gate conditions the contribution of global context on the two
@@ -189,12 +245,10 @@ $\boldsymbol{\pi}^{J}$. The gate is
 \end{equation}
 Here $f_\gamma$ is a two-layer MLP with a $d/2$ bottleneck and a scalar
 output, so $\gamma$ scales $\boldsymbol{z}_G$ uniformly rather than gating it
-per dimension.
-The gated context $\gamma\boldsymbol{z}_G$ enters residual fusion alongside
-$\boldsymbol{z}_U$ and $\boldsymbol{z}_I$. Global context
-$\boldsymbol{z}_G$ also enters the final shared representation directly.
-Thus, $\gamma$ controls the context contribution within the residual branch,
-while the direct context path remains available to the prediction heads.
+per dimension. The gated context $\gamma\boldsymbol{z}_G$ enters residual
+fusion alongside $\boldsymbol{z}_U$ and $\boldsymbol{z}_I$, while
+$\boldsymbol{z}_G$ reaches the shared representation---and through it the
+prediction heads---on an ungated path of its own.
 
 \paragraph{Auxiliary predictions.}
 The auxiliary heads use the shared representation $\boldsymbol{h}$ to predict
@@ -261,28 +315,59 @@ Eq.~(\ref{eq:novelty-fusion}), and define
  \end{cases}
 \end{equation}
 where $\alpha_D,\alpha_O,\alpha_{MH}\geq0$ and
-$\alpha_D+\alpha_O+\alpha_{MH}=1$. The refinement applies a threshold to
-this weighted score and does not require separate agreement from all three
-heads. For example, an initial \textsc{moderate} prediction is promoted to
-\textsc{high} if the combined score reaches $\theta_{MH}$, even if the
-individual heads favor different grades. The distribution-mixture weights
-and refinement threshold are selected on development data and fixed for
-testing. Appendix~\ref{app:method-training} reports the implementation values.
+$\alpha_D+\alpha_O+\alpha_{MH}=1$. Thresholding the weighted score, rather
+than requiring separate agreement from all three heads, promotes a
+\textsc{moderate} prediction to \textsc{high} whenever the heads are
+collectively confident---even when each of them favors a different grade. We
+select the mixture weights and the refinement threshold on development data
+and fix them for testing; Appendix~\ref{app:method-training} reports the
+values.
 
 \paragraph{Continuous outputs.}
-A separate sigmoid head predicts a continuous novelty score. At inference,
-novelty grades are determined by probability fusion and the moderate-to-high
-refinement; the continuous score output does not enter that decision rule.
-The continuous score head and the substantive-difference head are separate
-readouts; the latter is used in the blockwise RINoBench evaluation.
+A separate sigmoid head predicts a continuous novelty score. Probability
+fusion and the moderate-to-high refinement alone determine the grade at
+inference, so this score never enters the decision rule. It is also a
+different readout from the substantive-difference head, which the blockwise
+RINoBench evaluation uses.
 
 \subsection{Training and implementation details}
 \label{app:method-training}
 
-This section supplements the training objective in
-Eq.~(\ref{eq:training-objective}) with the loss definitions and implementation
-settings for the prediction modules of Appendix~\ref{app:method-heads} and the
-residual decomposition of Appendix~\ref{app:method-representations}.
+This section states the training objective summarized in
+Section~\ref{sec:method-prediction} and gives the loss definitions and
+implementation settings for the prediction modules of
+Appendix~\ref{app:method-heads} and the residual decomposition of
+Appendix~\ref{app:method-representations}.
+
+\paragraph{Objective.}
+Let $\mathcal{A}=\{\Delta,S,E,C,\nu\}$ index the annotated scalars---the
+substantive difference, surface change, and evidence sufficiency read off the
+auxiliary heads, the reconstructed coverage $\widehat C_U$, and the continuous
+novelty score---each contributing a smooth-$L_1$ level loss $\mathcal{L}_a$
+against its annotation. Level losses alone leave these heads free to settle on
+the median of their target, so we also supervise their order: the ranking
+terms of $\Delta$, $S$, $E$, and $C$ are collected into a single
+$\mathcal{L}_{\mathrm{rank}}$, while the novelty score carries its own ranking
+term inside $\mathcal{L}_{\nu}$. The objective is
+\begin{equation}
+ \mathcal{L}=\sum_{a\in\mathcal{A}}\lambda_{a}\mathcal{L}_{a}
+ +\lambda_{\mathrm{rank}}\mathcal{L}_{\mathrm{rank}}
+ +\lambda_{\mathrm{nov}}\mathcal{L}_{\mathrm{nov}}
+ +\lambda_{\mathrm{type}}\mathcal{L}_{\mathrm{type}}
+ +\lambda_{\mathrm{dec}}\mathcal{L}_{\mathrm{dec}}
+ +\lambda_{\mathrm{var}}\mathcal{L}_{\mathrm{var}},
+ \label{eq:training-objective}
+\end{equation}
+where $\mathcal{L}_{\mathrm{nov}}$ supervises the three novelty branches,
+their fused distribution, and the moderate-to-high head, and
+$\mathcal{L}_{\mathrm{type}}$ supervises residual categories and nontrivial
+combinations. Beyond its level loss, the coverage term $\mathcal{L}_{C}$ adds
+a consistency loss against the fixed Stage~A prediction, assigning less
+consistency weight to predictions with higher entropy.
+$\mathcal{L}_{\mathrm{dec}}$ regularizes the decomposition against redundant
+token assignments and unused units, and $\mathcal{L}_{\mathrm{var}}$ is a
+variance floor that keeps the unit coverages from coinciding. The remainder of
+this section defines each term and reports the coefficients $\lambda$.
 
 \paragraph{Supervision.}
 The classification group $\mathcal{L}_{\mathrm{nov}}$ trains the direct and MLP
