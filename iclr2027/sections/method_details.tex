@@ -333,22 +333,17 @@ RINoBench evaluation uses.
 \subsection{Training and implementation details}
 \label{app:method-training}
 
-This section states the training objective summarized in
-Section~\ref{sec:method-prediction} and gives the loss definitions and
-implementation settings for the prediction modules of
-Appendix~\ref{app:method-heads} and the residual decomposition of
-Appendix~\ref{app:method-representations}.
+This section defines the loss terms of the training objective and reports the
+settings of the residual stage.
 
 \paragraph{Objective.}
 Let $\mathcal{A}=\{\Delta,S,E,C,\nu\}$ index the annotated scalars---the
 substantive difference, surface change, and evidence sufficiency read off the
 auxiliary heads, the reconstructed coverage $\widehat C_U$, and the continuous
-novelty score---each contributing a smooth-$L_1$ level loss $\mathcal{L}_a$
-against its annotation. Level losses alone leave these heads free to settle on
-the median of their target, so we also supervise their order: the ranking
-terms of $\Delta$, $S$, $E$, and $C$ are collected into a single
-$\mathcal{L}_{\mathrm{rank}}$, while the novelty score carries its own ranking
-term inside $\mathcal{L}_{\nu}$. The objective is
+novelty score. Each contributes a smooth-$L_1$ level loss $\mathcal{L}_a$
+against its annotation, and the ranking terms of $\Delta$, $S$, $E$ and $C$
+are collected into a single $\mathcal{L}_{\mathrm{rank}}$, the novelty score
+carrying its own inside $\mathcal{L}_{\nu}$:
 \begin{equation}
  \mathcal{L}=\sum_{a\in\mathcal{A}}\lambda_{a}\mathcal{L}_{a}
  +\lambda_{\mathrm{rank}}\mathcal{L}_{\mathrm{rank}}
@@ -358,110 +353,96 @@ term inside $\mathcal{L}_{\nu}$. The objective is
  +\lambda_{\mathrm{var}}\mathcal{L}_{\mathrm{var}},
  \label{eq:training-objective}
 \end{equation}
-where $\mathcal{L}_{\mathrm{nov}}$ supervises the three novelty branches,
-their fused distribution, and the moderate-to-high head, and
+Here $\mathcal{L}_{\mathrm{nov}}$ supervises the three novelty branches, their
+fused distribution, and the moderate-to-high head;
 $\mathcal{L}_{\mathrm{type}}$ supervises residual categories and nontrivial
-combinations. Beyond its level loss, the coverage term $\mathcal{L}_{C}$ adds
-a consistency loss against the fixed Stage~A prediction, assigning less
-consistency weight to predictions with higher entropy.
-$\mathcal{L}_{\mathrm{dec}}$ regularizes the decomposition against redundant
-token assignments and unused units, and $\mathcal{L}_{\mathrm{var}}$ is a
-variance floor that keeps the unit coverages from coinciding. The remainder of
-this section defines each term and reports the coefficients $\lambda$.
+combinations; and $\mathcal{L}_{\mathrm{dec}}$ and
+$\mathcal{L}_{\mathrm{var}}$ regularize the decomposition.
+Table~\ref{tab:method-settings} lists every coefficient $\lambda$.
 
 \paragraph{Supervision.}
-The classification group $\mathcal{L}_{\mathrm{nov}}$ trains the direct and MLP
+$\mathcal{L}_{\mathrm{nov}}$ trains the direct and MLP
 classifiers with class-weighted cross-entropy, the ordinal outputs against
 $\mathbf{1}[y\geq\ell]$, $\ell=1,2,3$, with weighted binary cross-entropy, and
 the fused distribution with a negative log-likelihood. The moderate-to-high head
 sees only moderate and high examples and adds a positive--negative margin to its
 binary cross-entropy, weighting moderate examples scored as high more heavily.
-The type group $\mathcal{L}_{\mathrm{type}}$ combines the hierarchy's
-conditional losses, a flat classification loss, binary supervision for
-nontrivial combinations, and consistency penalties tying the combination branch
-to the type predictions. The separate novelty score regresses $\nu^*$, the
-continuous annotation target defined by $\mathrm{raw}(x)$ in
-the novelty rule of Sec.~\ref{sec:dataset-task} and formed from the annotated coverage, substantive
-difference, evidence sufficiency, and surface change of the target. It is the
-quantity the dataset thresholds into the four grades.
+$\mathcal{L}_{\mathrm{type}}$ combines the hierarchy's conditional losses, a
+flat classification loss, binary supervision for nontrivial combinations, and
+consistency penalties tying the combination branch to the type predictions.
+The novelty score regresses $\nu^*$, the continuous target that
+$\mathrm{raw}(x)$ in the novelty rule of Sec.~\ref{sec:dataset-task} forms
+from the annotated coverage, substantive difference, evidence sufficiency and
+surface change of the target, and that the dataset thresholds into the four
+grades.
 
 \paragraph{Scalar heads: level and ranking terms.}
 Let $\ell_\delta$ denote smooth-$L_1$ loss and $w_x$ the example weight. For
 $a\in\mathcal{A}$, the level loss is
 $\mathcal{L}_a=\sum_xw_x\ell_\delta(\widehat a_x-a^*_x)/\sum_xw_x$, where
-$a^*_x$ is the annotation and $\widehat a_x$ the prediction. The corresponding
-ranking term takes within-minibatch pairs separated by
-$|a^*_x-a^*_{x'}|\geq0.05$ and contributes
+$a^*_x$ is the annotation and $\widehat a_x$ the prediction. The ranking term
+takes within-minibatch pairs separated by $|a^*_x-a^*_{x'}|\geq0.05$ and
+contributes
 $[0.02-\operatorname{sgn}(a^*_x-a^*_{x'})(\widehat a_x-\widehat a_{x'})]_+$,
 weighted by $\sqrt{w_xw_{x'}}$; it is dropped when a minibatch holds no
-eligible pair. The ranking terms of $\Delta$, $S$, $E$, and $C$ are summed into
-$\mathcal{L}_{\mathrm{rank}}$ with the internal weights of
-Table~\ref{tab:method-settings}; the novelty score's ranking term is carried
-inside $\mathcal{L}_{\nu}$ instead, where it takes most of the weight because
-the grade is read off the score by thresholding and therefore depends only on
-order.
+eligible pair.
 
-The ranking terms are not redundant with the level losses. At the transition
-$\delta$ and target spread used here the level losses operate in their $L_1$
-regime, whose optimum is the median of the target, and a head supervised by the
-level loss alone drifts towards emitting a near-constant value; the evidence
-head is the clearest case. Ranking is scale-free and counteracts this.
+Ranking is not redundant with the level loss. At the transition $\delta$ and
+target spread used here the level loss operates in its $L_1$ regime, whose
+optimum is the median of the target, so a head supervised by it alone drifts
+towards a near-constant output---the evidence head most visibly. Ranking is
+scale-free and counteracts that drift, which is also why it takes most of the
+weight inside $\mathcal{L}_{\nu}$: thresholding reads the grade off the score,
+so only order matters there.
 
-\paragraph{Coverage term.}
+\paragraph{Coverage, decomposition, and variance terms.}
 Beyond its level loss against the annotated joint value $C^*$,
 $\mathcal{L}_{C}$ adds a consistency loss against the upstream score $C_J$ at
 relative weight $0.2$, reweighted by $1-H_J$ so that examples with uncertain
-upstream coverage count for less. No observed unit-level support matrix is
-supplied as a target.
-
-\paragraph{Decomposition regularization and variance floor.}
-$\mathcal{L}_{\mathrm{dec}}$ combines three terms. Attention regularization
-penalizes the squared entries of $\widetilde\alpha\widetilde\alpha^\top-I$ for
-the row-normalized attention matrix $\widetilde\alpha$, plus half the mean
-off-diagonal cosine similarity. Query diversity penalizes the mean squared
-cosine similarity between distinct queries. A usage penalty
+upstream coverage count for less; no unit-level support matrix is supplied as
+a target. $\mathcal{L}_{\mathrm{dec}}$ combines three terms: attention
+regularization penalizes the squared entries of
+$\widetilde\alpha\widetilde\alpha^\top-I$ for the row-normalized attention
+matrix $\widetilde\alpha$, plus half the mean off-diagonal cosine similarity;
+query diversity penalizes the mean squared cosine similarity between distinct
+queries; and a usage penalty
 $D_{\mathrm{KL}}(\boldsymbol{\rho}\|\boldsymbol{u})$, with
-$\rho_m=\sum_jB_{mj}/\sum_{r,j}B_{rj}$ and $\boldsymbol{u}$ uniform over the $M$
-units, keeps units from going unused. Their relative weights are given in
-Table~\ref{tab:method-settings}.
-
-The variance floor is a separate term rather than a component of
-$\mathcal{L}_{\mathrm{dec}}$, and enters
-Eq.~(\ref{eq:training-objective}) under its own coefficient:
+$\rho_m=\sum_jB_{mj}/\sum_{r,j}B_{rj}$ and $\boldsymbol{u}$ uniform over the
+$M$ units, keeps units from going unused. The variance floor carries its own
+coefficient,
 \begin{equation}
  \mathcal{L}_{\mathrm{var}}
- =\mathbb{E}_x\bigl[[\nu-\operatorname{Var}_m(c_{x,m})]_+/\nu\bigr].
+ =\mathbb{E}_x\bigl[[\nu-\operatorname{Var}_m(c_{x,m})]_+/\nu\bigr],
 \end{equation}
-It acts on the unit coverages rather than on the token assignments, and keeps
-the $c_m$ within an example from coinciding. The reported configuration uses
-softmax competition with dot-product scores.
+and acts on the unit coverages rather than on the token assignments, keeping
+the $c_m$ within an example from coinciding.
 
 \paragraph{Curriculum and feature perturbation.}
-For a randomly sampled fraction of training examples the joint-coverage features,
-together with the associated probability and entropy features, are replaced by
-values derived from annotated joint coverage, with probability $0.50$ in epoch
-1, $0.20$ in epoch 2, and $0$ thereafter. This is training-time supervision
-only: development and test runs always use the upstream joint predictions.
+For a randomly sampled fraction of training examples, values derived from
+annotated joint coverage replace the joint-coverage features and the
+associated probability and entropy features---with probability $0.50$ in epoch
+1, $0.20$ in epoch 2, and $0$ thereafter. Development and test runs always use
+the upstream joint predictions.
 Selected joint-coverage features on the global-context path also receive
 Gaussian noise of standard deviation $0.03$ and independent feature dropout at
 probability $0.10$, which leaves untouched both the direct coverage inputs to
 the novelty heads and the entropy input to the fusion gate.
 
 \paragraph{Inputs and initialization.}
-Pair probabilities missing from a supplied ranking record are reconstructed by
-the input adapter from the available coverage label and score; pair labels and
-scores also appear in the pair text input. The two facet embeddings entering
+The input adapter reconstructs pair probabilities missing from a ranking
+record from the available coverage label and score; pair labels and scores
+also appear in the pair text input. The two facet embeddings entering
 $\boldsymbol{z}_G$ have dimension $32$ each. The model uses DeBERTa-v3-base
-with hidden dimension $768$, maximum pair-input length $384$, $K=5$, and $M=8$;
-the residual encoder is initialized from the learned joint model and upstream
+with hidden dimension $768$, maximum pair-input length $384$, $K=5$ and $M=8$;
+the residual encoder is initialized from the learned joint model, and upstream
 checkpoints stay fixed. Padded priors have zero support, support values are
-capped at $0.995$ for numerical stability, and an empty evidence set falls back
-to a target-containing input with all prior support masked out. Fusion uses
-refinement weights $(\alpha_D,\alpha_O,\alpha_{MH})=(0.40,0.30,0.30)$ and
-mixture weights $(\lambda_D,\lambda_O,\lambda_R)=(0.50,0.35,0.15)$ in training;
-development-set calibration selects $(0.60,0.20,0.20)$ and $\theta_{MH}=0.32$
-for inference, fixed thereafter. Table~\ref{tab:method-settings} lists the
-remaining settings.
+capped at $0.995$, and an empty evidence set falls back to a target-containing
+input with all prior support masked out. Training uses refinement weights
+$(\alpha_D,\alpha_O,\alpha_{MH})=(0.40,0.30,0.30)$ and mixture weights
+$(\lambda_D,\lambda_O,\lambda_R)=(0.50,0.35,0.15)$; development-set
+calibration selects $(0.60,0.20,0.20)$ and $\theta_{MH}=0.32$ for inference,
+fixed thereafter. Table~\ref{tab:method-settings} lists the remaining
+settings.
 
 \begin{table}[t]
 \centering
@@ -495,12 +476,3 @@ Seed & 173 \\
 \end{tabular}
 \end{table}
 
-\paragraph{Evidence-source protocol.}
-The reference pair pipeline predicts coverage features and ranks priors by the
-rule in Appendix~\ref{app:method-evidence}, while the upstream joint model is
-trained with bag-level coverage supervision and an auxiliary pair-score
-regression objective. For the reported checkpoint the evidence order and pair
-annotations come from the dataset ranking records, so the configuration
-evaluates novelty prediction with supplied pair annotations and predicted joint
-coverage. Applying the model to an unseen idea additionally requires computing
-the pair evidence features.
