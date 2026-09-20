@@ -59,10 +59,9 @@ contributions are:
   no single prior puts together). Both read off the same support matrix, so an
   unexplored contribution and an effective recombination are distinguished by
   the model rather than by assertion.
-  \item \textbf{Evidence that the decomposition, not the backbone, carries the
-  result.} EGRD reaches $0.909/0.882/0.898$ QWK across the three domains against
-  $0.579$ for the best prompted system, whose prompt chains do not beat a single
-  direct call once the backbone is strong. A blockwise rule extends the frozen checkpoint
+  \item \textbf{Consistent gains across domains and transfer to expert judgments.}
+  EGRD reaches $0.909/0.882/0.898$ QWK across the three domains against
+  $0.579$ for the best prompted system. A blockwise rule extends the frozen checkpoint
   beyond its training evidence budget, leading every RINoBench
   \citep{schopf2026rinobench} baseline on QWK ($0.2245$ against $0.1469$) and
   Macro-F1 ($0.3407$ against $0.2457$); that margin is modest.
