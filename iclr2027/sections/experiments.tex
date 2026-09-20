@@ -163,12 +163,9 @@ what scoring a target against a retrieved set read as a block permits.
 \footnotesize
 \setlength{\tabcolsep}{5pt}
 \renewcommand{\arraystretch}{1.0}
-\caption{RINoBench test, 277 ideas, human expert 1--5 labels folded to four
-levels with $4/5$ merged. The merged top class holds 41.5\% of the ideas, so
-predicting it everywhere scores 0.4152 accuracy, at or above every system in
-the table. Only about 30 of the 277 ideas fall in the three fields EGRD was
-trained on. Bold marks the best value in a column; Acc and MAE are not led by
-our row.}
+\caption{Transfer to the RINoBench test set, 277 ideas with expert labels folded
+to four levels. Bold marks the best value in a column; Acc and MAE are not led
+by our row.}
 \label{tab:panel-b}
 \begin{tabular}{@{}p{5.1cm}rrrr@{}}
 \toprule
@@ -197,16 +194,16 @@ DeepReviewer-7B & 0.1913 & 0.1425 & 0.0145 & 1.3610 \\
 \end{table}
 
 We evaluate the frozen checkpoint on RINoBench \citep{schopf2026rinobench},
-whose 277 test ideas carry expert 1--5 labels folded to four levels. These
-experts never saw the scheme, and the drop between the two tables is the cost of
-changing annotator.
+whose 277 test ideas carry expert 1--5 labels. We fold them to four levels by
+merging 4 and 5, which leaves $41.5\%$ of the ideas in the top class, so a
+constant predictor scores $0.4152$ accuracy.
 
 The ordering transfers even though the level does not.
 EGRD leads Macro-F1 and kappa at $0.3407$ and $0.2245$ against $0.2457$ and
 $0.1469$ for the best other system on each, and is the only row above $0.15$ kappa, while six of the eleven baselines sit
 below $0.05$ and so do not order the ideas at all. Accuracy carries no
-information here, since a constant predictor scores $0.4152$; our row reaches the
-same $0.4152$ with a prediction that is not constant, $16/36/76/149$ ideas across
+information here: our row reaches the constant predictor's
+$0.4152$ with a prediction that is not constant, $16/36/76/149$ ideas across
 the four classes against a gold $15/60/87/115$. The margin is modest: we read it as some agreement between residual structure
 learned on model-generated labels and expert judgment, not as the problem
 solved.
@@ -216,11 +213,10 @@ visible before any model is run. The first is coverage. \textsc{IdeaDelta} is
 built from three fields, whereas RINoBench draws its ideas from OpenReview
 submissions across machine learning as a whole, so most of its test ideas sit in
 areas --- robust reinforcement learning, tabular learning, computational biology
---- whose prior work the model was never trained to read. The second is
-granularity. The expert scale has five levels against the four EGRD predicts, so
-the top two are merged, and that merge does two things at once: it puts $41.5\%$
-of the ideas into a single class, which is why accuracy is uninformative here,
-and it erases a distinction the experts themselves chose to draw, so a model
+--- whose prior work the model was never trained to read; only about $30$ of the
+$277$ ideas fall in the three fields it was. The second is granularity. Merging
+the top two expert levels is what collapses $41.5\%$ of the ideas into one class,
+and it also erases a distinction the experts themselves chose to draw, so a model
 that orders the ideas correctly still has no way to express the difference
 between a 4 and a 5.
 
