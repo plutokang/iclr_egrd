@@ -221,18 +221,6 @@ and it also erases a distinction the experts themselves chose to draw, so a mode
 that orders the ideas correctly still has no way to express the difference
 between a 4 and a 5.
 
-The blockwise rule lets the model read more evidence than training supplied.
-RINoBench offers far more candidate priors than the five EGRD was trained with.
-Splitting them into disjoint blocks of five and taking the minimum substantive
-delta over blocks is conservative --- any block finding the idea covered lowers
-its grade --- and needs no retraining, since a block has the shape seen in
-training. Raising the budget from 25 to 60 priors moves accuracy from $0.4116$ to
-$0.4152$ and kappa from $0.2182$ to $0.2245$: real but small, and saturating,
-since the median idea carries 23 candidates. The same change separates the systems: Qwen3.5 improves from $0.2244$ to
-$0.2477$ Macro-F1 while DeepReviewer-7B falls from $0.1425$ to $0.1230$. A
-system that treats the amount of retrieved prior work as the signal degrades
-when given more of it.
-
 \subsection{Ablation}
 \label{sec:exp-ablation}
 
