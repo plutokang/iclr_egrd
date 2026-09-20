@@ -145,11 +145,14 @@ against $0.067$ for holding the model fixed and changing the chain; on kappa the
 two swap, $0.204$ against $0.263$. Neither factor dominates the other, and which
 of them leads depends on the metric read.
 
-The domain, by contrast, separates nothing. Within a row the three domains sit
-closer to one another than any of them sits to EGRD: the widest spread anywhere
-in the table is $0.09$ accuracy and $0.26$ kappa, against a smallest distance to
-our row of $0.38$ and $0.58$ on those same metrics. What separates the two
-blocks is not a property of one field.
+EGRD outperforms the baselines in all three domains.
+Its accuracy margin over the best baseline in each domain is
+$0.356$ on Graph ML, $0.341$ on computer vision, and $0.344$
+on time series; the corresponding QWK margins are
+$0.330$, $0.321$, and $0.322$.
+These results show that the advantage is consistent across
+the three evaluated domains, although individual baselines
+remain sensitive to the domain.
 
 Fine-tuning on paper review does not transfer to ideas.
 DeepReviewer-7B is the one system trained rather than prompted, and its kappa
