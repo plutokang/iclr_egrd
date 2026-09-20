@@ -10,8 +10,8 @@
 The evaluation set is the \textsc{IdeaDelta} test split. Every system receives
 the same evidence --- the
 five highest-ranked admissible priors per target, as titles and abstracts, with
-no paper text --- and is scored against the same labels by the same script, so a
-difference between two rows is a difference in how the evidence is used. On a four-level label with unequal support, accuracy rewards the
+no paper text --- and is scored against the same labels by the same script.
+On a four-level label with unequal support, accuracy rewards the
 majority class and MAE the middle of the scale, while quadratic weighted kappa
 is what a constant predictor cannot win, so we report all four.
 Appendix~\ref{app:setup} gives the splits, hyperparameters and scoring code.
