@@ -123,23 +123,33 @@ system on the \textsc{IdeaDelta} evaluation set, and Table~\ref{tab:panel-b}
 carries the same frozen checkpoint to RINoBench. In the first table the prompted
 systems occupy a band well below our row.
 
-Among the prompted systems, the backbone matters more than the prompt chain.
-Holding the prompt fixed and changing the model moves the result further than
-the reverse. On Graph ML a single five-prior call rises from $0.300$ to $0.438$ accuracy
-when Qwen3.5 is replaced by deepseek-flash, a larger move than separates any two
-prompt chains on one backbone. GraphMind is the exception, and in both
-directions: it gains the least from a better backbone, and in all nine cells it
-scores below a single direct call on the backbone it runs on --- on Qwen3.5,
-$0.264$ against $0.300$ on Graph ML, at $476$ seconds and $31{,}201$ LLM calls
-for the $3{,}352$ ideas. Its polarity stage is why: given the same five priors
-Qwen3.5 calls $4.33$ supporting against deepseek-flash's $1.04$, and the ratings
-follow. The stage is also unstable across backbones, and kappa records it: on
-Graph ML deepseek-flash reaches $-0.007$, no ordering at all, while the same
-chain on the same backbone reaches $0.159$ on time series.
+Among the prompted systems, adding stages to the prompt does not add
+information, and on a strong backbone it removes some. Measured against a
+single five-prior call on the same backbone, the two-stage RINoBench chain
+gains in all three domains on Qwen3.5, by $0.024$ to $0.053$ accuracy and
+$0.016$ to $0.086$ kappa; on deepseek-flash the gain is spent, the chain
+staying within $0.026$ accuracy and $0.020$ kappa of the direct call in either
+direction; and on gpt-5.6-luna it loses in all three domains, by $0.027$ to
+$0.053$ accuracy and $0.064$ to $0.103$ kappa. The three-stage UKPLab chain and
+GraphMind never reach the direct call at all: each sits below it in all nine
+cells on both metrics, and the UKPLab deficit widens with the backbone in the
+same direction, averaging $0.19$ kappa on Qwen3.5, $0.26$ on deepseek-flash and
+$0.28$ on gpt-5.6-luna. A chain compensates for a weak reader, and once the
+reader is strong the compensation costs more than it returns --- and it is
+charged for twice, since GraphMind spends $476$ seconds and $31{,}201$ LLM
+calls on the $3{,}352$ ideas to arrive below one call per idea.
 
-The domain, by contrast, does not matter. Within any row the three domains
-differ by under ten accuracy points while the gap to EGRD exceeds thirty on every metric, so
-what separates the two blocks is not a property of one field.
+Which model a chain runs on matters about as much as which chain it is. Holding
+the chain fixed and changing the model moves accuracy by $0.107$ on average,
+against $0.067$ for holding the model fixed and changing the chain; on kappa the
+two swap, $0.204$ against $0.263$. Neither factor dominates the other, and which
+of them leads depends on the metric read.
+
+The domain, by contrast, separates nothing. Within a row the three domains sit
+closer to one another than any of them sits to EGRD: the widest spread anywhere
+in the table is $0.09$ accuracy and $0.26$ kappa, against a smallest distance to
+our row of $0.38$ and $0.58$ on those same metrics. What separates the two
+blocks is not a property of one field.
 
 Fine-tuning on paper review does not transfer to ideas.
 DeepReviewer-7B is the one system trained rather than prompted, and its kappa
