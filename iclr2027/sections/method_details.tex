@@ -358,7 +358,7 @@ fused distribution, and the moderate-to-high head;
 $\mathcal{L}_{\mathrm{type}}$ supervises residual categories and nontrivial
 combinations; and $\mathcal{L}_{\mathrm{dec}}$ and
 $\mathcal{L}_{\mathrm{var}}$ regularize the decomposition.
-Table~\ref{tab:method-settings} lists every coefficient $\lambda$.
+Each coefficient $\lambda$ weights its term in the sum.
 
 \paragraph{Supervision.}
 $\mathcal{L}_{\mathrm{nov}}$ trains the direct and MLP
@@ -441,38 +441,6 @@ input with all prior support masked out. Training uses refinement weights
 $(\alpha_D,\alpha_O,\alpha_{MH})=(0.40,0.30,0.30)$ and mixture weights
 $(\lambda_D,\lambda_O,\lambda_R)=(0.50,0.35,0.15)$; development-set
 calibration selects $(0.60,0.20,0.20)$ and $\theta_{MH}=0.32$ for inference,
-fixed thereafter. Table~\ref{tab:method-settings} lists the remaining
-settings.
-
-\begin{table}[t]
-\centering
-\small
-\caption{Residual-stage settings for the reported IdeaDelta checkpoint.
-The checkpoint was selected on development data at epoch 5 of 8.}
-\label{tab:method-settings}
-\begin{tabular}{@{}lr@{}}
-\toprule
-Setting & Value \\
-\midrule
-Training batch size / evaluation batch size & 2 / 8 \\
-Head learning rate / encoder learning rate & $1.5\times10^{-5}$ / $3\times10^{-6}$ \\
-Weight decay / dropout & 0.01 / 0.15 \\
-Smooth-$L_1$ transition $\delta$ & 0.25 \\
-\addlinespace
-$\lambda_\Delta$ / $\lambda_S$ / $\lambda_E$ & 1.0 / 0.6 / 0.8 \\
-$\lambda_C$ / $\lambda_\nu$ & 0.3 / 0.6 \\
-$\lambda_{\mathrm{nov}}$ / $\lambda_{\mathrm{type}}$ & 0.8 / 1.0 \\
-$\lambda_{\mathrm{rank}}$ & 0.5 \\
-$\lambda_{\mathrm{dec}}$ / $\lambda_{\mathrm{var}}$ & 0.05 / 0.02 \\
-\addlinespace
-Within $\mathcal{L}_{\mathrm{rank}}$: $\Delta$ / $S$ / $E$ / $C$ & 1.0 / 0.5 / 0.5 / 0.5 \\
-Within $\mathcal{L}_{\nu}$: ranking weight & 2.0 \\
-Within $\mathcal{L}_{C}$: Stage~A consistency weight & 0.2 \\
-Within $\mathcal{L}_{\mathrm{dec}}$: attention / query / usage & 0.7 / 0.1 / 0.2 \\
-Variance floor $\nu$ & 0.0025 \\
-\addlinespace
-Seed & 173 \\
-\bottomrule
-\end{tabular}
-\end{table}
+fixed thereafter. The reported checkpoint was selected on development data at
+epoch 5 of 8.
 
