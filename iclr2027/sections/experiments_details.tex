@@ -26,11 +26,11 @@ target's, query the index with the target text, and pass the top five hits to
 the same single-call prompt the \emph{direct} rows use. Nothing else changes:
 the same backbones, the same prompt, the same labels and the same scoring
 script.
-% CONFIRM against baseline/dense_rag/build_dense_retrieval.py: the index is
-% described as covering every canonical idea with an earlier date, i.e. no
-% domain filter. Drop the next sentence if the script restricts by domain.
-The date filter is the only admissibility constraint applied, so the
-retrieved set is not restricted to the same research domain.
+Each domain is indexed separately, so a target retrieves within its own domain
+as every other row does. Inside that index the date is the only constraint
+applied: the search ranges over all aspects, whereas the stored candidate lists
+come from aspect-restricted nearest-neighbour recall together with the
+cross-type pass of \S\ref{sec:dataset}.
 
 \paragraph{Metrics.}
 We use four evaluation metrics, computed over the four
