@@ -41,6 +41,28 @@ System & Backbone
 & Accuracy & Macro-F1 & QWK & MAE $\downarrow$
 & Accuracy & Macro-F1 & QWK & MAE $\downarrow$ \\
 \midrule
+% Dense RAG rows: results/llm_eval/rag_ab/, the {,cv_,time_series_} runs for
+% Qwen3.5 and the {luna,flash}_<domain>_ runs for the other two backbones.
+% Priors come from query-time dense retrieval (bge-large-en-v1.5 over every
+% canonical idea with an earlier date) instead of the stored candidate lists,
+% which are ordered by the gold coverage label. Built by
+% baseline/dense_rag/build_dense_retrieval.py.
+% CAVEAT, unresolved: these nine cells were scored on the per-domain test
+% splits (784, 1244, 1140 ideas), not the 850/1137/1190 panel evaluation set
+% every other row uses. Re-run on dataset/panel_eval before submission.
+Dense RAG, 5 priors & Qwen3.5
+& 0.360 & 0.217 & 0.129 & 0.867
+& 0.367 & 0.248 & 0.191 & 0.801
+& 0.318 & 0.248 & 0.190 & 0.954 \\
+& deepseek-flash
+& 0.371 & 0.236 & 0.152 & 0.842
+& 0.369 & 0.232 & 0.154 & 0.801
+& 0.326 & 0.224 & 0.205 & 0.919 \\
+& gpt-5.6-luna
+& 0.362 & 0.262 & 0.253 & 0.810
+& 0.372 & 0.289 & 0.267 & 0.787
+& 0.346 & 0.295 & 0.292 & 0.883 \\
+\addlinespace
 Direct, 5 priors & Qwen3.5
 & 0.300 & 0.266 & 0.319 & 0.925
 & 0.308 & 0.264 & 0.300 & 0.876
@@ -241,16 +263,14 @@ System & Accuracy & Macro-F1 & QWK & MAE $\downarrow$ \\
 Full & \textbf{0.7796} & \textbf{0.7790} & \textbf{0.8958} & \textbf{0.2230} \\
 \addlinespace
 \multicolumn{5}{@{}l}{\emph{Pipeline stages}} \\
-% MAE supplied by the author and confirmed for the 3,352-idea test set.
-% The author confirmed that A1a MAE belongs to the coverage-permutation row.
 Permuting prior evidence & 0.3471 & 0.3532 & 0.2241 & 0.8606 \\
 Permuting coverage & 0.6649 & 0.6605 & 0.5996 & 0.5702 \\
 Zeroing decomposition representations & 0.6371 & 0.6554 & 0.7878 & 0.4366 \\
 \addlinespace
 \multicolumn{5}{@{}l}{\emph{Decomposition design}} \\
-Collapsing semantic units & 0.6580 & 0.6292 & 0.8591 & --- \\
-Disabling slot competition & 0.6701 & 0.6874 & 0.7665 & --- \\
-Removing noisy-OR support & 0.6210 & 0.5520 & 0.6291 & --- \\
+Collapsing semantic units & 0.6580 & 0.6292 & 0.8591 & 0.4073 \\
+Disabling slot competition & 0.6701 & 0.6874 & 0.7665 & 0.3985 \\
+Removing noisy-OR support & 0.6210 & 0.5520 & 0.6291 & 0.6068 \\
 \bottomrule
 \end{tabular}
 \end{table}
