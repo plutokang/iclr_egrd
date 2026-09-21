@@ -7,116 +7,178 @@
 
 \bibitem[Afzal et~al.(2026)Afzal, Nakov, Hope, and Gurevych]{afzal2026beyond}
 Osama~Mohammed Afzal, Preslav Nakov, Tom Hope, and Iryna Gurevych.
-\newblock Beyond ``not novel enough'': Enriching scholarly critique with {LLM}-assisted feedback.
-\newblock In \emph{Proceedings of the 19th Conference of the European Chapter of the Association for Computational Linguistics (Volume 1: Long Papers)}, pp.\  2648--2671, Rabat, Morocco, 2026. Association for Computational Linguistics.
+\newblock Beyond ``not novel enough'': Enriching scholarly critique with
+  {LLM}-assisted feedback.
+\newblock In \emph{Proceedings of the 19th Conference of the European Chapter
+  of the Association for Computational Linguistics (Volume 1: Long Papers)},
+  pp.\  2648--2671, Rabat, Morocco, 2026. Association for Computational
+  Linguistics.
 \newblock URL \url{https://aclanthology.org/2026.eacl-long.121/}.
 
-\bibitem[Baek et~al.(2025)Baek, Jauhar, Cucerzan, and Hwang]{baek2025researchagent}
+\bibitem[Baek et~al.(2025)Baek, Jauhar, Cucerzan, and
+  Hwang]{baek2025researchagent}
 Jinheon Baek, Sujay~Kumar Jauhar, Silviu Cucerzan, and Sung~Ju Hwang.
-\newblock {ResearchAgent}: Iterative research idea generation over scientific literature with large language models.
-\newblock In \emph{Proceedings of the 2025 Conference of the Nations of the Americas Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 1: Long Papers)}, pp.\  6709--6738, Albuquerque, New Mexico, 2025. Association for Computational Linguistics.
+\newblock {ResearchAgent}: Iterative research idea generation over scientific
+  literature with large language models.
+\newblock In \emph{Proceedings of the 2025 Conference of the Nations of the
+  Americas Chapter of the Association for Computational Linguistics: Human
+  Language Technologies (Volume 1: Long Papers)}, pp.\  6709--6738,
+  Albuquerque, New Mexico, 2025. Association for Computational Linguistics.
 \newblock URL \url{https://aclanthology.org/2025.naacl-long.342/}.
 
-\bibitem[Cohan et~al.(2020)Cohan, Feldman, Beltagy, Downey, and Weld]{cohan2020specter}
+\bibitem[Cohan et~al.(2020)Cohan, Feldman, Beltagy, Downey, and
+  Weld]{cohan2020specter}
 Arman Cohan, Sergey Feldman, Iz~Beltagy, Doug Downey, and Daniel Weld.
-\newblock {SPECTER}: Document-level representation learning using citation-informed transformers.
-\newblock In \emph{Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics}, pp.\  2270--2282, Online, 2020. Association for Computational Linguistics.
+\newblock {SPECTER}: Document-level representation learning using
+  citation-informed transformers.
+\newblock In \emph{Proceedings of the 58th Annual Meeting of the Association
+  for Computational Linguistics}, pp.\  2270--2282, Online, 2020. Association
+  for Computational Linguistics.
 \newblock URL \url{https://aclanthology.org/2020.acl-main.207/}.
 
 \bibitem[da~Silva et~al.(2025)da~Silva, Yan, Gui, and He]{dasilva2025graphmind}
 Italo~Luis da~Silva, Hanqi Yan, Lin Gui, and Yulan He.
-\newblock {GraphMind}: Interactive novelty assessment system for accelerating scientific discovery.
-\newblock In \emph{Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing: System Demonstrations}, 2025.
+\newblock {GraphMind}: Interactive novelty assessment system for accelerating
+  scientific discovery.
+\newblock In \emph{Proceedings of the 2025 Conference on Empirical Methods in
+  Natural Language Processing: System Demonstrations}, 2025.
 \newblock URL \url{https://arxiv.org/abs/2510.15706}.
 
 \bibitem[Ilse et~al.(2018)Ilse, Tomczak, and Welling]{ilse2018attentionmil}
 Maximilian Ilse, Jakub~M. Tomczak, and Max Welling.
 \newblock Attention-based deep multiple instance learning.
-\newblock In \emph{Proceedings of the 35th International Conference on Machine Learning}, volume~80 of \emph{Proceedings of Machine Learning Research}, pp.\  2127--2136, 2018.
+\newblock In \emph{Proceedings of the 35th International Conference on Machine
+  Learning}, volume~80 of \emph{Proceedings of Machine Learning Research}, pp.\
+   2127--2136, 2018.
 \newblock URL \url{https://proceedings.mlr.press/v80/ilse18a.html}.
 
-\bibitem[Liang et~al.(2024)Liang, Zhang, Cao, Wang, Ding, Yang, Vodrahalli, He, Smith, Yin, McFarland, and Zou]{liang2024llmfeedback}
-Weixin Liang, Yuhui Zhang, Hancheng Cao, Binglu Wang, Daisy~Yi Ding, Xinyu Yang, Kailas Vodrahalli, Siyu He, Daniel~Scott Smith, Yian Yin, Daniel McFarland, and James Zou.
-\newblock Can large language models provide useful feedback on research papers? a large-scale empirical analysis.
+\bibitem[Liang et~al.(2024)Liang, Zhang, Cao, Wang, Ding, Yang, Vodrahalli, He,
+  Smith, Yin, McFarland, and Zou]{liang2024llmfeedback}
+Weixin Liang, Yuhui Zhang, Hancheng Cao, Binglu Wang, Daisy~Yi Ding, Xinyu
+  Yang, Kailas Vodrahalli, Siyu He, Daniel~Scott Smith, Yian Yin, Daniel
+  McFarland, and James Zou.
+\newblock Can large language models provide useful feedback on research papers?
+  a large-scale empirical analysis.
 \newblock \emph{NEJM AI}, 1\penalty0 (8), 2024.
 \newblock \doi{10.1056/AIoa2400196}.
 
-\bibitem[Locatello et~al.(2020)Locatello, Weissenborn, Unterthiner, Mahendran, Heigold, Uszkoreit, Dosovitskiy, and Kipf]{locatello2020slot}
-Francesco Locatello, Dirk Weissenborn, Thomas Unterthiner, Aravindh Mahendran, Georg Heigold, Jakob Uszkoreit, Alexey Dosovitskiy, and Thomas Kipf.
+\bibitem[Locatello et~al.(2020)Locatello, Weissenborn, Unterthiner, Mahendran,
+  Heigold, Uszkoreit, Dosovitskiy, and Kipf]{locatello2020slot}
+Francesco Locatello, Dirk Weissenborn, Thomas Unterthiner, Aravindh Mahendran,
+  Georg Heigold, Jakob Uszkoreit, Alexey Dosovitskiy, and Thomas Kipf.
 \newblock Object-centric learning with slot attention.
 \newblock In \emph{Advances in Neural Information Processing Systems 33}, 2020.
-\newblock URL \url{https://proceedings.neurips.cc/paper/2020/hash/8511df98c02ab60aea1b2356c013bc0f-Abstract.html}.
+\newblock URL
+  \url{https://proceedings.neurips.cc/paper/2020/hash/8511df98c02ab60aea1b2356c013bc0f-Abstract.html}.
 
-\bibitem[Lu et~al.(2024)Lu, Lu, Lange, Foerster, Clune, and Ha]{lu2024aiscientist}
-Chris Lu, Cong Lu, Robert~Tjarko Lange, Jakob Foerster, Jeff Clune, and David Ha.
-\newblock The {AI} scientist: Towards fully automated open-ended scientific discovery.
+\bibitem[Lu et~al.(2024)Lu, Lu, Lange, Foerster, Clune, and
+  Ha]{lu2024aiscientist}
+Chris Lu, Cong Lu, Robert~Tjarko Lange, Jakob Foerster, Jeff Clune, and David
+  Ha.
+\newblock The {AI} scientist: Towards fully automated open-ended scientific
+  discovery.
 \newblock \emph{arXiv preprint arXiv:2408.06292}, 2024.
 \newblock URL \url{https://arxiv.org/abs/2408.06292}.
 
-\bibitem[Min et~al.(2023)Min, Krishna, Lyu, Lewis, Yih, Koh, Iyyer, Zettlemoyer, and Hajishirzi]{min2023factscore}
-Sewon Min, Kalpesh Krishna, Xinxi Lyu, Mike Lewis, Wen-tau Yih, Pang~Wei Koh, Mohit Iyyer, Luke Zettlemoyer, and Hannaneh Hajishirzi.
-\newblock {FActScore}: Fine-grained atomic evaluation of factual precision in long form text generation.
-\newblock In \emph{Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing (EMNLP)}, pp.\  12076--12100, Singapore, 2023. Association for Computational Linguistics.
+\bibitem[Min et~al.(2023)Min, Krishna, Lyu, Lewis, Yih, Koh, Iyyer,
+  Zettlemoyer, and Hajishirzi]{min2023factscore}
+Sewon Min, Kalpesh Krishna, Xinxi Lyu, Mike Lewis, Wen-tau Yih, Pang~Wei Koh,
+  Mohit Iyyer, Luke Zettlemoyer, and Hannaneh Hajishirzi.
+\newblock {FActScore}: Fine-grained atomic evaluation of factual precision in
+  long form text generation.
+\newblock In \emph{Proceedings of the 2023 Conference on Empirical Methods in
+  Natural Language Processing (EMNLP)}, pp.\  12076--12100, Singapore, 2023.
+  Association for Computational Linguistics.
 \newblock URL \url{https://aclanthology.org/2023.emnlp-main.741/}.
 
-\bibitem[Ostendorff et~al.(2022)Ostendorff, Rethmeier, Augenstein, Gipp, and Rehm]{ostendorff2022scincl}
-Malte Ostendorff, Nils Rethmeier, Isabelle Augenstein, Bela Gipp, and Georg Rehm.
-\newblock Neighborhood contrastive learning for scientific document representations with citation embeddings.
-\newblock In \emph{Proceedings of the 2022 Conference on Empirical Methods in Natural Language Processing (EMNLP)}, pp.\  11670--11688, Abu Dhabi, United Arab Emirates, 2022. Association for Computational Linguistics.
+\bibitem[Ostendorff et~al.(2022)Ostendorff, Rethmeier, Augenstein, Gipp, and
+  Rehm]{ostendorff2022scincl}
+Malte Ostendorff, Nils Rethmeier, Isabelle Augenstein, Bela Gipp, and Georg
+  Rehm.
+\newblock Neighborhood contrastive learning for scientific document
+  representations with citation embeddings.
+\newblock In \emph{Proceedings of the 2022 Conference on Empirical Methods in
+  Natural Language Processing (EMNLP)}, pp.\  11670--11688, Abu Dhabi, United
+  Arab Emirates, 2022. Association for Computational Linguistics.
 \newblock URL \url{https://aclanthology.org/2022.emnlp-main.802/}.
 
 \bibitem[Schopf \& F{\"a}rber(2026)Schopf and F{\"a}rber]{schopf2026rinobench}
 Tim Schopf and Michael F{\"a}rber.
-\newblock Is this idea novel? an automated benchmark for judgment of research ideas.
-\newblock In \emph{Proceedings of the 2026 Joint International Conference on Computational Linguistics, Language Resources and Evaluation (LREC)}, 2026.
+\newblock Is this idea novel? an automated benchmark for judgment of research
+  ideas.
+\newblock In \emph{Proceedings of the 2026 Joint International Conference on
+  Computational Linguistics, Language Resources and Evaluation (LREC)}, 2026.
 \newblock URL \url{https://arxiv.org/abs/2603.10303}.
 
 \bibitem[Si et~al.(2024)Si, Yang, and Hashimoto]{si2024llmideas}
 Chenglei Si, Diyi Yang, and Tatsunori Hashimoto.
-\newblock Can {LLM}s generate novel research ideas? a large-scale human study with 100+ {NLP} researchers.
+\newblock Can {LLM}s generate novel research ideas? a large-scale human study
+  with 100+ {NLP} researchers.
 \newblock \emph{arXiv preprint arXiv:2409.04109}, 2024.
 \newblock URL \url{https://arxiv.org/abs/2409.04109}.
 
-\bibitem[Uzzi et~al.(2013)Uzzi, Mukherjee, Stringer, and Jones]{uzzi2013atypical}
+\bibitem[Uzzi et~al.(2013)Uzzi, Mukherjee, Stringer, and
+  Jones]{uzzi2013atypical}
 Brian Uzzi, Satyam Mukherjee, Michael Stringer, and Ben Jones.
 \newblock Atypical combinations and scientific impact.
 \newblock \emph{Science}, 342\penalty0 (6157):\penalty0 468--472, 2013.
 \newblock \doi{10.1126/science.1240474}.
 
-\bibitem[Wadden et~al.(2020)Wadden, Lin, Lo, Wang, van Zuylen, Cohan, and Hajishirzi]{wadden2020scifact}
-David Wadden, Shanchuan Lin, Kyle Lo, Lucy~Lu Wang, Madeleine van Zuylen, Arman Cohan, and Hannaneh Hajishirzi.
+\bibitem[Wadden et~al.(2020)Wadden, Lin, Lo, Wang, van Zuylen, Cohan, and
+  Hajishirzi]{wadden2020scifact}
+David Wadden, Shanchuan Lin, Kyle Lo, Lucy~Lu Wang, Madeleine van Zuylen, Arman
+  Cohan, and Hannaneh Hajishirzi.
 \newblock Fact or fiction: Verifying scientific claims.
-\newblock In \emph{Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)}, pp.\  7534--7550, Online, 2020. Association for Computational Linguistics.
+\newblock In \emph{Proceedings of the 2020 Conference on Empirical Methods in
+  Natural Language Processing (EMNLP)}, pp.\  7534--7550, Online, 2020.
+  Association for Computational Linguistics.
 \newblock URL \url{https://aclanthology.org/2020.emnlp-main.609/}.
 
-\bibitem[Wadden et~al.(2022)Wadden, Lo, Wang, Cohan, Beltagy, and Hajishirzi]{wadden2022multivers}
-David Wadden, Kyle Lo, Lucy~Lu Wang, Arman Cohan, Iz~Beltagy, and Hannaneh Hajishirzi.
-\newblock {MultiVerS}: Improving scientific claim verification with weak supervision and full-document context.
-\newblock In \emph{Findings of the Association for Computational Linguistics: NAACL 2022}, pp.\  61--76, Seattle, United States, 2022. Association for Computational Linguistics.
+\bibitem[Wadden et~al.(2022)Wadden, Lo, Wang, Cohan, Beltagy, and
+  Hajishirzi]{wadden2022multivers}
+David Wadden, Kyle Lo, Lucy~Lu Wang, Arman Cohan, Iz~Beltagy, and Hannaneh
+  Hajishirzi.
+\newblock {MultiVerS}: Improving scientific claim verification with weak
+  supervision and full-document context.
+\newblock In \emph{Findings of the Association for Computational Linguistics:
+  NAACL 2022}, pp.\  61--76, Seattle, United States, 2022. Association for
+  Computational Linguistics.
 \newblock URL \url{https://aclanthology.org/2022.findings-naacl.6/}.
 
 \bibitem[Wang et~al.(2024)Wang, Downey, Ji, and Hope]{wang2024scimon}
 Qingyun Wang, Doug Downey, Heng Ji, and Tom Hope.
 \newblock {SciMON}: Scientific inspiration machines optimized for novelty.
-\newblock In \emph{Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)}, pp.\  279--299, Bangkok, Thailand, 2024. Association for Computational Linguistics.
+\newblock In \emph{Proceedings of the 62nd Annual Meeting of the Association
+  for Computational Linguistics (Volume 1: Long Papers)}, pp.\  279--299,
+  Bangkok, Thailand, 2024. Association for Computational Linguistics.
 \newblock URL \url{https://aclanthology.org/2024.acl-long.18/}.
 
-\bibitem[Wanner et~al.(2024)Wanner, Ebner, Jiang, Dredze, and Van~Durme]{wanner2024decomposition}
-Miriam Wanner, Seth Ebner, Zhengping Jiang, Mark Dredze, and Benjamin Van~Durme.
+\bibitem[Wanner et~al.(2024)Wanner, Ebner, Jiang, Dredze, and
+  Van~Durme]{wanner2024decomposition}
+Miriam Wanner, Seth Ebner, Zhengping Jiang, Mark Dredze, and Benjamin
+  Van~Durme.
 \newblock A closer look at claim decomposition.
-\newblock In \emph{Proceedings of the 13th Joint Conference on Lexical and Computational Semantics (*SEM 2024)}, pp.\  153--175, Mexico City, Mexico, 2024. Association for Computational Linguistics.
+\newblock In \emph{Proceedings of the 13th Joint Conference on Lexical and
+  Computational Semantics (*SEM 2024)}, pp.\  153--175, Mexico City, Mexico,
+  2024. Association for Computational Linguistics.
 \newblock URL \url{https://aclanthology.org/2024.starsem-1.13/}.
 
-\bibitem[Wei et~al.(2024)Wei, Yang, Song, Lu, Hu, Huang, Tran, Peng, Liu, Huang, Du, and Le]{wei2024safe}
-Jerry Wei, Chengrun Yang, Xinying Song, Yifeng Lu, Nathan Hu, Jie Huang, Dustin Tran, Daiyi Peng, Ruibo Liu, Da~Huang, Cosmo Du, and Quoc~V. Le.
+\bibitem[Wei et~al.(2024)Wei, Yang, Song, Lu, Hu, Huang, Tran, Peng, Liu,
+  Huang, Du, and Le]{wei2024safe}
+Jerry Wei, Chengrun Yang, Xinying Song, Yifeng Lu, Nathan Hu, Jie Huang, Dustin
+  Tran, Daiyi Peng, Ruibo Liu, Da~Huang, Cosmo Du, and Quoc~V. Le.
 \newblock Long-form factuality in large language models.
 \newblock In \emph{Advances in Neural Information Processing Systems 37}, 2024.
-\newblock URL \url{https://proceedings.neurips.cc/paper_files/paper/2024/hash/937ae0e83eb08d2cb8627fe1def8c751-Abstract-Conference.html}.
+\newblock URL
+  \url{https://proceedings.neurips.cc/paper_files/paper/2024/hash/937ae0e83eb08d2cb8627fe1def8c751-Abstract-Conference.html}.
 
 \bibitem[Zhu et~al.(2025)Zhu, Weng, Yang, and Zhang]{zhu2025deepreview}
 Minjun Zhu, Yixuan Weng, Linyi Yang, and Yue Zhang.
-\newblock {DeepReview}: Improving {LLM}-based paper review with human-like deep thinking process.
-\newblock In \emph{Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)}, pp.\  29330--29355, Vienna, Austria, 2025. Association for Computational Linguistics.
+\newblock {DeepReview}: Improving {LLM}-based paper review with human-like deep
+  thinking process.
+\newblock In \emph{Proceedings of the 63rd Annual Meeting of the Association
+  for Computational Linguistics (Volume 1: Long Papers)}, pp.\  29330--29355,
+  Vienna, Austria, 2025. Association for Computational Linguistics.
 \newblock URL \url{https://aclanthology.org/2025.acl-long.1420/}.
 
 \end{thebibliography}

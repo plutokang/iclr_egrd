@@ -119,3 +119,52 @@ reporting the per-domain sample standard deviations. The spread is $0.004$--$0.0
 the headline numbers describe the configuration rather than one fortunate run,
 and the three sweeps above should be read by the shape of a curve rather than by
 the difference between adjacent points.
+
+\subsection{Case-study ideas}
+\label{app:case-study}
+
+Table~\ref{tab:case-texts} gives the three
+targets of \S\ref{sec:exp-case} and the five retained priors of each, with the
+date that makes the prior admissible, the coverage label the annotation carries,
+and the support $A_k$ the model assigns. Ideas are stored as single contribution
+statements, so each row is the whole of the text the model reads for that idea.
+
+\begin{table}[h]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.12}
+\caption{The three case-study targets and their retained priors, verbatim.
+Coverage labels are \emph{large}, \emph{partial}, \emph{related} and
+\emph{none}; $A_k$ is the support the model assigns to that prior.}
+\label{tab:case-texts}
+\begin{tabular}{@{}l l l r p{7.3cm}@{}}
+\toprule
+Idea & Date & Cover & $A_k$ & Text \\
+\midrule
+\multicolumn{5}{@{}l}{\emph{Graded low}} \\
+\textbf{CI\_26954} & 2026-08 & --- & --- & Propose an action-interleaved transformer architecture that explicitly models state transitions by interleaving state and action tokens in causal order to learn controllable dynamics. \\
+CI\_14929 & 2024-01 & large & 0.838 & Introduce specialized action tokens to denote embodied interactions and state tokens to represent subsequent multisensory observations, enabling end-to-end instruction tuning for active exploration loops. \\
+CI\_17158 & 2025-02 & partial & 0.447 & Employ a causal transformer with a query-based parallel representation updating mechanism to jointly model the dynamics of RGB-D data, 3D flow, and robotic actions in an end-to-end manner. \\
+CI\_13226 & 2022-03 & partial & 0.507 & Design an action module that learns to predict state transitions in the latent space of the environment representation in an unsupervised manner to enable interactive control. \\
+CI\_8741 & 2023-06 & related & 0.070 & Propose a generative pre-trained Transformer-based dynamics model to learn soft object behavior from large-scale interaction data. \\
+CI\_10777 & 2018-01 & none & 0.003 & Propose a unified framework that integrates a temporal Conditional Random Field with discriminative sparse coding to jointly model action transitions and learn robust frame-level representations for fine-grained segmentation. \\
+\midrule
+\multicolumn{5}{@{}l}{\emph{Graded moderate}} \\
+\textbf{CI\_18669} & 2026-01 & --- & --- & Introduce token-level history caching to reuse previously generated image tokens directly, preventing identity drift caused by repeated image reconstruction in multi-round interactions. \\
+CI\_14692 & 2024-01 & partial & 0.523 & Propose an adaptive token propagation mechanism that dynamically pauses and restarts tokens across layers to enable reuse of previously discarded information, addressing the inefficiency of permanent token removal. \\
+CI\_17874 & 2025-03 & related & 0.026 & Propose a content-aware token aggregation mechanism that shares token centers across all image tokens and updates them exclusively during the training phase to eliminate inference overhead while capturing long-range dependencies. \\
+CI\_15897 & 2024-03 & related & 0.043 & Propose a nested tokenization framework that hierarchically organizes image patches into region-level and global-level tokens to enable end-to-end processing of extremely large images without quadratic memory growth. \\
+CI\_12981 & 2022-02 & related & 0.071 & Propose a token reorganization mechanism that dynamically preserves attentive image tokens and fuses inattentive ones into a single token during the feed-forward process to reduce computational redundancy. \\
+CI\_14768 & 2024-01 & none & 0.006 & Introduce an iterative refinement strategy using weak noise levels to correct visual artifacts from 3D projection while preventing structural distortion and identity loss. \\
+\midrule
+\multicolumn{5}{@{}l}{\emph{Graded high}} \\
+\textbf{CI\_18985} & 2026-02 & --- & --- & Design a policy optimization algorithm that utilizes triplet-based trajectory mixing and contrastive response maximization to explicitly address high intra-class variance and low inter-class variance in fine-grained tasks. \\
+CI\_3103 & 2025-11 & related & 0.005 & Introduce a reward aggregation strategy for deep reinforcement learning that averages returns over equivalent expression sequences to reduce training variance. \\
+CI\_18341 & 2026-01 & related & 0.007 & Develop a unified reinforcement fine-tuning framework that integrates multi-reward normalization and length-constrained ensemble rewards to optimize fine-grained visual classification while suppressing excessive textual reasoning. \\
+CI\_17358 & 2025-02 & none & 0.002 & Develop a reward-driven training strategy that uses student performance improvements and reduced teacher-student discrepancies as feedback signals to optimize the weight generation agent via policy gradient. \\
+CI\_14068 & 2023-02 & none & 0.002 & Introduce a center-concentrated multi-prototype generation strategy to mitigate intra-class sparsity by minimizing intra-class distances and maximizing inter-class separation. \\
+CI\_12524 & 2021-03 & none & 0.003 & Propose a quality estimation mechanism that calculates the distribution distance between intra-class and inter-class similarities to generate pseudo-labels for unsupervised training. \\
+\bottomrule
+\end{tabular}
+\end{table}

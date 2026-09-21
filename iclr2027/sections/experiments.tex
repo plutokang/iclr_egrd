@@ -316,3 +316,52 @@ $0.34$ that separates our row from the best prompted row of
 Table~\ref{tab:panel-a}, so none of them is what the main comparison turns on.
 The sweeps, and what they do and do not license, are in
 Appendix~\ref{app:sensitivity}.
+
+\subsection{Case study}
+\label{sec:exp-case}
+
+% Figure: figures/case_study/make_figure.py, from figures/case_study/pull_full.npz
+% and figures/case_study/cases.json. Cases CI_26954 (low), CI_18669 (moderate),
+% CI_18985 (high); every number below is read off those two artifacts.
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.72\textwidth]{pic/case_study.pdf}
+\caption{Three test targets, graded low, moderate and high, traced through the
+model. \textbf{(a)} The support $A_k$ assigned to each retained prior, against
+the coverage label the annotation carries; $C_J$ is the predicted joint
+coverage. \textbf{(b)} The residual representation $\boldsymbol{z}_R$ of each
+case, as deviations from the test mean. \textbf{(c)} $\boldsymbol{z}_R$ for
+every held-out test idea, coloured by gold grade, the three cases starred.}
+\label{fig:case-study}
+\end{figure}
+
+The ablations show that corrupting the evidence costs accuracy, not what the
+intact pipeline does with it: what the support matrix weights when every
+retrieved prior is on topic, and where along the pipeline the grade stops being
+revisable. Figure~\ref{fig:case-study} answers both on three correctly predicted
+test targets, and is built as follows. Panel (a) reports the support $A_k$ and
+the joint coverage $C_J$ that the trained model produces for each target; these
+are read off the forward pass, and nothing in the panel is fit here. For the
+other two, the test ideas are split $80/20$ with the three cases held out, and
+every supervised step is fit on the $80\%$ part alone. Panel (b) standardises
+$\boldsymbol{z}_R$ on that part, ranks its coordinates by univariate
+$F$-statistic against the grade, and shows the $140$ that separate it best.
+Panel (c) reduces $\boldsymbol{z}_R$ to $50$ principal components and projects
+it onto the first two axes of a shrinkage linear discriminant fit on the four
+grades. The probe reported there is separate from both: a five-fold
+cross-validated multinomial logistic regression on standardised
+$\boldsymbol{z}_R$, scored out of fold. Target and prior texts are in
+Appendix~\ref{app:case-study}.
+
+Support follows the annotation rather than the retrieval: the \emph{large cover}
+prior of the low case takes $0.838$, the lone \emph{partial cover} of the
+moderate case $0.523$, and in the high case, whose five priors were all
+retrieved on the target's own vocabulary, no support exceeds $0.007$. Joint
+coverage follows at $0.62$, $0.32$ and $0.12$, and so does the mean unit
+residual, at $0.041$, $0.408$ and $0.977$. The grade is then settled in
+$\boldsymbol{z}_R$ before any head reads it: a probe that sees
+$\boldsymbol{z}_R$ and nothing else recovers it at $0.730$ against a majority
+baseline of $0.329$, and the held-out ideas lie along the first discriminant
+axis in grade order, not in four unordered clusters. The probe does not reach
+the full model, so the heads still contribute, but on top of a representation in
+which the answer is already linearly separable.
