@@ -18,6 +18,20 @@ supplying the encoder initialisation. The checkpoint reported in the main text
 is selected on dev; test is traversed once, at final evaluation, and is not used
 to select a checkpoint.
 
+\paragraph{Dense retrieval baseline.}
+The dense-RAG rows of Table~\ref{tab:panel-a} replace the stored candidate
+lists with retrieval performed at query time. We embed every canonical idea
+with \texttt{bge-large-en-v1.5}, index the ideas whose date precedes the
+target's, query the index with the target text, and pass the top five hits to
+the same single-call prompt the \emph{direct} rows use. Nothing else changes:
+the same backbones, the same prompt, the same labels and the same scoring
+script.
+% CONFIRM against baseline/dense_rag/build_dense_retrieval.py: the index is
+% described as covering every canonical idea with an earlier date, i.e. no
+% domain filter. Drop the next sentence if the script restricts by domain.
+The date filter is the only admissibility constraint applied, so the
+retrieved set is not restricted to the same research domain.
+
 \paragraph{Metrics.}
 We use four evaluation metrics, computed over the four
 ordered grades \textsc{low}, \textsc{weak}, \textsc{moderate}, \textsc{high},

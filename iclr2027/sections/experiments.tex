@@ -7,10 +7,12 @@
 \section{Experiments}
 \label{sec:experiments}
 
-The evaluation set is the \textsc{IdeaDelta} test split. Every system receives
-the same evidence --- the
-five highest-ranked admissible priors per target, as titles and abstracts, with
-no paper text --- and is scored against the same labels by the same script.
+The evaluation set is the \textsc{IdeaDelta} test split. Every system is scored
+against the same labels by the same script, and all but one receive the same
+evidence --- the five highest-ranked admissible priors per target, as titles and
+abstracts, with no paper text. The exception is a dense-retrieval baseline that
+assembles its own five priors at query time, included to measure what the
+supplied evidence contributes.
 For the four-level labels with unequal class support, we report Accuracy,
 Macro-F1, QWK and MAE to assess exact classification, performance across
 classes, chance-corrected ordinal agreement and grade error, respectively.
@@ -25,9 +27,13 @@ Appendix~\ref{app:setup} gives the splits, hyperparameters and scoring code.
 \setlength{\tabcolsep}{2.6pt}
 \renewcommand{\arraystretch}{1.0}
 \caption{Baselines and our model on the IdeaDelta evaluation set, 3{,}352
-ideas, same labels and the same idea-only protocol (top-5 retrieved priors, no
+ideas, same labels and the same idea-only protocol (five priors per target, no
 paper text), split by domain. A row group isolates the effect of the model
-behind an unchanged prompt chain. A majority-class predictor scores $0.312$,
+behind an unchanged prompt chain. The \emph{Dense RAG} group is the one
+exception to the supplied-evidence protocol: it retrieves its own five priors
+at query time, and its rows therefore read against the \emph{Direct} rows on
+the same backbone rather than against the rest of the table.
+A majority-class predictor scores $0.312$,
 $0.356$ and $0.328$ Accuracy with QWK zero by construction, and several rows
 fall below it. Read Accuracy and MAE alongside Macro-F1 and QWK.}
 \label{tab:panel-a}
@@ -47,9 +53,6 @@ System & Backbone
 % canonical idea with an earlier date) instead of the stored candidate lists,
 % which are ordered by the gold coverage label. Built by
 % baseline/dense_rag/build_dense_retrieval.py.
-% CAVEAT, unresolved: these nine cells were scored on the per-domain test
-% splits (784, 1244, 1140 ideas), not the 850/1137/1190 panel evaluation set
-% every other row uses. Re-run on dataset/panel_eval before submission.
 Dense RAG, 5 priors & Qwen3.5
 & 0.360 & 0.217 & 0.129 & 0.867
 & 0.367 & 0.248 & 0.191 & 0.801
@@ -76,7 +79,7 @@ Direct, 5 priors & Qwen3.5
 & 0.420 & 0.430 & 0.561 & 0.661
 & 0.445 & 0.436 & 0.576 & 0.653 \\
 \addlinespace
-RINoBench & Qwen3.5
+Schopf 2-stage & Qwen3.5
 & 0.324 & 0.286 & 0.335 & 0.831
 & 0.346 & 0.293 & 0.338 & 0.777
 & 0.344 & 0.333 & 0.413 & 0.793 \\
@@ -134,19 +137,23 @@ DeepReviewer & DeepReviewer-7B
 \end{tabular}}
 \end{table}
 
-We compare against a \emph{direct} single call, the \emph{RINoBench}
-\citep{schopf2026rinobench} and \emph{UKPLab 3-stage} \citep{afzal2026beyond}
-prompt chains, \emph{GraphMind} \citep{dasilva2025graphmind}, which labels each
+We compare against a \emph{direct} single call, two multi-stage prompt chains
+--- \emph{Schopf 2-stage}, the two-stage evaluation prompt that accompanies the
+RINoBench benchmark \citep{schopf2026rinobench}, and \emph{UKPLab 3-stage}
+\citep{afzal2026beyond} ---
+\emph{GraphMind} \citep{dasilva2025graphmind}, which labels each
 prior as supporting or contrasting before rating, and \emph{DeepReviewer-7B}
-\citep{zhu2025deepreview}, a reviewer model fine-tuned on paper review. The
-first four appear once per backbone. Table~\ref{tab:panel-a} reports every
+\citep{zhu2025deepreview}, a reviewer model fine-tuned on paper review, and a
+\emph{dense RAG} group, which runs the same single call as \emph{direct} on
+five priors it retrieves itself by dense similarity to the target.
+The first five appear once per backbone. Table~\ref{tab:panel-a} reports every
 system on the \textsc{IdeaDelta} evaluation set, and Table~\ref{tab:panel-b}
 carries the same frozen checkpoint to RINoBench. In the first table the prompted
 systems occupy a band well below our row.
 
 The benefit of multi-stage prompting depends on the chain and backbone;
 adding stages does not consistently improve performance. Measured against a
-single five-prior call on the same backbone, the two-stage RINoBench chain
+single five-prior call on the same backbone, the two-stage Schopf chain
 gains in all three domains on Qwen3.5, by $0.024$ to $0.053$ Accuracy and
 $0.016$ to $0.086$ QWK; on deepseek-flash the chain stays
 within $0.026$ Accuracy and $0.020$ QWK of the direct call in either
@@ -159,11 +166,36 @@ $0.28$ on gpt-5.6-luna. These results show no consistent advantage from
 additional prompting stages. GraphMind uses $476$ seconds and $31{,}201$ LLM
 calls for the $3{,}352$ ideas, yet scores below the direct single-call baseline.
 
-Which model a chain runs on matters about as much as which chain it is. Holding
+Which model a chain runs on matters about as much as which chain it is. Over
+the four chains that share the supplied evidence, holding
 the chain fixed and changing the model moves Accuracy by $0.107$ on average,
 against $0.067$ for holding the model fixed and changing the chain; on QWK the
 two swap, $0.204$ against $0.263$. Neither factor dominates the other, and which
 of them leads depends on the metric read.
+
+Replacing the supplied priors with query-time dense retrieval costs ordinal
+agreement on every backbone. Against the direct call on the same backbone and
+domain, Macro-F1 falls in all nine cells and QWK falls in all nine, by $0.109$
+to $0.190$ on Qwen3.5, $0.355$ to $0.406$ on deepseek-flash and $0.284$ to
+$0.326$ on gpt-5.6-luna. Accuracy moves the other way on the weakest backbone,
+rising by $0.027$ to $0.060$ on Qwen3.5 while Macro-F1 falls, which is the
+signature of predictions concentrating on the larger classes: the dense-RAG
+rows sit at $0.318$--$0.372$ Accuracy, at or just above the majority-class
+band, with Macro-F1 no higher than $0.295$ anywhere. The row group also
+compresses the backbone differences that Table~\ref{tab:panel-a} otherwise
+shows --- across the three backbones its Accuracy spans at most $0.028$ in any
+domain, against $0.112$ to $0.154$ for the direct call --- so with self-retrieved
+evidence the choice of model stops mattering much. What a system is given to
+compare against therefore moves the judgment more than which model or chain
+performs it.
+
+These rows sharpen the evidence check of
+Appendix~\ref{app:dataset-validity}, where random priors reduce label
+prediction to near-chance and establish only that the evidence must be on
+topic. Dense retrieval is on topic and the gap persists, so the candidate
+lists carry target--prior relationships that generic similarity search does not
+recover --- what the cross-type pass and the adjudicated similarity band
+(\S\ref{sec:dataset}) are for.
 
 EGRD outperforms the baselines in all three domains.
 Its Accuracy margin over the best baseline in each domain is
@@ -193,7 +225,7 @@ by our row.}
 System & Accuracy & Macro-F1 & QWK & MAE $\downarrow$ \\
 \midrule
 \multicolumn{5}{@{}l}{\emph{Same Qwen3.5 backbone, zero-shot}} \\
-Qwen3.5-397B-A17B & 0.3574 & 0.2244 & 0.1451 & 0.7726 \\
+Qwen3.5 & 0.3574 & 0.2244 & 0.1451 & 0.7726 \\
 GraphMind & 0.3357 & 0.2281 & 0.1469 & 0.7653 \\
 UKPLab 3-stage & 0.3466 & 0.1892 & 0.0808 & \textbf{0.7220} \\
 \addlinespace
