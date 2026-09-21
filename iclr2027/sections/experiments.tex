@@ -254,7 +254,7 @@ ideas. \textbf{Full} is the unablated checkpoint of Table~\ref{tab:panel-a}.
 The pipeline-stage rows intervene on that trained checkpoint at inference and
 the decomposition-design rows retrain the model without the component, so
 magnitudes are comparable within a block but not across the two.
-A dash indicates that MAE is not yet available for that row.}
+Higher is better for Accuracy, Macro-F1 and QWK; lower is better for MAE.}
 \label{tab:ablation}
 \begin{tabular}{@{}l rrrr@{}}
 \toprule
@@ -279,8 +279,7 @@ The supplied evidence can be intervened on with the target held fixed,
 allowing us to test whether the trained model's predictions depend on evidence
 matched to the target.
 
-Each of the three pipeline interventions reduces performance.
-The first three interventions cut the chain at successive points.
+The three pipeline interventions cut the chain at successive points.
 \textbf{Permuting prior evidence} shuffles the retrieved prior texts across
 targets, destroying the semantic content the chain is built on;
 \textbf{permuting coverage} shuffles only the joint coverage score and leaves
@@ -289,34 +288,39 @@ every prior text in place, destroying what the historical evidence inputs
 decomposition representations} sets the unit residual $\boldsymbol{z}_U$,
 interaction residual $\boldsymbol{z}_I$ and covered-content representation
 $\boldsymbol{z}_C$ to zero, removing these three outputs of the decomposition
-(\S\ref{sec:method-decomposition}) together. The ablations show that
-all three are indispensable.
-Permuting prior evidence costs $0.43$ Accuracy and $0.67$ QWK, dropping
-Accuracy into the
+(\S\ref{sec:method-decomposition}) together. All three reduce performance on
+every metric.
+Permuting prior evidence costs the most, $0.43$ Accuracy and $0.67$ QWK, and
+raises MAE from $0.2230$ to $0.8606$, dropping Accuracy into the
 band of the majority-class predictor of Table~\ref{tab:panel-a}
 ($0.312$--$0.356$). This drop shows that the trained model relies on evidence
-matched to the target. Permuting coverage costs $0.11$ Accuracy and $0.30$ QWK
-with the texts intact, so what the historical evidence inputs infer is not
-redundant with the evidence it is computed from. Zeroing the decomposition
-representations costs $0.14$ Accuracy, $0.12$ Macro-F1 and $0.11$ QWK,
-showing that the trained model benefits from these representations collectively.
-Permuting prior evidence causes the largest performance drop, while
-perturbing coverage and zeroing the decomposition representations also reduce performance.
-The latter causes a larger drop than permuting coverage in both
-Accuracy ($0.1425$ versus $0.1147$) and Macro-F1 ($0.1236$ versus $0.1185$),
-with a smaller difference in Macro-F1.
+matched to the target. Permuting coverage leaves every prior text in place and
+still costs $0.11$ Accuracy, $0.30$ QWK and $0.35$ MAE, so what the historical
+evidence inputs infer is not redundant with the evidence it is computed from.
+Zeroing the decomposition representations costs $0.14$ Accuracy, $0.12$
+Macro-F1, $0.11$ QWK and $0.21$ MAE, showing that the trained model benefits
+from these representations collectively. The last two interventions order
+differently under the two kinds of metric: zeroing the representations costs
+more in Accuracy ($0.1425$ versus $0.1147$) and Macro-F1 ($0.1236$ versus
+$0.1185$), whereas permuting coverage costs more in QWK ($0.2962$ versus
+$0.1080$) and MAE ($0.3472$ versus $0.2136$). Corrupting the coverage signal
+therefore damages the ordering of the grades more than removing the
+representations does, even though it misclassifies fewer ideas.
 
 The three decomposition-design ablations reduce performance, with different
 effects across metrics. These interventions leave the pipeline
 intact and remove one mechanism from the decomposition itself.
 \textbf{Collapsing semantic units}, from eight to one, costs $0.12$ Accuracy,
-$0.15$ Macro-F1, while QWK decreases by $0.04$ and remains at $0.8591$.
+$0.15$ Macro-F1 and $0.18$ MAE, while QWK decreases by $0.04$ and remains at
+$0.8591$: a single unit still orders the ideas, but the grade it assigns is
+off by more.
 \textbf{Disabling slot competition}, which
 removes the softmax through which the units compete for each token, costs
-$0.11$ Accuracy and $0.13$ QWK, reversing that pattern: deciding which unit a
+$0.11$ Accuracy and $0.13$ QWK at a comparable MAE ($0.3985$ against
+$0.4073$), reversing that pattern: deciding which unit a
 token belongs to is what keeps the units apart in the first place.
-\textbf{Removing noisy-OR support} causes the largest decreases of the three
-in Accuracy, Macro-F1 and QWK, by $0.16$, $0.23$ and $0.27$, respectively,
+\textbf{Removing noisy-OR support} costs the most of the three on all four
+metrics, $0.16$ Accuracy, $0.23$ Macro-F1, $0.27$ QWK and $0.38$ MAE,
 supporting the contribution of this aggregation rule to ordinal agreement.
 
 We also sweep the three parameters that govern how much the model is given (the

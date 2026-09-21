@@ -19,7 +19,7 @@ is selected on dev; test is traversed once, at final evaluation, and is not used
 to select a checkpoint.
 
 \paragraph{Metrics.}
-We use five evaluation metrics, computed over the four
+We use four evaluation metrics, computed over the four
 ordered grades \textsc{low}, \textsc{weak}, \textsc{moderate}, \textsc{high},
 indexed $0$ to $3$. \textbf{Accuracy} is the fraction of ideas whose predicted
 grade equals the gold grade. It weights every example equally and does not
@@ -52,17 +52,14 @@ $\{0,1,2,3\}$, respectively, and $N$ is the number of evaluated ideas.
 Lower values indicate smaller grade errors. Among constant predictions, a median of the
 gold-label distribution minimizes MAE; this does not characterize the best
 input-dependent predictor. We therefore interpret MAE alongside the other
-metrics. \textbf{High-F1} is the per-class $F_1$ on the top grade
-\textsc{high} alone and is included in the seed-variability table.
-The main comparisons and ablation table report Accuracy, Macro-F1, QWK and
-MAE. On RINoBench the expert 1--5 scale is
-folded to the same four levels before any of the five is computed, so every
-number in Table~\ref{tab:panel-b} is on the scale described here.
+metrics. Every table in the paper reports these four. On RINoBench the expert
+1--5 scale is folded to the same four levels before any of them is computed, so
+every number in Table~\ref{tab:panel-b} is on the scale described here.
 
 \paragraph{Per-domain metrics.}
 Per-domain figures are recomputed from the stored predictions rather than read
 from the trainer, and reconcile with the trainer's own pooled figures to within
-$5\times10^{-5}$ on all five metrics.
+$5\times10^{-5}$ on all four metrics.
 
 \subsection{Parameter sensitivity}
 \label{app:sensitivity}
@@ -137,13 +134,13 @@ to 384 tokens; they do not establish how much of each input is retained at
 \caption{Per-domain seed variability. Entries are sample standard deviations
 across seeds 173, 174 and 175 with identical data, code and configuration.}
 \label{tab:seed-noise}
-\begin{tabular}{@{}l rrrrr@{}}
+\begin{tabular}{@{}l rrrr@{}}
 \toprule
-Domain & Accuracy & Macro-F1 & QWK & MAE & High-F1 \\
+Domain & Accuracy & Macro-F1 & QWK & MAE \\
 \midrule
-Graph ML & 0.0066 & 0.0050 & 0.0048 & 0.0067 & 0.0022 \\
-Computer vision & 0.0040 & 0.0021 & 0.0032 & 0.0027 & 0.0037 \\
-Time series & 0.0050 & 0.0045 & 0.0031 & 0.0051 & 0.0069 \\
+Graph ML & 0.0066 & 0.0050 & 0.0048 & 0.0067 \\
+Computer vision & 0.0040 & 0.0021 & 0.0032 & 0.0027 \\
+Time series & 0.0050 & 0.0045 & 0.0031 & 0.0051 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -151,7 +148,9 @@ Time series & 0.0050 & 0.0045 & 0.0031 & 0.0051 & 0.0069 \\
 \paragraph{Seed stability: the reported model is not a selected seed.}
 Table~\ref{tab:seed-noise} varies nothing but the random seed, running the
 default configuration on seeds 173, 174 and 175 with identical data and code and
-reporting the per-domain sample standard deviations. The spread is $0.004$--$0.007$ in Accuracy and $0.002$--$0.005$ in Macro-F1, so
+reporting the per-domain sample standard deviations. The spread is $0.004$--$0.007$ in Accuracy, $0.002$--$0.005$ in Macro-F1 and
+$0.003$--$0.007$ in MAE, an order of magnitude below the ablation gaps of
+Table~\ref{tab:ablation}, so
 the headline numbers describe the configuration rather than one fortunate run,
 and the three sweeps above should be read by the shape of a curve rather than by
 the difference between adjacent points.
