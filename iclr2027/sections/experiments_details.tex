@@ -42,14 +42,20 @@ A constant predictor has QWK $0$ on our evaluation sets; independent random
 predictions need not yield exactly $0$ in a finite sample. QWK depends on the
 assigned grades and their marginal distributions, so it does not isolate
 ranking quality from grade calibration.
-\textbf{MAE} is the mean absolute difference between the predicted and the gold
-grade index, lower being better. Among constant predictions, a median of the
+\textbf{MAE} (mean absolute error) measures the average absolute difference
+between predicted and gold novelty grades:
+\begin{equation*}
+ \mathrm{MAE}=\frac{1}{N}\sum_{i=1}^{N}|\widehat y_i-y_i|,
+\end{equation*}
+where $\widehat y_i$ and $y_i$ are the predicted and gold grade indices in
+$\{0,1,2,3\}$, respectively, and $N$ is the number of evaluated ideas.
+Lower values indicate smaller grade errors. Among constant predictions, a median of the
 gold-label distribution minimizes MAE; this does not characterize the best
 input-dependent predictor. We therefore interpret MAE alongside the other
 metrics. \textbf{High-F1} is the per-class $F_1$ on the top grade
-\textsc{high} alone. The main comparisons report Accuracy, Macro-F1, QWK and
-MAE; the ablation table reports Accuracy, Macro-F1, QWK and High-F1 to assess
-recognition of the top grade. On RINoBench the expert 1--5 scale is
+\textsc{high} alone and is included in the seed-variability table.
+The main comparisons and ablation table report Accuracy, Macro-F1, QWK and
+MAE. On RINoBench the expert 1--5 scale is
 folded to the same four levels before any of the five is computed, so every
 number in Table~\ref{tab:panel-b} is on the scale described here.
 

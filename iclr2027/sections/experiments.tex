@@ -231,23 +231,26 @@ between a 4 and a 5.
 ideas. \textbf{Full} is the unablated checkpoint of Table~\ref{tab:panel-a}.
 The pipeline-stage rows intervene on that trained checkpoint at inference and
 the decomposition-design rows retrain the model without the component, so
-magnitudes are comparable within a block but not across the two.}
+magnitudes are comparable within a block but not across the two.
+A dash indicates that MAE is not yet available for that row.}
 \label{tab:ablation}
 \begin{tabular}{@{}l rrrr@{}}
 \toprule
-System & Accuracy & Macro-F1 & QWK & High-F1 \\
+System & Accuracy & Macro-F1 & QWK & MAE $\downarrow$ \\
 \midrule
-Full & \textbf{0.7796} & \textbf{0.7790} & \textbf{0.8958} & \textbf{0.7708} \\
+Full & \textbf{0.7796} & \textbf{0.7790} & \textbf{0.8958} & \textbf{0.2230} \\
 \addlinespace
 \multicolumn{5}{@{}l}{\emph{Pipeline stages}} \\
-Permuting prior evidence & 0.3471 & 0.3532 & 0.2241 & 0.4420 \\
-Permuting coverage & 0.6649 & 0.6605 & 0.5996 & 0.6630 \\
-Zeroing decomposition representations & 0.6371 & 0.6554 & 0.7878 & 0.7079 \\
+% MAE supplied by the author and confirmed for the 3,352-idea test set.
+% The author confirmed that A1a MAE belongs to the coverage-permutation row.
+Permuting prior evidence & 0.3471 & 0.3532 & 0.2241 & 0.8606 \\
+Permuting coverage & 0.6649 & 0.6605 & 0.5996 & 0.5702 \\
+Zeroing decomposition representations & 0.6371 & 0.6554 & 0.7878 & 0.4366 \\
 \addlinespace
 \multicolumn{5}{@{}l}{\emph{Decomposition design}} \\
-Collapsing semantic units & 0.6580 & 0.6292 & 0.8591 & 0.6120 \\
-Disabling slot competition & 0.6701 & 0.6874 & 0.7665 & 0.6813 \\
-Removing noisy-OR support & 0.6210 & 0.5520 & 0.6291 & 0.5665 \\
+Collapsing semantic units & 0.6580 & 0.6292 & 0.8591 & --- \\
+Disabling slot competition & 0.6701 & 0.6874 & 0.7665 & --- \\
+Removing noisy-OR support & 0.6210 & 0.5520 & 0.6291 & --- \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -287,18 +290,14 @@ The three decomposition-design ablations reduce performance, with different
 effects across metrics. These interventions leave the pipeline
 intact and remove one mechanism from the decomposition itself.
 \textbf{Collapsing semantic units}, from eight to one, costs $0.12$ Accuracy,
-$0.15$ Macro-F1 and $0.16$
-High-F1, while QWK decreases by $0.04$ and remains at $0.8591$.
+$0.15$ Macro-F1, while QWK decreases by $0.04$ and remains at $0.8591$.
 \textbf{Disabling slot competition}, which
 removes the softmax through which the units compete for each token, costs
 $0.11$ Accuracy and $0.13$ QWK, reversing that pattern: deciding which unit a
 token belongs to is what keeps the units apart in the first place.
-\textbf{Removing noisy-OR support} costs the most of the three on every metric,
-$0.16$ Accuracy, $0.23$ Macro-F1, $0.27$ QWK and $0.20$ High-F1,
-supporting the contribution of this aggregation rule to ordinal agreement. For the
-collapsed units and the removed noisy-OR, High-F1 falls further than Accuracy,
-which is where a decomposition should matter: the top grade turns on parts of a
-target that no single prior supports.
+\textbf{Removing noisy-OR support} causes the largest decreases of the three
+in Accuracy, Macro-F1 and QWK, by $0.16$, $0.23$ and $0.27$, respectively,
+supporting the contribution of this aggregation rule to ordinal agreement.
 
 We also sweep the three parameters that govern how much the model is given (the
 evidence budget $K$, the training fraction and the encoder input length) one at
