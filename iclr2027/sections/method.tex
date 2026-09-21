@@ -44,7 +44,8 @@ evidence set $\mathcal{E}_x\subseteq\mathcal{P}_x$ ($K=5$ in our experiments).
 Each retained prior $p_k$ carries a vector of pair coverage features
 $\boldsymbol{f}_k\in\mathbb{R}^{11}$.
 
-To estimate coverage across the evidence set, a cross-encoder encodes each
+To estimate coverage across the evidence set, a cross-encoder
+\citep{nogueira2019rerank} encodes each
 target--prior pair and a multiple-instance model
 \citep{ilse2018attentionmil} aggregates the pair representations through
 attention pooling and maximum pooling. Concatenated with evidence-score
@@ -80,7 +81,7 @@ features as $\widetilde{\boldsymbol{v}}_k=\boldsymbol{v}_k+f_P(\boldsymbol{f}_k)
 Averaging the contextual token states at matching positions across valid pairs
 yields a shared token bank $\{\boldsymbol{h}_j\}_{j=1}^{N}$ over the $N$ target
 tokens. We then use $M$ learned queries $\boldsymbol{q}_m$ to softly assign
-these tokens to semantic units \citep{locatello2020slot} ($M=8$ in our
+these tokens to semantic units \citep{carion2020detr,locatello2020slot} ($M=8$ in our
 experiments): the queries compete for each token,
 $B_{mj}=\operatorname{softmax}_{m}(\boldsymbol{q}_m^\top\boldsymbol{h}_j/\sqrt d)$,
 and the resulting assignments are normalized over tokens within each unit,
@@ -100,7 +101,8 @@ $A_{km}=\sigma(f_A([\boldsymbol{u}_m;\widetilde{\boldsymbol{v}}_k;
 |\boldsymbol{u}_m-\widetilde{\boldsymbol{v}}_k|;\boldsymbol{f}_k]))$, where
 $f_A$ is an MLP. Support is estimated separately for every target--prior pair,
 so different priors can account for different units. Over the
-$n=|\mathcal{E}_x|$ retained priors, noisy-OR aggregates support into unit
+$n=|\mathcal{E}_x|$ retained priors, noisy-OR \citep{pearl1988probabilistic}
+aggregates support into unit
 coverage $c_m=1-\prod_{k=1}^{n}(1-A_{km})$; its complement, weighted by unit
 activity, defines the residual weight $r_m=\phi_m(1-c_m)$ and the unit residual
 $\boldsymbol{z}_U=M^{-1}\sum_m r_m\boldsymbol{u}_m$. Noisy-OR lets several
@@ -164,7 +166,8 @@ fusion.
 Auxiliary heads predict substantive difference, surface change, evidence
 sufficiency, and residual type. These predictions, together with
 $\boldsymbol{h}$ and joint coverage, feed three novelty branches: a direct
-linear classifier, a cumulative ordinal head that models grade order, and a
+linear classifier, a cumulative ordinal head that models grade order
+\citep{cao2020coral}, and a
 two-layer MLP classifier. Each branch produces a four-class distribution, and
 their convex mixture determines an initial grade.
 

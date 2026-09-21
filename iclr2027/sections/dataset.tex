@@ -71,7 +71,8 @@ and engineering deliverables---so that later stages grade claims rather than
 boilerplate.
 
 \paragraph{Prior retrieval.}
-For each target, nearest-neighbor search over idea embeddings returns candidate
+For each target, nearest-neighbor search over idea embeddings
+\citep{cohan2020specter,karpukhin2020dpr} returns candidate
 priors published earlier, and an LLM adjudicates the uncertain similarity band.
 A cross-type retrieval pass links a target to relevant prior work of a
 different contribution type, which same-type retrieval alone would record as
@@ -79,7 +80,8 @@ isolated. The retained priors are ranked for each target, and every pair
 stays within one research domain.
 
 \paragraph{Annotation.}
-A single judge, \texttt{deepseek-v4-pro}, annotates all stages. Pair coverage
+A single judge \citep{zheng2023llmjudge,li2025llmjudge},
+\texttt{deepseek-v4-pro}, annotates all stages. Pair coverage
 follows a hybrid rule: clearly covering and clearly unrelated pairs take their
 label directly, while the uncertain band goes to the judge, which reads the two
 ideas' technical content. The judge then estimates, for each target, joint coverage, residual

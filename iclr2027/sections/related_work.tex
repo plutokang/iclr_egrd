@@ -7,10 +7,12 @@ increasingly used to carry out parts of the research process itself.
 explicitly for novelty by comparing a candidate against prior papers;
 \citet{baek2025researchagent} refine proposals against a set of LLM reviewing
 agents that give structured feedback along several dimensions; and
-\citet{lu2024aiscientist} close the loop from ideation through experiments to a
-written paper and a simulated review. \citet{si2024llmideas} evaluate what such
+\citet{lu2024aiscientist} and \citet{schmidgall2025agentlab} close the loop
+from ideation through experiments to a
+written paper and a simulated review. \citet{si2025llmideas} evaluate what such
 pipelines produce, finding the generated ideas rated more novel than
-human-written ones but less feasible.
+human-written ones but less feasible; \citet{zheng2025automation} survey the
+progression of these systems toward greater autonomy.
 Every one of these systems contains an internal novelty check, and it is the
 check rather than the generator that bounds them: once proposals are cheap, the
 output of the pipeline is whatever its filter admits. The filter is nonetheless
@@ -32,7 +34,11 @@ retrieve related literature and hand the comparison to a language model.
 which significance and novelty is one section, and report partial overlap with
 human reviews; \citet{zhu2025deepreview} train a
 reviewer model on a multi-stage process of structured analysis, retrieval, and
-evidence-based argumentation; \citet{afzal2026beyond} split the judgment into
+evidence-based argumentation; \citet{chang2025treereview} decompose the review
+into a tree of questions resolved from leaf to root, and
+\citet{jin2024agentreview} simulate the review process itself to expose how
+much of the outcome is attributable to reviewer bias rather than to the paper;
+\citet{afzal2026beyond} split the judgment into
 claim extraction, retrieval and synthesis of related work, and structured
 comparison, motivating the design with an analysis of human-written novelty
 reviews; and \citet{dasilva2025graphmind} build an interactive system on the
@@ -60,7 +66,8 @@ against a knowledge source, and report the supported fraction;
 \citet{wei2024safe} scale the same procedure with search as the evidence source;
 and in the scientific domain the corresponding task checks a stated claim
 against candidate abstracts while identifying the supporting rationales
-\citep{wadden2020scifact,wadden2022multivers}. Three properties of the recipe do
+\citep{wadden2020scifact,wadden2022multivers}, where the choice of evidence
+source itself moves the verdict \citep{vladika2024knowledge}. Three properties of the recipe do
 not survive the move to research ideas. The propositions are assumed to be
 given, whereas an idea carries no stated claims, and the decomposition step is
 not a neutral preprocessor: \citet{wanner2024decomposition} show that scores of

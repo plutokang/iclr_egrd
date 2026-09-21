@@ -11,7 +11,8 @@ $21{,}111$ idea-level samples in \textsc{IdeaDelta}.
 
 \paragraph{Configuration.}
 All runs share one configuration and vary a single parameter at a time:
-\texttt{deberta-v3-base} backbone, 8 epochs, batch size 2, learning rate
+\texttt{deberta-v3-base} backbone \citep{he2023deberta}, 8 epochs, batch size
+2, learning rate
 $1.5\times10^{-5}$ with an encoder learning-rate ratio of $0.2$, eight semantic
 units with slot competition enabled, and a fixed joint-prediction checkpoint
 supplying the encoder initialisation. The checkpoint reported in the main text
@@ -20,8 +21,10 @@ to select a checkpoint.
 
 \paragraph{Dense retrieval baseline.}
 The dense-RAG rows of Table~\ref{tab:panel-a} replace the stored candidate
-lists with retrieval performed at query time. We embed every canonical idea
-with \texttt{bge-large-en-v1.5}, index the ideas whose date precedes the
+lists with retrieval performed at query time \citep{karpukhin2020dpr}. We
+embed every canonical idea
+with \texttt{bge-large-en-v1.5} \citep{xiao2024cpack}, index the ideas whose
+date precedes the
 target's, query the index with the target text, and pass the top five hits to
 the same single-call prompt the \emph{direct} rows use. Nothing else changes:
 the same backbones, the same prompt, the same labels and the same scoring
@@ -41,7 +44,7 @@ distinguish errors by grade distance, so frequent classes can dominate it.
 \textbf{Macro-F1} averages the per-class $F_1$ over the four grades with
 equal weight, which charges a system for abandoning a small class rather than
 letting the large ones absorb the loss. \textbf{QWK} is quadratic weighted
-kappa,
+kappa \citep{cohen1968weighted},
 \begin{equation*}
  \kappa_w = 1 - \frac{\sum_{i,j} w_{ij} O_{ij}}{\sum_{i,j} w_{ij} E_{ij}},
  \qquad w_{ij} = (i-j)^2/9,
