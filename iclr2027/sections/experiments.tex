@@ -11,8 +11,8 @@ The evaluation set is the \textsc{IdeaDelta} test split. Every system receives
 the same evidence --- the
 five highest-ranked admissible priors per target, as titles and abstracts, with
 no paper text --- and is scored against the same labels by the same script.
-On a four-level label with unequal support, accuracy rewards the
-majority class and MAE the middle of the scale, while quadratic weighted kappa
+On a four-level label with unequal support, Accuracy rewards the
+majority class and MAE the middle of the scale, while QWK
 is what a constant predictor cannot win, so we report all four.
 Appendix~\ref{app:setup} gives the splits, hyperparameters and scoring code.
 
@@ -28,7 +28,7 @@ Appendix~\ref{app:setup} gives the splits, hyperparameters and scoring code.
 ideas, same labels and the same idea-only protocol (top-5 retrieved priors, no
 paper text), split by domain. A row group isolates the effect of the model
 behind an unchanged prompt chain. A majority-class predictor scores $0.312$,
-$0.356$ and $0.328$ accuracy with kappa zero by construction, and several rows
+$0.356$ and $0.328$ Accuracy with QWK zero by construction, and several rows
 fall below it; MAE is lowest for rows that concentrate near the middle of the
 scale, so read it beside QWK.}
 \label{tab:panel-a}
@@ -38,9 +38,9 @@ scale, so read it beside QWK.}
 & & \multicolumn{4}{c}{Graph ML} & \multicolumn{4}{c}{Computer vision} & \multicolumn{4}{c}{Time series} \\
 \cmidrule(lr){3-6}\cmidrule(lr){7-10}\cmidrule(lr){11-14}
 System & Backbone
-& Acc & Ma-F1 & QWK & MAE $\downarrow$
-& Acc & Ma-F1 & QWK & MAE $\downarrow$
-& Acc & Ma-F1 & QWK & MAE $\downarrow$ \\
+& Accuracy & Macro-F1 & QWK & MAE $\downarrow$
+& Accuracy & Macro-F1 & QWK & MAE $\downarrow$
+& Accuracy & Macro-F1 & QWK & MAE $\downarrow$ \\
 \midrule
 Direct, 5 priors & Qwen3.5
 & 0.300 & 0.266 & 0.319 & 0.925
@@ -126,27 +126,27 @@ systems occupy a band well below our row.
 Among the prompted systems, adding stages to the prompt does not add
 information, and on a strong backbone it removes some. Measured against a
 single five-prior call on the same backbone, the two-stage RINoBench chain
-gains in all three domains on Qwen3.5, by $0.024$ to $0.053$ accuracy and
-$0.016$ to $0.086$ kappa; on deepseek-flash the gain is spent, the chain
-staying within $0.026$ accuracy and $0.020$ kappa of the direct call in either
+gains in all three domains on Qwen3.5, by $0.024$ to $0.053$ Accuracy and
+$0.016$ to $0.086$ QWK; on deepseek-flash the gain is spent, the chain
+staying within $0.026$ Accuracy and $0.020$ QWK of the direct call in either
 direction; and on gpt-5.6-luna it loses in all three domains, by $0.027$ to
-$0.053$ accuracy and $0.064$ to $0.103$ kappa. The three-stage UKPLab chain and
+$0.053$ Accuracy and $0.064$ to $0.103$ QWK. The three-stage UKPLab chain and
 GraphMind never reach the direct call at all: each sits below it in all nine
 cells on both metrics, and the UKPLab deficit widens with the backbone in the
-same direction, averaging $0.19$ kappa on Qwen3.5, $0.26$ on deepseek-flash and
+same direction, averaging $0.19$ QWK on Qwen3.5, $0.26$ on deepseek-flash and
 $0.28$ on gpt-5.6-luna. A chain compensates for a weak reader, and once the
 reader is strong the compensation costs more than it returns --- and it is
 charged for twice, since GraphMind spends $476$ seconds and $31{,}201$ LLM
 calls on the $3{,}352$ ideas to arrive below one call per idea.
 
 Which model a chain runs on matters about as much as which chain it is. Holding
-the chain fixed and changing the model moves accuracy by $0.107$ on average,
-against $0.067$ for holding the model fixed and changing the chain; on kappa the
+the chain fixed and changing the model moves Accuracy by $0.107$ on average,
+against $0.067$ for holding the model fixed and changing the chain; on QWK the
 two swap, $0.204$ against $0.263$. Neither factor dominates the other, and which
 of them leads depends on the metric read.
 
 EGRD outperforms the baselines in all three domains.
-Its accuracy margin over the best baseline in each domain is
+Its Accuracy margin over the best baseline in each domain is
 $0.356$ on Graph ML, $0.341$ on computer vision, and $0.344$
 on time series; the corresponding QWK margins are
 $0.330$, $0.321$, and $0.322$.
@@ -155,7 +155,7 @@ the three evaluated domains, although individual baselines
 remain sensitive to the domain.
 
 Fine-tuning on paper review does not transfer to ideas.
-DeepReviewer-7B is the one system trained rather than prompted, and its kappa
+DeepReviewer-7B is the one system trained rather than prompted, and its QWK
 of $0.034$, $-0.043$ and $-0.017$ says it does not order the ideas. A model
 trained to review whole papers appears to read a longer related-work block as
 evidence of less novelty largely independently of what that work says, which is
@@ -168,12 +168,12 @@ what scoring a target against a retrieved set read as a block permits.
 \renewcommand{\arraystretch}{1.0}
 \caption{Transfer to the RINoBench test set, 277 ideas with expert labels folded
 to four levels. The evidence budget is 25 prior ideas per target.
-Bold marks the best value in a column; Acc and MAE are not led
+Bold marks the best value in a column; Accuracy and MAE are not led
 by our row.}
 \label{tab:panel-b}
 \begin{tabular}{@{}p{5.1cm}rrrr@{}}
 \toprule
-System & Acc & Ma-F1 & QWK & MAE $\downarrow$ \\
+System & Accuracy & Macro-F1 & QWK & MAE $\downarrow$ \\
 \midrule
 \multicolumn{5}{@{}l}{\emph{Same Qwen3.5 backbone, zero-shot}} \\
 Qwen3.5-397B-A17B & 0.3574 & 0.2244 & 0.1451 & 0.7726 \\
@@ -200,11 +200,11 @@ DeepReviewer-7B & 0.1913 & 0.1425 & 0.0145 & 1.3610 \\
 We evaluate the frozen checkpoint on RINoBench \citep{schopf2026rinobench},
 whose 277 test ideas carry expert 1--5 labels. We fold them to four levels by
 merging 4 and 5, which leaves $41.5\%$ of the ideas in the top class, so a
-constant predictor scores $0.4152$ accuracy.
+constant predictor scores $0.4152$ Accuracy.
 
 The ordering transfers even though the level does not.
-EGRD leads Macro-F1 and kappa at $0.3407$ and $0.2245$ against $0.2457$ and
-$0.1469$ for the best other system on each, and is the only row above $0.15$ kappa, while six of the eleven baselines sit
+EGRD leads Macro-F1 and QWK at $0.3407$ and $0.2245$ against $0.2457$ and
+$0.1469$ for the best other system on each, and is the only row above $0.15$ QWK, while six of the eleven baselines sit
 below $0.05$ and so do not order the ideas at all. Accuracy carries no
 information here: our row reaches the constant predictor's
 $0.4152$ with a prediction that is not constant, $16/36/76/149$ ideas across
@@ -240,7 +240,7 @@ magnitudes are comparable within a block but not across the two.}
 \label{tab:ablation}
 \begin{tabular}{@{}l rrrr@{}}
 \toprule
-System & Acc & Ma-F1 & QWK & High-F1 \\
+System & Accuracy & Macro-F1 & QWK & High-F1 \\
 \midrule
 Full & \textbf{0.7796} & \textbf{0.7790} & \textbf{0.8958} & \textbf{0.7708} \\
 \addlinespace
@@ -272,15 +272,15 @@ residuals} sets $\boldsymbol{z}_U$, $\boldsymbol{z}_I$ and $\boldsymbol{z}_C$ to
 zero, destroying what the evidence-grounded residual decomposition
 (\S\ref{sec:method-decomposition}) adds on top of both. The ablations show that
 all three are indispensable.
-Permuting prior evidence costs $0.43$ accuracy and $0.67$ kappa, dropping
-accuracy into the
+Permuting prior evidence costs $0.43$ Accuracy and $0.67$ QWK, dropping
+Accuracy into the
 band of the majority-class predictor of Table~\ref{tab:panel-a}
 ($0.312$--$0.356$): the grade is not recoverable from the target alone, so the
 priors are read rather than treated as a pretext for grading the target's own
-phrasing. Permuting coverage costs $0.11$ accuracy and $0.30$ kappa
+phrasing. Permuting coverage costs $0.11$ Accuracy and $0.30$ QWK
 with the texts intact, so what the historical evidence inputs infer is not
 redundant with the evidence it is computed from. Zeroing residuals
-costs $0.14$ accuracy, $0.12$ Macro-F1 and $0.11$ kappa, so the residual
+costs $0.14$ Accuracy, $0.12$ Macro-F1 and $0.11$ QWK, so the residual
 decomposition is not an ornament on a prediction the evidence inputs already
 support. Taken in order, the damage grows the earlier the cut falls: what one
 stage corrupts it passes on, and the corruption is amplified rather than
@@ -294,24 +294,24 @@ receives rather than how the ideas are ordered.
 The mechanisms inside the residual decomposition earn their place, and two of
 the three act on the ordering. The remaining interventions leave the pipeline
 intact and remove one mechanism from the decomposition itself.
-\textbf{Collapsing semantic units}, from eight to one, costs $0.12$ accuracy,
+\textbf{Collapsing semantic units}, from eight to one, costs $0.12$ Accuracy,
 $0.15$ Macro-F1 and $0.16$
-High-F1 but only $0.04$ kappa, so the collapse loses the grade and
+High-F1 but only $0.04$ QWK, so the collapse loses the grade and
 leaves the ordering nearly intact. \textbf{Disabling slot competition}, which
 removes the softmax through which the units compete for each token, costs
-$0.11$ accuracy and $0.13$ kappa, reversing that pattern: deciding which unit a
+$0.11$ Accuracy and $0.13$ QWK, reversing that pattern: deciding which unit a
 token belongs to is what keeps the units apart in the first place.
 \textbf{Removing noisy-OR support} costs the most of the three on every metric,
-$0.16$ accuracy, $0.23$ Macro-F1, $0.27$ kappa and $0.20$ High-F1, so
+$0.16$ Accuracy, $0.23$ Macro-F1, $0.27$ QWK and $0.20$ High-F1, so
 aggregating support across priors is what makes the ordering work. For the
-collapsed units and the removed noisy-OR, High-F1 falls further than accuracy,
+collapsed units and the removed noisy-OR, High-F1 falls further than Accuracy,
 which is where a decomposition should matter: the top grade turns on parts of a
 target that no single prior supports.
 
 We also sweep the three parameters that govern how much the model is given (the
 evidence budget $K$, the training fraction and the encoder input length) one at
 a time from the default configuration of Table~\ref{tab:panel-a}, in all three
-domains. The largest of the three moves accuracy by at most $0.075$, against the
+domains. The largest of the three moves Accuracy by at most $0.075$, against the
 $0.34$ that separates our row from the best prompted row of
 Table~\ref{tab:panel-a}, so none of them is what the main comparison turns on.
 The sweeps, and what they do and do not license, are in
@@ -335,7 +335,7 @@ every held-out test idea, coloured by gold grade, the three cases starred.}
 \label{fig:case-study}
 \end{figure}
 
-The ablations show that corrupting the evidence costs accuracy, not what the
+The ablations show that corrupting the evidence costs Accuracy, not what the
 intact pipeline does with it: what the support matrix weights when every
 retrieved prior is on topic, and where along the pipeline the grade stops being
 revisable. Figure~\ref{fig:case-study} answers both on three correctly predicted

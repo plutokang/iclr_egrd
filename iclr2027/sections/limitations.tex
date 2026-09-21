@@ -7,13 +7,13 @@ roughly $30$ of its $277$ test ideas fall in these three fields, and the model
 reads the remainder without ever having been trained on their literature.
 Coverage of a field is what the decomposition needs, since a prior can only
 support a unit of a target the model is equipped to read, so we do not claim
-the reported accuracy outside the three.
+the reported Accuracy outside the three.
 
 \paragraph{Transfer to expert judgment is partial.}
 On RINoBench the frozen checkpoint leads every baseline on the rank-sensitive
 metrics, at $0.2245$ QWK and $0.3407$ Macro-F1 against $0.1469$ and $0.2457$ for
-the best other system on each, and it is the only system above $0.15$ kappa. But
-$0.2245$ is a modest level of agreement, and accuracy adds nothing to it: our
+the best other system on each, and it is the only system above $0.15$ QWK. But
+$0.2245$ is a modest level of agreement, and Accuracy adds nothing to it: our
 row reaches $0.4152$, exactly the constant predictor, with a prediction that is
 not constant. What transfers is the ordering of ideas, not the grade an idea
 receives. Two properties of the setting bound how far that can be pushed within

@@ -18,10 +18,42 @@ supplying the encoder initialisation. The checkpoint reported in the main text
 is selected on dev; test is traversed once, at final evaluation, and is not used
 to select a checkpoint.
 
+\paragraph{Metrics.}
+Every table and figure reports the same five quantities, computed over the four
+ordered grades \textsc{low}, \textsc{weak}, \textsc{moderate}, \textsc{high},
+indexed $0$ to $3$. \textbf{Accuracy} is the fraction of ideas whose predicted
+grade equals the gold grade; it is the only one of the five that treats all
+four classes and all errors alike, so a majority-class predictor scores it
+well. \textbf{Macro-F1} averages the per-class $F_1$ over the four grades with
+equal weight, which charges a system for abandoning a small class rather than
+letting the large ones absorb the loss. \textbf{QWK} is quadratic weighted
+kappa,
+\begin{equation*}
+ \kappa_w = 1 - \frac{\sum_{i,j} w_{ij} O_{ij}}{\sum_{i,j} w_{ij} E_{ij}},
+ \qquad w_{ij} = (i-j)^2/9,
+\end{equation*}
+where $O$ is the confusion matrix and $E$ the matrix expected from the two
+marginals if prediction and gold were independent. Because the weights grow
+with the distance between the predicted and the gold grade, it credits a near
+miss over a far one, and because the denominator is the chance level of the
+predictor's own marginal, it is $0$ for any predictor that ignores the input ---
+a constant one included --- $1$ for exact agreement, and negative when the
+errors are more spread out than chance. It is therefore the metric that reads
+how the ideas are \emph{ordered} rather than which exact grade each receives.
+\textbf{MAE} is the mean absolute difference between the predicted and the gold
+grade index, lower being better; it is minimised by concentrating predictions
+near the middle of the scale, which is why we read it beside QWK rather than on
+its own. \textbf{High-F1} is the per-class $F_1$ on the top grade
+\textsc{high} alone. We report the first four throughout and add High-F1 to the
+ablations and sweeps, where what is at stake is whether a model still
+recognises the ideas no prior covers. On RINoBench the expert 1--5 scale is
+folded to the same four levels before any of the five is computed, so every
+number in Table~\ref{tab:panel-b} is on the scale described here.
+
 \paragraph{Per-domain metrics.}
 Per-domain figures are recomputed from the stored predictions rather than read
 from the trainer, and reconcile with the trainer's own pooled figures to within
-$5\times10^{-5}$ on all six metrics.
+$5\times10^{-5}$ on all five metrics.
 
 \subsection{Parameter sensitivity}
 \label{app:sensitivity}
@@ -70,7 +102,7 @@ rises steadily with the fraction on Graph ML ($0.7627 \to 0.8010$) and time
 series ($0.7573 \to 0.7760$). Computer vision levels off after $50\%$ and ends
 at $0.7669$ against a peak of $0.7788$, a gap of $0.012$. More training data
 helps in most of the domains we measure, and the spread across the four
-fractions stays small: accuracy moves by at most $0.039$ in any domain.
+fractions stays small: Accuracy moves by at most $0.039$ in any domain.
 
 \begin{figure}[h]
 \centering
@@ -103,7 +135,7 @@ across seeds 173, 174 and 175 with identical data, code and configuration.}
 \label{tab:seed-noise}
 \begin{tabular}{@{}l rrrrr@{}}
 \toprule
-Domain & Acc & Ma-F1 & QWK & MAE & High-F1 \\
+Domain & Accuracy & Macro-F1 & QWK & MAE & High-F1 \\
 \midrule
 Graph ML & 0.0066 & 0.0050 & 0.0048 & 0.0067 & 0.0022 \\
 Computer vision & 0.0040 & 0.0021 & 0.0032 & 0.0027 & 0.0037 \\
@@ -115,7 +147,7 @@ Time series & 0.0050 & 0.0045 & 0.0031 & 0.0051 & 0.0069 \\
 \paragraph{Seed stability: the reported model is not a selected seed.}
 Table~\ref{tab:seed-noise} varies nothing but the random seed, running the
 default configuration on seeds 173, 174 and 175 with identical data and code and
-reporting the per-domain sample standard deviations. The spread is $0.004$--$0.007$ in accuracy and $0.002$--$0.005$ in Macro-F1, so
+reporting the per-domain sample standard deviations. The spread is $0.004$--$0.007$ in Accuracy and $0.002$--$0.005$ in Macro-F1, so
 the headline numbers describe the configuration rather than one fortunate run,
 and the three sweeps above should be read by the shape of a curve rather than by
 the difference between adjacent points.
