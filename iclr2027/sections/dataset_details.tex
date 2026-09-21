@@ -21,8 +21,8 @@ candidate relations are formed under a hybrid rule: high similarity is accepted
 directly, low similarity is rejected directly, and the uncertain band is passed
 to an LLM. The base build pairs ideas of the same type only, which would record
 an idea whose closest relative is of another type---a theoretical contribution
-nearest to a method---as isolated; a cross-type pass recovers these. At most
-$K=5$ ranked priors are retained per target. Pairing stays within a source
+nearest to a method---as isolated; a cross-type pass recovers these.
+The retained priors are ranked for each target. Pairing stays within a source
 domain, and no cross-domain pair is labelled, so the three single-domain subsets
 and their union address the same ideas under identifiers namespaced by domain.
 The assembled dataset passes its own validation checks with no duplicate pair

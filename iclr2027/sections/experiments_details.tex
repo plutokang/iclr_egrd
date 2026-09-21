@@ -19,12 +19,12 @@ is selected on dev; test is traversed once, at final evaluation, and is not used
 to select a checkpoint.
 
 \paragraph{Metrics.}
-Every table and figure reports the same five quantities, computed over the four
+We use five evaluation metrics, computed over the four
 ordered grades \textsc{low}, \textsc{weak}, \textsc{moderate}, \textsc{high},
 indexed $0$ to $3$. \textbf{Accuracy} is the fraction of ideas whose predicted
-grade equals the gold grade; it is the only one of the five that treats all
-four classes and all errors alike, so a majority-class predictor scores it
-well. \textbf{Macro-F1} averages the per-class $F_1$ over the four grades with
+grade equals the gold grade. It weights every example equally and does not
+distinguish errors by grade distance, so frequent classes can dominate it.
+\textbf{Macro-F1} averages the per-class $F_1$ over the four grades with
 equal weight, which charges a system for abandoning a small class rather than
 letting the large ones absorb the loss. \textbf{QWK} is quadratic weighted
 kappa,
@@ -33,20 +33,23 @@ kappa,
  \qquad w_{ij} = (i-j)^2/9,
 \end{equation*}
 where $O$ is the confusion matrix and $E$ the matrix expected from the two
-marginals if prediction and gold were independent. Because the weights grow
-with the distance between the predicted and the gold grade, it credits a near
-miss over a far one, and because the denominator is the chance level of the
-predictor's own marginal, it is $0$ for any predictor that ignores the input ---
-a constant one included --- $1$ for exact agreement, and negative when the
-errors are more spread out than chance. It is therefore the metric that reads
-how the ideas are \emph{ordered} rather than which exact grade each receives.
+marginals if prediction and gold were independent. QWK measures
+chance-corrected ordinal agreement, penalizing distant grade errors more
+heavily than near misses. With a nonzero denominator, it equals $1$ for exact
+agreement, $0$ when observed weighted disagreement matches the chance
+reference, and is negative when disagreement exceeds that reference.
+A constant predictor has QWK $0$ on our evaluation sets; independent random
+predictions need not yield exactly $0$ in a finite sample. QWK depends on the
+assigned grades and their marginal distributions, so it does not isolate
+ranking quality from grade calibration.
 \textbf{MAE} is the mean absolute difference between the predicted and the gold
-grade index, lower being better; it is minimised by concentrating predictions
-near the middle of the scale, which is why we read it beside QWK rather than on
-its own. \textbf{High-F1} is the per-class $F_1$ on the top grade
-\textsc{high} alone. We report the first four throughout and add High-F1 to the
-ablations and sweeps, where what is at stake is whether a model still
-recognises the ideas no prior covers. On RINoBench the expert 1--5 scale is
+grade index, lower being better. Among constant predictions, a median of the
+gold-label distribution minimizes MAE; this does not characterize the best
+input-dependent predictor. We therefore interpret MAE alongside the other
+metrics. \textbf{High-F1} is the per-class $F_1$ on the top grade
+\textsc{high} alone. The main comparisons report Accuracy, Macro-F1, QWK and
+MAE; the ablation table reports Accuracy, Macro-F1, QWK and High-F1 to assess
+recognition of the top grade. On RINoBench the expert 1--5 scale is
 folded to the same four levels before any of the five is computed, so every
 number in Table~\ref{tab:panel-b} is on the scale described here.
 
@@ -67,24 +70,20 @@ point is a single run at seed 173, except for the seed sweep below.
 \centering
 \includegraphics[width=\textwidth]{pic/param_sensitivity/topk.png}
 \caption{Sensitivity to the evidence budget $K$ in the three domains. The
-default is $K{=}5$, the checkpoint of Table~\ref{tab:panel-a}. $K$ is a padding
-dimension, so the text reads the curves against the priors each setting
-consumes.}
+default is $K{=}5$, the checkpoint of Table~\ref{tab:panel-a}. $K$ specifies
+the number of input slots, including padding when fewer priors are available.}
 \label{fig:topk}
 \end{figure}
 
-\paragraph{Evidence budget: the ideas run out of priors before the model runs
-out of capacity.}
-Figure~\ref{fig:topk} varies $K$, the number of priors each idea contributes,
+\paragraph{Evidence budget: gains flatten beyond four input slots.}
+Figure~\ref{fig:topk} varies the input-slot budget $K$
 over $K=2,3,4,5,6,8$. Accuracy rises steeply from $K{=}2$ to $K{=}4$ ($0.731 \to
 0.806$ on Graph ML, $0.716 \to 0.772$ on computer vision, $0.726 \to 0.789$ on
-time series) and then flattens, with the same knee in all three domains. The
-flattening comes from the evidence rather than from the model. Because every
-sample is padded to exactly $K$ slots, the priors a setting consumes stop
-growing once $K$ exceeds the candidates an idea carries, and the knee sits at
-three to four consumed priors. Raising $K$ from 5 to 8 adds less than one
-consumed prior, because about a third of the ideas carry six or more candidates
-and fewer than one in seven carry eight or more.
+time series) and then flattens across the three domains. The configured slot
+budget does not by itself establish how many non-padding priors a target
+receives. These curves show sensitivity to $K$ under the evaluated setup;
+they do not distinguish limited evidence availability from limited benefit
+of additional evidence.
 
 \begin{figure}[h]
 \centering
@@ -94,12 +93,13 @@ Development and test sets stay fixed, and $100\%$ is the default.}
 \label{fig:train-frac}
 \end{figure}
 
-\paragraph{Training-set size: more data helps across the board.}
+\paragraph{Training-set size: gains differ across domains.}
 Figure~\ref{fig:train-frac} varies the number of training ideas over $25\%$,
 $50\%$, $75\%$ and $100\%$ of the training split, drawn as nested stratified prefixes so that
 consecutive points add samples without reordering what came before. Macro-F1
 rises steadily with the fraction on Graph ML ($0.7627 \to 0.8010$) and time
-series ($0.7573 \to 0.7760$). Computer vision levels off after $50\%$ and ends
+series ($0.7573 \to 0.7760$). Computer vision does not improve consistently
+beyond $50\%$ and ends
 at $0.7669$ against a peak of $0.7788$, a gap of $0.012$. More training data
 helps in most of the domains we measure, and the spread across the four
 fractions stays small: Accuracy moves by at most $0.039$ in any domain.
@@ -112,18 +112,16 @@ The default is 384, and every setting scores the same test ideas and labels.}
 \label{fig:maxlen}
 \end{figure}
 
-\paragraph{Encoder input length: 128 tokens already cover the comparison.}
+\paragraph{Encoder input length: limited sensitivity over the tested range.}
 Figure~\ref{fig:maxlen} varies the encoder input length over 128, 192, 256 and
 384 tokens. The four lengths separate the domains by little: no domain moves monotonically
 with input length, and tripling the input moves Macro-F1 by at most $0.017$ in
-any domain. At 128 tokens the encoder already covers the title-and-abstract
-comparison for most target--prior pairs, so a longer window reads much the same
-text and the curves stay flat. QWK is the flattest panel, spanning $0.0076$ on
+any domain. QWK spans $0.0076$ on
 Graph ML, $0.0023$ on computer vision and $0.0062$ on time series across the
-four lengths, so the ordering the model produces is close to invariant to how
-much of the text it reads. The flatness is consistent with the decomposition
-reading a target and its priors through short unit-level comparisons rather than
-through long spans of text.
+four lengths, indicating that ordinal agreement changes little over the tested
+input lengths. These results show limited performance sensitivity from 128
+to 384 tokens; they do not establish how much of each input is retained at
+128 tokens.
 
 \begin{table}[h]
 \centering

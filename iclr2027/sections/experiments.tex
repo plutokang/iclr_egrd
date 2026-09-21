@@ -11,9 +11,9 @@ The evaluation set is the \textsc{IdeaDelta} test split. Every system receives
 the same evidence --- the
 five highest-ranked admissible priors per target, as titles and abstracts, with
 no paper text --- and is scored against the same labels by the same script.
-On a four-level label with unequal support, Accuracy rewards the
-majority class and MAE the middle of the scale, while QWK
-is what a constant predictor cannot win, so we report all four.
+For the four-level labels with unequal class support, we report Accuracy,
+Macro-F1, QWK and MAE to assess exact classification, performance across
+classes, chance-corrected ordinal agreement and grade error, respectively.
 Appendix~\ref{app:setup} gives the splits, hyperparameters and scoring code.
 
 \subsection{Main results}
@@ -29,8 +29,7 @@ ideas, same labels and the same idea-only protocol (top-5 retrieved priors, no
 paper text), split by domain. A row group isolates the effect of the model
 behind an unchanged prompt chain. A majority-class predictor scores $0.312$,
 $0.356$ and $0.328$ Accuracy with QWK zero by construction, and several rows
-fall below it; MAE is lowest for rows that concentrate near the middle of the
-scale, so read it beside QWK.}
+fall below it. Read Accuracy and MAE alongside Macro-F1 and QWK.}
 \label{tab:panel-a}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}ll rrrr rrrr rrrr@{}}
@@ -123,21 +122,20 @@ system on the \textsc{IdeaDelta} evaluation set, and Table~\ref{tab:panel-b}
 carries the same frozen checkpoint to RINoBench. In the first table the prompted
 systems occupy a band well below our row.
 
-Among the prompted systems, adding stages to the prompt does not add
-information, and on a strong backbone it removes some. Measured against a
+The benefit of multi-stage prompting depends on the chain and backbone;
+adding stages does not consistently improve performance. Measured against a
 single five-prior call on the same backbone, the two-stage RINoBench chain
 gains in all three domains on Qwen3.5, by $0.024$ to $0.053$ Accuracy and
-$0.016$ to $0.086$ QWK; on deepseek-flash the gain is spent, the chain
-staying within $0.026$ Accuracy and $0.020$ QWK of the direct call in either
+$0.016$ to $0.086$ QWK; on deepseek-flash the chain stays
+within $0.026$ Accuracy and $0.020$ QWK of the direct call in either
 direction; and on gpt-5.6-luna it loses in all three domains, by $0.027$ to
 $0.053$ Accuracy and $0.064$ to $0.103$ QWK. The three-stage UKPLab chain and
 GraphMind never reach the direct call at all: each sits below it in all nine
 cells on both metrics, and the UKPLab deficit widens with the backbone in the
 same direction, averaging $0.19$ QWK on Qwen3.5, $0.26$ on deepseek-flash and
-$0.28$ on gpt-5.6-luna. A chain compensates for a weak reader, and once the
-reader is strong the compensation costs more than it returns --- and it is
-charged for twice, since GraphMind spends $476$ seconds and $31{,}201$ LLM
-calls on the $3{,}352$ ideas to arrive below one call per idea.
+$0.28$ on gpt-5.6-luna. These results show no consistent advantage from
+additional prompting stages. GraphMind uses $476$ seconds and $31{,}201$ LLM
+calls for the $3{,}352$ ideas, yet scores below the direct single-call baseline.
 
 Which model a chain runs on matters about as much as which chain it is. Holding
 the chain fixed and changing the model moves Accuracy by $0.107$ on average,
@@ -154,12 +152,9 @@ These results show that the advantage is consistent across
 the three evaluated domains, although individual baselines
 remain sensitive to the domain.
 
-Fine-tuning on paper review does not transfer to ideas.
-DeepReviewer-7B is the one system trained rather than prompted, and its QWK
-of $0.034$, $-0.043$ and $-0.017$ says it does not order the ideas. A model
-trained to review whole papers appears to read a longer related-work block as
-evidence of less novelty largely independently of what that work says, which is
-what scoring a target against a retrieved set read as a block permits.
+DeepReviewer-7B shows limited transfer to this idea-level evaluation.
+Its QWK values of $0.034$, $-0.043$ and $-0.017$ indicate ordinal agreement
+close to chance across the three domains under the supplied-evidence protocol.
 
 \begin{table}[t]
 \centering
@@ -200,13 +195,13 @@ DeepReviewer-7B & 0.1913 & 0.1425 & 0.0145 & 1.3610 \\
 We evaluate the frozen checkpoint on RINoBench \citep{schopf2026rinobench},
 whose 277 test ideas carry expert 1--5 labels. We fold them to four levels by
 merging 4 and 5, which leaves $41.5\%$ of the ideas in the top class, so a
-constant predictor scores $0.4152$ Accuracy.
+a predictor that always selects the top class scores $0.4152$ Accuracy.
 
-The ordering transfers even though the level does not.
+Transfer to expert labels yields modest ordinal agreement.
 EGRD leads Macro-F1 and QWK at $0.3407$ and $0.2245$ against $0.2457$ and
 $0.1469$ for the best other system on each, and is the only row above $0.15$ QWK, while six of the eleven baselines sit
-below $0.05$ and so do not order the ideas at all. Accuracy carries no
-information here: our row reaches the constant predictor's
+below $0.05$ QWK. Accuracy alone is insufficient to assess performance here:
+our row reaches the majority-class predictor's
 $0.4152$ with a prediction that is not constant, $16/36/76/149$ ideas across
 the four classes against a gold $15/60/87/115$. The margin is modest: we read it as some agreement between residual structure
 learned on model-generated labels and expert judgment, not as the problem
@@ -247,7 +242,7 @@ Full & \textbf{0.7796} & \textbf{0.7790} & \textbf{0.8958} & \textbf{0.7708} \\
 \multicolumn{5}{@{}l}{\emph{Pipeline stages}} \\
 Permuting prior evidence & 0.3471 & 0.3532 & 0.2241 & 0.4420 \\
 Permuting coverage & 0.6649 & 0.6605 & 0.5996 & 0.6630 \\
-Zeroing residuals & 0.6371 & 0.6554 & 0.7878 & 0.7079 \\
+Zeroing decomposition representations & 0.6371 & 0.6554 & 0.7878 & 0.7079 \\
 \addlinespace
 \multicolumn{5}{@{}l}{\emph{Decomposition design}} \\
 Collapsing semantic units & 0.6580 & 0.6292 & 0.8591 & 0.6120 \\
@@ -257,53 +252,50 @@ Removing noisy-OR support & 0.6210 & 0.5520 & 0.6291 & 0.5665 \\
 \end{tabular}
 \end{table}
 
-Because the evidence is supplied rather than retrieved, it can be intervened on
-with the target held fixed, which separates a model that reads the evidence
-from one that recognises gradable phrasing.
+The supplied evidence can be intervened on with the target held fixed,
+allowing us to test whether the trained model's predictions depend on evidence
+matched to the target.
 
-Every stage of the pipeline is load-bearing, and error accumulates along it.
+Each of the three pipeline interventions reduces performance.
 The first three interventions cut the chain at successive points.
 \textbf{Permuting prior evidence} shuffles the retrieved prior texts across
 targets, destroying the semantic content the chain is built on;
 \textbf{permuting coverage} shuffles only the joint coverage score and leaves
 every prior text in place, destroying what the historical evidence inputs
 (\S\ref{sec:method-evidence}) infer from that content; \textbf{zeroing
-residuals} sets $\boldsymbol{z}_U$, $\boldsymbol{z}_I$ and $\boldsymbol{z}_C$ to
-zero, destroying what the evidence-grounded residual decomposition
-(\S\ref{sec:method-decomposition}) adds on top of both. The ablations show that
+decomposition representations} sets the unit residual $\boldsymbol{z}_U$,
+interaction residual $\boldsymbol{z}_I$ and covered-content representation
+$\boldsymbol{z}_C$ to zero, removing these three outputs of the decomposition
+(\S\ref{sec:method-decomposition}) together. The ablations show that
 all three are indispensable.
 Permuting prior evidence costs $0.43$ Accuracy and $0.67$ QWK, dropping
 Accuracy into the
 band of the majority-class predictor of Table~\ref{tab:panel-a}
-($0.312$--$0.356$): the grade is not recoverable from the target alone, so the
-priors are read rather than treated as a pretext for grading the target's own
-phrasing. Permuting coverage costs $0.11$ Accuracy and $0.30$ QWK
+($0.312$--$0.356$). This drop shows that the trained model relies on evidence
+matched to the target. Permuting coverage costs $0.11$ Accuracy and $0.30$ QWK
 with the texts intact, so what the historical evidence inputs infer is not
-redundant with the evidence it is computed from. Zeroing residuals
-costs $0.14$ Accuracy, $0.12$ Macro-F1 and $0.11$ QWK, so the residual
-decomposition is not an ornament on a prediction the evidence inputs already
-support. Taken in order, the damage grows the earlier the cut falls: what one
-stage corrupts it passes on, and the corruption is amplified rather than
-absorbed downstream. Accuracy alone
-reverses at the last step, $0.14$ for zeroing residuals against $0.11$
-for permuting coverage, and it reverses for a reason: the residual
-decomposition moves the metric that counts exact grades far more than the one
-that counts agreement in rank, so what it contributes is which grade an idea
-receives rather than how the ideas are ordered.
+redundant with the evidence it is computed from. Zeroing the decomposition
+representations costs $0.14$ Accuracy, $0.12$ Macro-F1 and $0.11$ QWK,
+showing that the trained model benefits from these representations collectively.
+Permuting prior evidence causes the largest performance drop, while
+perturbing coverage and zeroing the decomposition representations also reduce performance.
+The latter causes a larger drop than permuting coverage in both
+Accuracy ($0.1425$ versus $0.1147$) and Macro-F1 ($0.1236$ versus $0.1185$),
+with a smaller difference in Macro-F1.
 
-The mechanisms inside the residual decomposition earn their place, and two of
-the three act on the ordering. The remaining interventions leave the pipeline
+The three decomposition-design ablations reduce performance, with different
+effects across metrics. These interventions leave the pipeline
 intact and remove one mechanism from the decomposition itself.
 \textbf{Collapsing semantic units}, from eight to one, costs $0.12$ Accuracy,
 $0.15$ Macro-F1 and $0.16$
-High-F1 but only $0.04$ QWK, so the collapse loses the grade and
-leaves the ordering nearly intact. \textbf{Disabling slot competition}, which
+High-F1, while QWK decreases by $0.04$ and remains at $0.8591$.
+\textbf{Disabling slot competition}, which
 removes the softmax through which the units compete for each token, costs
 $0.11$ Accuracy and $0.13$ QWK, reversing that pattern: deciding which unit a
 token belongs to is what keeps the units apart in the first place.
 \textbf{Removing noisy-OR support} costs the most of the three on every metric,
-$0.16$ Accuracy, $0.23$ Macro-F1, $0.27$ QWK and $0.20$ High-F1, so
-aggregating support across priors is what makes the ordering work. For the
+$0.16$ Accuracy, $0.23$ Macro-F1, $0.27$ QWK and $0.20$ High-F1,
+supporting the contribution of this aggregation rule to ordinal agreement. For the
 collapsed units and the removed noisy-OR, High-F1 falls further than Accuracy,
 which is where a decomposition should matter: the top grade turns on parts of a
 target that no single prior supports.
@@ -337,8 +329,9 @@ every held-out test idea, coloured by gold grade, the three cases starred.}
 
 The ablations show that corrupting the evidence costs Accuracy, not what the
 intact pipeline does with it: what the support matrix weights when every
-retrieved prior is on topic, and where along the pipeline the grade stops being
-revisable. Figure~\ref{fig:case-study} answers both on three correctly predicted
+retrieved prior is on topic, and whether the residual representation contains
+linearly accessible grade information. Figure~\ref{fig:case-study} examines
+these questions using three correctly predicted
 test targets, and is built as follows. Panel (a) reports the support $A_k$ and
 the joint coverage $C_J$ that the trained model produces for each target; these
 are read off the forward pass, and nothing in the panel is fit here. For the
@@ -358,10 +351,11 @@ prior of the low case takes $0.838$, the lone \emph{partial cover} of the
 moderate case $0.523$, and in the high case, whose five priors were all
 retrieved on the target's own vocabulary, no support exceeds $0.007$. Joint
 coverage follows at $0.62$, $0.32$ and $0.12$, and so does the mean unit
-residual, at $0.041$, $0.408$ and $0.977$. The grade is then settled in
-$\boldsymbol{z}_R$ before any head reads it: a probe that sees
-$\boldsymbol{z}_R$ and nothing else recovers it at $0.730$ against a majority
+residual, at $0.041$, $0.408$ and $0.977$. The representation
+$\boldsymbol{z}_R$ contains substantial linearly accessible grade information:
+a probe using only $\boldsymbol{z}_R$ achieves $0.730$ Accuracy against a majority
 baseline of $0.329$, and the held-out ideas lie along the first discriminant
-axis in grade order, not in four unordered clusters. The probe does not reach
-the full model, so the heads still contribute, but on top of a representation in
-which the answer is already linearly separable.
+axis in grade order. The probe remains below the full model; its performance
+shows that grade information is accessible to a linear classifier, without
+establishing complete linear separability or making the final prediction heads
+redundant.
