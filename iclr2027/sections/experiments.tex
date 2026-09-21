@@ -313,16 +313,15 @@ still costs $0.11$ Accuracy, $0.30$ QWK and $0.35$ MAE, so what the historical
 evidence inputs infer is not redundant with the evidence it is computed from.
 Zeroing the decomposition representations costs $0.14$ Accuracy, $0.12$
 Macro-F1, $0.11$ QWK and $0.21$ MAE, showing that the trained model benefits
-from these representations collectively. These last two interventions order
-differently under the two kinds of metric: zeroing costs more in Accuracy
-($0.1425$ versus $0.1147$) and Macro-F1 ($0.1236$ versus $0.1185$), permuting
+from these representations collectively. These last two order differently under the two
+kinds of metric: zeroing costs more in Accuracy and Macro-F1, permuting
 coverage more in QWK ($0.2962$ versus $0.1080$) and MAE ($0.3472$ versus
-$0.2136$), so corrupting the coverage signal damages the ordering of the grades
-more even though it misclassifies fewer ideas.
+$0.2136$), so corrupting the coverage signal damages the grade ordering more
+even though it misclassifies fewer ideas.
 
-The three decomposition-design ablations reduce performance, with different
-effects across metrics. These interventions leave the pipeline
-intact and remove one mechanism from the decomposition itself.
+The three decomposition-design ablations leave the pipeline intact and remove
+one mechanism from the decomposition itself, reducing performance with
+different effects across metrics.
 \textbf{Collapsing semantic units}, from eight to one, costs $0.12$ Accuracy,
 $0.15$ Macro-F1 and $0.18$ MAE, while QWK decreases by $0.04$ and remains at
 $0.8591$: a single unit still orders the ideas, but the grade it assigns is
@@ -339,11 +338,10 @@ supporting the contribution of this aggregation rule to ordinal agreement.
 We also sweep the three parameters that govern how much the model is given (the
 evidence budget $K$, the training fraction and the encoder input length) one at
 a time from the default configuration of Table~\ref{tab:panel-a}, in all three
-domains. The largest of the three moves Accuracy by at most $0.075$, against the
-$0.34$ that separates our row from the best prompted row of
-Table~\ref{tab:panel-a}, so none of them is what the main comparison turns on.
-The sweeps, and what they do and do not license, are in
-Appendix~\ref{app:sensitivity}.
+domains. The largest moves Accuracy by at most $0.075$, against the $0.34$ that
+separates our row from the best prompted row there, so none of them is what the
+main comparison turns on; Appendix~\ref{app:sensitivity} reports the sweeps and
+what they do and do not license.
 
 \subsection{Case study}
 \label{sec:exp-case}
@@ -363,17 +361,16 @@ every held-out test idea, coloured by gold grade, the three cases starred.}
 \label{fig:case-study}
 \end{figure}
 
-The ablations show that corrupting the evidence costs Accuracy, not what the
-intact pipeline does with it: what the support matrix weights when every
+The ablations show that corrupting the evidence costs Accuracy, but not what
+the intact pipeline does with it: what the support matrix weights when every
 retrieved prior is on topic, and whether the residual representation contains
-linearly accessible grade information. Figure~\ref{fig:case-study} examines
-these questions on three correctly predicted test targets. Panel (a) reports
+linearly accessible grade information. Figure~\ref{fig:case-study} examines both
+on three correctly predicted test targets. Panel (a) reports
 the support $A_k$ and the joint coverage $C_J$ the trained model produces for
 each target, read off the forward pass with nothing fit. Panels (b) and (c) and
 the probe reported with them hold the three cases out and fit every supervised
-step on $80\%$ of the remaining test ideas, scoring out of fold.
-Appendix~\ref{app:case-study} gives the construction of each panel and the
-target and prior texts.
+step on $80\%$ of the remaining test ideas, scoring out of fold
+(Appendix~\ref{app:case-study}).
 
 Support follows the annotation rather than the retrieval: the \emph{large cover}
 prior of the low case takes $0.838$, the lone \emph{partial cover} of the
