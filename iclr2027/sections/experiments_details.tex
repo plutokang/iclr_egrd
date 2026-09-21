@@ -175,6 +175,19 @@ the difference between adjacent points.
 \subsection{Case-study ideas}
 \label{app:case-study}
 
+\paragraph{Construction of Figure~\ref{fig:case-study}.}
+Panel (a) is read off the forward pass of the trained model and fits nothing.
+For the other two panels the test ideas are split $80/20$ with the three cases
+held out, and every supervised step is fit on the $80\%$ part alone. Panel (b)
+standardises $\boldsymbol{z}_R$ on that part, ranks its coordinates by
+univariate $F$-statistic against the grade, and shows the $140$ that separate it
+best. Panel (c) reduces $\boldsymbol{z}_R$ to $50$ principal components and
+projects it onto the first two axes of a shrinkage linear discriminant fit on
+the four grades. The probe reported in the panel is separate from both: a
+five-fold cross-validated multinomial logistic regression on standardised
+$\boldsymbol{z}_R$, scored out of fold.
+
+\paragraph{Texts.}
 Table~\ref{tab:case-texts} gives the three
 targets of \S\ref{sec:exp-case} and the five retained priors of each, with the
 date that makes the prior admissible, the coverage label the annotation carries,

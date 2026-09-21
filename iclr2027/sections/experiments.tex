@@ -12,10 +12,9 @@ against the same labels by the same script, and all but one receive the same
 evidence --- the five highest-ranked admissible priors per target, as titles and
 abstracts, with no paper text. The exception is a dense-retrieval baseline that
 assembles its own five priors at query time, included to measure what the
-supplied evidence contributes.
-For the four-level labels with unequal class support, we report Accuracy,
-Macro-F1, QWK and MAE to assess exact classification, performance across
-classes, chance-corrected ordinal agreement and grade error, respectively.
+supplied evidence contributes. For the four-level labels with unequal class
+support, we report Accuracy, Macro-F1, QWK and MAE --- exact classification,
+performance across classes, chance-corrected ordinal agreement and grade error.
 Appendix~\ref{app:setup} gives the splits, hyperparameters and scoring code.
 
 \subsection{Main results}
@@ -137,78 +136,67 @@ DeepReviewer & DeepReviewer-7B
 \end{tabular}}
 \end{table}
 
-We compare against a \emph{direct} single call, two multi-stage prompt chains
---- \emph{Schopf 2-stage}, the two-stage evaluation prompt that accompanies the
-RINoBench benchmark \citep{schopf2026rinobench}, and \emph{UKPLab 3-stage}
-\citep{afzal2026beyond} ---
-\emph{GraphMind} \citep{dasilva2025graphmind}, which labels each
-prior as supporting or contrasting before rating, and \emph{DeepReviewer-7B}
-\citep{zhu2025deepreview}, a reviewer model fine-tuned on paper review, and a
-\emph{dense RAG} group, which runs the same single call as \emph{direct} on
-five priors it retrieves itself by dense similarity to the target.
-The first five appear once per backbone. Table~\ref{tab:panel-a} reports every
+We compare against a \emph{direct} single call; two multi-stage prompt chains,
+\emph{Schopf 2-stage}, the evaluation prompt accompanying RINoBench
+\citep{schopf2026rinobench}, and \emph{UKPLab 3-stage}
+\citep{afzal2026beyond}; \emph{GraphMind} \citep{dasilva2025graphmind}, which
+labels each prior as supporting or contrasting before rating;
+\emph{DeepReviewer-7B} \citep{zhu2025deepreview}, a reviewer model fine-tuned on
+paper review; and a \emph{dense RAG} group running the \emph{direct} call on
+five priors it retrieves itself by dense similarity to the target. All but
+DeepReviewer-7B appear once per backbone. Table~\ref{tab:panel-a} reports every
 system on the \textsc{IdeaDelta} evaluation set, and Table~\ref{tab:panel-b}
-carries the same frozen checkpoint to RINoBench. In the first table the prompted
-systems occupy a band well below our row.
+carries the same frozen checkpoint to RINoBench.
 
-The benefit of multi-stage prompting depends on the chain and backbone;
-adding stages does not consistently improve performance. Measured against a
-single five-prior call on the same backbone, the two-stage Schopf chain
-gains in all three domains on Qwen3.5, by $0.024$ to $0.053$ Accuracy and
-$0.016$ to $0.086$ QWK; on deepseek-flash the chain stays
-within $0.026$ Accuracy and $0.020$ QWK of the direct call in either
-direction; and on gpt-5.6-luna it loses in all three domains, by $0.027$ to
-$0.053$ Accuracy and $0.064$ to $0.103$ QWK. The three-stage UKPLab chain and
-GraphMind never reach the direct call at all: each sits below it in all nine
-cells on both metrics, and the UKPLab deficit widens with the backbone in the
-same direction, averaging $0.19$ QWK on Qwen3.5, $0.26$ on deepseek-flash and
-$0.28$ on gpt-5.6-luna. These results show no consistent advantage from
-additional prompting stages. GraphMind uses $476$ seconds and $31{,}201$ LLM
-calls for the $3{,}352$ ideas, yet scores below the direct single-call baseline.
+The benefit of multi-stage prompting depends on the chain and the backbone.
+Measured against a single five-prior call on the same backbone, the two-stage
+Schopf chain gains in all three domains on Qwen3.5, by $0.024$ to $0.053$
+Accuracy and $0.016$ to $0.086$ QWK; on deepseek-flash it stays within $0.026$
+Accuracy and $0.020$ QWK of the direct call in either direction; and on
+gpt-5.6-luna it loses in all three domains, by $0.027$ to $0.053$ Accuracy and
+$0.064$ to $0.103$ QWK. The three-stage UKPLab chain and GraphMind never reach
+the direct call at all, sitting below it in all nine cells on both metrics; the
+UKPLab QWK deficit widens with the backbone in the same direction, averaging
+$0.19$ on Qwen3.5, $0.26$ on deepseek-flash and $0.28$ on gpt-5.6-luna.
+Additional stages therefore buy no consistent advantage: GraphMind spends $476$
+seconds and $31{,}201$ LLM calls on the $3{,}352$ ideas and still scores below
+the direct single call.
 
 Which model a chain runs on matters about as much as which chain it is. Over
-the four chains that share the supplied evidence, holding
-the chain fixed and changing the model moves Accuracy by $0.107$ on average,
-against $0.067$ for holding the model fixed and changing the chain; on QWK the
-two swap, $0.204$ against $0.263$. Neither factor dominates the other, and which
-of them leads depends on the metric read.
+the four chains that share the supplied evidence, holding the chain fixed and
+changing the model moves Accuracy by $0.103$ on average --- the mean, across
+the four chains and three domains, of the range over the three backbones ---
+against $0.091$ for the mean range over the four chains at a fixed backbone;
+on QWK the two swap, $0.195$ against $0.348$. Neither factor dominates on both
+metrics, and which of them leads depends on the metric read.
 
 Replacing the supplied priors with query-time dense retrieval costs ordinal
 agreement on every backbone. Against the direct call on the same backbone and
-domain, Macro-F1 falls in all nine cells and QWK falls in all nine, by $0.109$
+domain, Macro-F1 and QWK each fall in all nine cells, QWK by $0.109$
 to $0.190$ on Qwen3.5, $0.355$ to $0.406$ on deepseek-flash and $0.284$ to
 $0.326$ on gpt-5.6-luna. Accuracy moves the other way on the weakest backbone,
-rising by $0.027$ to $0.060$ on Qwen3.5 while Macro-F1 falls, which is the
-signature of predictions concentrating on the larger classes: the dense-RAG
+rising by $0.027$ to $0.060$ on Qwen3.5 while Macro-F1 falls, the
+signature of predictions concentrating on the larger classes: these
 rows sit at $0.318$--$0.372$ Accuracy, at or just above the majority-class
-band, with Macro-F1 no higher than $0.295$ anywhere. The row group also
+band, with Macro-F1 no higher than $0.295$ anywhere. The group also
 compresses the backbone differences that Table~\ref{tab:panel-a} otherwise
-shows --- across the three backbones its Accuracy spans at most $0.028$ in any
-domain, against $0.112$ to $0.154$ for the direct call --- so with self-retrieved
-evidence the choice of model stops mattering much. What a system is given to
+shows, its Accuracy spanning at most $0.028$ in any
+domain against $0.112$ to $0.154$ for the direct call. What a system is given to
 compare against therefore moves the judgment more than which model or chain
-performs it.
-
-These rows sharpen the evidence check of
-Appendix~\ref{app:dataset-validity}, where random priors reduce label
+performs it, which sharpens the evidence check of
+Appendix~\ref{app:dataset-validity}: there random priors reduce label
 prediction to near-chance and establish only that the evidence must be on
-topic. Dense retrieval is on topic and the gap persists, so the candidate
-lists carry target--prior relationships that generic similarity search does not
-recover --- what the cross-type pass and the adjudicated similarity band
-(\S\ref{sec:dataset}) are for.
+topic, whereas dense retrieval is on topic and the gap persists, so the
+candidate lists carry target--prior relationships that generic similarity
+search does not recover --- what the cross-type pass and the adjudicated
+similarity band (\S\ref{sec:dataset}) are for.
 
-EGRD outperforms the baselines in all three domains.
-Its Accuracy margin over the best baseline in each domain is
-$0.356$ on Graph ML, $0.341$ on computer vision, and $0.344$
-on time series; the corresponding QWK margins are
-$0.330$, $0.321$, and $0.322$.
-These results show that the advantage is consistent across
-the three evaluated domains, although individual baselines
-remain sensitive to the domain.
-
-DeepReviewer-7B shows limited transfer to this idea-level evaluation.
-Its QWK values of $0.034$, $-0.043$ and $-0.017$ indicate ordinal agreement
-close to chance across the three domains under the supplied-evidence protocol.
+EGRD outperforms the baselines in all three domains, by
+$0.356$, $0.341$ and $0.344$ Accuracy and $0.330$, $0.321$ and $0.322$ QWK over
+the best baseline of each domain, so the advantage is consistent across the
+three even though individual baselines remain sensitive to the domain.
+DeepReviewer-7B transfers least: its QWK of $0.034$, $-0.043$ and $-0.017$ is
+ordinal agreement close to chance under the supplied-evidence protocol.
 
 \begin{table}[t]
 \centering
@@ -247,31 +235,27 @@ DeepReviewer-7B & 0.1913 & 0.1425 & 0.0145 & 1.3610 \\
 \end{table}
 
 We evaluate the frozen checkpoint on RINoBench \citep{schopf2026rinobench},
-whose 277 test ideas carry expert 1--5 labels. We fold them to four levels by
-merging 4 and 5, which leaves $41.5\%$ of the ideas in the top class, so a
-a predictor that always selects the top class scores $0.4152$ Accuracy.
-
-Transfer to expert labels yields modest ordinal agreement.
-EGRD leads Macro-F1 and QWK at $0.3407$ and $0.2245$ against $0.2457$ and
-$0.1469$ for the best other system on each, and is the only row above $0.15$ QWK, while six of the eleven baselines sit
-below $0.05$ QWK. Accuracy alone is insufficient to assess performance here:
-our row reaches the majority-class predictor's
-$0.4152$ with a prediction that is not constant, $16/36/76/149$ ideas across
-the four classes against a gold $15/60/87/115$. The margin is modest: we read it as some agreement between residual structure
+whose 277 test ideas carry expert 1--5 labels, folding them to four levels by
+merging 4 and 5; that leaves $41.5\%$ of the ideas in the top class, so a
+predictor that always selects it scores $0.4152$ Accuracy.
+Transfer to those labels yields modest ordinal agreement. EGRD leads Macro-F1
+and QWK at $0.3407$ and $0.2245$ against $0.2457$ and $0.1469$ for the best
+other system on each, and is the only row above $0.15$ QWK, while six of the
+eleven baselines sit below $0.05$. Accuracy alone is insufficient here: our row
+reaches the majority-class predictor's $0.4152$ with a prediction that is not
+constant, $16/36/76/149$ ideas across the four classes against a gold
+$15/60/87/115$. We read the margin as some agreement between residual structure
 learned on model-generated labels and expert judgment, not as the problem
 solved.
 
 Two properties of the transfer bound what that agreement can be, and both are
-visible before any model is run. The first is coverage. \textsc{IdeaDelta} is
-built from three fields, whereas RINoBench draws its ideas from OpenReview
-submissions across machine learning as a whole, so most of its test ideas sit in
-areas --- robust reinforcement learning, tabular learning, computational biology
---- whose prior work the model was never trained to read; only about $30$ of the
-$277$ ideas fall in the three fields it was. The second is granularity. Merging
-the top two expert levels is what collapses $41.5\%$ of the ideas into one class,
-and it also erases a distinction the experts themselves chose to draw, so a model
-that orders the ideas correctly still has no way to express the difference
-between a 4 and a 5.
+visible before any model is run. \textsc{IdeaDelta} is built from three fields,
+whereas RINoBench draws on OpenReview submissions across machine learning as a
+whole, so only about $30$ of its $277$ test ideas fall in the fields whose prior
+work the model was trained to read. And merging the top two expert levels, which
+is what collapses $41.5\%$ of the ideas into one class, erases a distinction the
+experts chose to draw, leaving a correctly ordering model no way to express the
+difference between a 4 and a 5.
 
 \subsection{Ablation}
 \label{sec:exp-ablation}
@@ -307,11 +291,9 @@ Removing noisy-OR support & 0.6210 & 0.5520 & 0.6291 & 0.6068 \\
 \end{tabular}
 \end{table}
 
-The supplied evidence can be intervened on with the target held fixed,
-allowing us to test whether the trained model's predictions depend on evidence
-matched to the target.
-
-The three pipeline interventions cut the chain at successive points.
+Because the supplied evidence can be intervened on with the target held fixed,
+we can test what the trained model's predictions actually depend on. The three
+pipeline interventions cut the chain at successive points.
 \textbf{Permuting prior evidence} shuffles the retrieved prior texts across
 targets, destroying the semantic content the chain is built on;
 \textbf{permuting coverage} shuffles only the joint coverage score and leaves
@@ -331,13 +313,12 @@ still costs $0.11$ Accuracy, $0.30$ QWK and $0.35$ MAE, so what the historical
 evidence inputs infer is not redundant with the evidence it is computed from.
 Zeroing the decomposition representations costs $0.14$ Accuracy, $0.12$
 Macro-F1, $0.11$ QWK and $0.21$ MAE, showing that the trained model benefits
-from these representations collectively. The last two interventions order
-differently under the two kinds of metric: zeroing the representations costs
-more in Accuracy ($0.1425$ versus $0.1147$) and Macro-F1 ($0.1236$ versus
-$0.1185$), whereas permuting coverage costs more in QWK ($0.2962$ versus
-$0.1080$) and MAE ($0.3472$ versus $0.2136$). Corrupting the coverage signal
-therefore damages the ordering of the grades more than removing the
-representations does, even though it misclassifies fewer ideas.
+from these representations collectively. These last two interventions order
+differently under the two kinds of metric: zeroing costs more in Accuracy
+($0.1425$ versus $0.1147$) and Macro-F1 ($0.1236$ versus $0.1185$), permuting
+coverage more in QWK ($0.2962$ versus $0.1080$) and MAE ($0.3472$ versus
+$0.2136$), so corrupting the coverage signal damages the ordering of the grades
+more even though it misclassifies fewer ideas.
 
 The three decomposition-design ablations reduce performance, with different
 effects across metrics. These interventions leave the pipeline
@@ -386,20 +367,13 @@ The ablations show that corrupting the evidence costs Accuracy, not what the
 intact pipeline does with it: what the support matrix weights when every
 retrieved prior is on topic, and whether the residual representation contains
 linearly accessible grade information. Figure~\ref{fig:case-study} examines
-these questions using three correctly predicted
-test targets, and is built as follows. Panel (a) reports the support $A_k$ and
-the joint coverage $C_J$ that the trained model produces for each target; these
-are read off the forward pass, and nothing in the panel is fit here. For the
-other two, the test ideas are split $80/20$ with the three cases held out, and
-every supervised step is fit on the $80\%$ part alone. Panel (b) standardises
-$\boldsymbol{z}_R$ on that part, ranks its coordinates by univariate
-$F$-statistic against the grade, and shows the $140$ that separate it best.
-Panel (c) reduces $\boldsymbol{z}_R$ to $50$ principal components and projects
-it onto the first two axes of a shrinkage linear discriminant fit on the four
-grades. The probe reported there is separate from both: a five-fold
-cross-validated multinomial logistic regression on standardised
-$\boldsymbol{z}_R$, scored out of fold. Target and prior texts are in
-Appendix~\ref{app:case-study}.
+these questions on three correctly predicted test targets. Panel (a) reports
+the support $A_k$ and the joint coverage $C_J$ the trained model produces for
+each target, read off the forward pass with nothing fit. Panels (b) and (c) and
+the probe reported with them hold the three cases out and fit every supervised
+step on $80\%$ of the remaining test ideas, scoring out of fold.
+Appendix~\ref{app:case-study} gives the construction of each panel and the
+target and prior texts.
 
 Support follows the annotation rather than the retrieval: the \emph{large cover}
 prior of the low case takes $0.838$, the lone \emph{partial cover} of the
@@ -410,7 +384,6 @@ residual, at $0.041$, $0.408$ and $0.977$. The representation
 $\boldsymbol{z}_R$ contains substantial linearly accessible grade information:
 a probe using only $\boldsymbol{z}_R$ achieves $0.730$ Accuracy against a majority
 baseline of $0.329$, and the held-out ideas lie along the first discriminant
-axis in grade order. The probe remains below the full model; its performance
-shows that grade information is accessible to a linear classifier, without
-establishing complete linear separability or making the final prediction heads
+axis in grade order. The probe remains below the full model, so the grades are
+linearly accessible without being linearly separable or the prediction heads
 redundant.

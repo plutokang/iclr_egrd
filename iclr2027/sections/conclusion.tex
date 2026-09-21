@@ -4,16 +4,12 @@
 EGRD grades an idea by what an explicit set of admissible priors leaves over,
 estimating coverage at the level of semantic units and predicting the grade from
 the residuals that survive alignment with the evidence. Supplying that evidence
-rather than retrieving it is what lets the design be checked.
-Permuting the priors lowers Accuracy to a level near the majority-class
-baseline, showing that the trained model relies on evidence matched to the
-target; removing noisy-OR aggregation costs more on every metric than any other
-change to the decomposition, so dispersed coverage is what the support matrix is
-for; and a cross-validated linear probe shows that the residual representation
-contains linearly accessible grade information. EGRD outperforms every prompted
-baseline we evaluate, whether it reads the supplied priors or selects its own
-from the same admissible pool.
-What remains open lies elsewhere
-(App.~\ref{app:limitations}): on expert labels the ordering transfers while the
-level does not --- a gap that, because the evidence is an argument rather than a
-score, a reader can locate in the priors themselves.
+rather than retrieving it is what lets the design be checked: permuting the
+priors lowers Accuracy to the majority-class band, removing noisy-OR
+aggregation costs more on every metric than any other change to the
+decomposition, and a cross-validated linear probe finds grade information
+linearly accessible in the residual representation. EGRD outperforms every
+prompted baseline we evaluate, whether it reads the supplied priors or selects
+its own. What remains open lies elsewhere (App.~\ref{app:limitations}): on
+expert labels the ordering transfers while the level does not --- a gap a reader
+can locate in the priors themselves.
