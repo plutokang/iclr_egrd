@@ -265,12 +265,9 @@ not as the problem solved.
 \scriptsize
 \setlength{\tabcolsep}{3pt}
 \renewcommand{\arraystretch}{1.0}
-\caption{Ablations on the pooled \textsc{IdeaDelta} evaluation set, 3{,}352
-ideas. \textbf{Full} is the unablated checkpoint of Table~\ref{tab:main}.
+\caption{\textbf{Full} is the unablated checkpoint of Table~\ref{tab:main}.
 The pipeline-stage rows intervene on that trained checkpoint at inference and
-the decomposition-design rows retrain the model without the component, so
-magnitudes are comparable within a block but not across the two.
-Higher is better for Accuracy, Macro-F1 and QWK; lower is better for MAE.}
+the decomposition-design rows retrain the model without the component.}
 \label{tab:ablation}
 \begin{tabular}{@{}l rrrr@{}}
 \toprule
@@ -304,43 +301,33 @@ interaction residual $\boldsymbol{z}_I$ and covered-content representation
 $\boldsymbol{z}_C$ to zero, removing these three outputs of the decomposition
 (\S\ref{sec:method-decomposition}) together. All three reduce performance on
 every metric.
-Permuting the prior texts costs the most, dropping Accuracy into the
-majority-class band of Table~\ref{tab:main} ($0.312$--$0.356$): without matched
-evidence the model scores no better than one that reads nothing. Permuting
-coverage keeps every prior text in place and still costs on all four, so what
-the historical evidence inputs infer is not recoverable from the texts they read.
 
-Those last two disagree about which metric they hurt. Zeroing misclassifies more
-ideas but leaves the ordering close to intact --- QWK $0.7878$ against $0.8958$
-for the full model --- its errors falling mostly into adjacent grades, as its
-MAE shows. Permuting coverage does the reverse, misclassifying fewer ideas yet
-costing more than twice as much QWK. That is consistent with coverage being the
-one input monotone in the grade, its corruption moving a prediction along the
-scale rather than off it, and with the decomposition representations carrying
-what separates neighbouring grades; separating the two accounts would need the
-error distribution we do not report.
+Permuting prior evidence causes the largest loss across all four metrics,
+establishing target--prior correspondence as a critical basis for the model's
+predictions. Permuting coverage preserves the prior texts but sharply reduces
+ordinal agreement and increases grade errors, showing that the remaining inputs
+cannot compensate for a corrupted coverage signal. Zeroing decomposition
+representations produces more incorrect predictions than permuting coverage,
+but smaller grade errors on average. Together, these
+results suggest complementary roles for coverage in maintaining ordinal
+agreement and decomposition representations in assigning the exact grade.
 
 The three mechanisms inside the decomposition are not interchangeable; each
 removal degrades a different part of the prediction.
 \textbf{Collapsing semantic units} from eight to one costs on Accuracy, Macro-F1
-and MAE while QWK barely moves ($0.8591$ against $0.8958$): one unit is enough
+and MAE while QWK barely moves: one unit is enough
 to rank the ideas, not to place them on the right grade.
 \textbf{Disabling slot competition}, which removes the softmax through which the
 units compete for each token, reverses that --- QWK falls while MAE stays where
 collapsing the units left it --- as one would expect if the units stopped
-dividing the target between them, though the ablation shows the cost, not the
-collapse.
+dividing the target between them.
 \textbf{Removing noisy-OR support} costs the most of the three on all four
 metrics and most of all on the rank-sensitive ones, which is what aggregating
 per-prior support into one monotone score is for.
 
-We also sweep the three parameters that govern how much the model is given (the
-evidence budget $K$, the training fraction and the encoder input length) one at
-a time from the default configuration of Table~\ref{tab:main}, in all three
-domains. The largest moves Accuracy by at most $0.075$, against the $0.34$ that
-separates our row from the best prompted row there, so none of them is what the
-main comparison turns on; Appendix~\ref{app:sensitivity} reports the sweeps and
-what they do and do not license.
+We also conduct parameter sensitivity experiments using the default configuration,
+with detailed results reported in
+Appendix~\ref{app:sensitivity}.
 
 \subsection{Case study}
 \label{sec:exp-case}

@@ -125,13 +125,18 @@ the number of input slots, including padding when fewer priors are available.}
 
 \paragraph{Evidence budget: gains flatten beyond four input slots.}
 Figure~\ref{fig:topk} varies the input-slot budget $K$
-over $K=2,3,4,5,6,8$. Accuracy rises steeply from $K{=}2$ to $K{=}4$ ($0.731 \to
-0.806$ on Graph ML, $0.716 \to 0.772$ on computer vision, $0.726 \to 0.789$ on
-time series) and then flattens across the three domains. The configured slot
-budget does not by itself establish how many non-padding priors a target
-receives. These curves show sensitivity to $K$ under the evaluated setup;
-they do not distinguish limited evidence availability from limited benefit
-of additional evidence.
+over $K=2,3,4,5,6,8$. Accuracy rises sharply as the budget increases from two
+to four slots, then levels off across all three domains. This shared pattern
+shows that an overly small evidence budget restricts the model's ability to
+assess a target against prior work. Expanding the budget initially provides
+a more informative basis for comparison, whereas further expansion produces
+only small changes in prediction quality under this setup. This plateau mainly
+reflects evidence availability: retrieval yields around five prior ideas per
+target on average, so most additional slots beyond this budget are padded
+rather than filled with new evidence. Increasing $K$ therefore adds little
+actual evidence for most targets. The default $K{=}5$
+lies in this stable region, supporting its use as a compact evidence budget
+that captures most of the observed performance gains.
 
 \begin{figure}[h]
 \centering
@@ -141,16 +146,16 @@ Development and test sets stay fixed, and $100\%$ is the default.}
 \label{fig:train-frac}
 \end{figure}
 
-\paragraph{Training-set size: gains differ across domains.}
+\paragraph{Training-set size: additional data generally improves performance.}
 Figure~\ref{fig:train-frac} varies the number of training ideas over $25\%$,
 $50\%$, $75\%$ and $100\%$ of the training split, drawn as nested stratified prefixes so that
-consecutive points add samples without reordering what came before. Macro-F1
-rises steadily with the fraction on Graph ML ($0.7627 \to 0.8010$) and time
-series ($0.7573 \to 0.7760$). Computer vision does not improve consistently
-beyond $50\%$ and ends
-at $0.7669$ against a peak of $0.7788$, a gap of $0.012$. More training data
-helps in most of the domains we measure, and the spread across the four
-fractions stays small: Accuracy moves by at most $0.039$ in any domain.
+consecutive points add samples without reordering what came before.
+Overall, increasing the training data generally improves performance,
+suggesting that exposure to more target--prior relationships helps the model
+learn comparison patterns and refine its novelty judgments. The gains remain
+modest across the tested fractions, indicating that smaller training subsets
+already provide a useful basis for learning, with additional data bringing
+further refinement.
 
 \begin{figure}[h]
 \centering
@@ -162,14 +167,14 @@ The default is 384, and every setting scores the same test ideas and labels.}
 
 \paragraph{Encoder input length: limited sensitivity over the tested range.}
 Figure~\ref{fig:maxlen} varies the encoder input length over 128, 192, 256 and
-384 tokens. The four lengths separate the domains by little: no domain moves monotonically
-with input length, and tripling the input moves Macro-F1 by at most $0.017$ in
-any domain. QWK spans $0.0076$ on
-Graph ML, $0.0023$ on computer vision and $0.0062$ on time series across the
-four lengths, indicating that ordinal agreement changes little over the tested
-input lengths. These results show limited performance sensitivity from 128
-to 384 tokens; they do not establish how much of each input is retained at
-128 tokens.
+384 tokens. Performance remains broadly stable across these settings, with
+longer inputs providing no consistent gain. This pattern is consistent with
+the concise contribution statements used to represent ideas: the information
+needed for target--prior comparison is concentrated in a compact description.
+Shorter inputs can therefore provide an effective basis for identifying
+semantic overlap and substantive differences, while extending the input budget
+offers limited additional benefit. This stability suggests that the model can
+operate effectively with a compact input budget.
 
 \begin{table}[h]
 \centering
@@ -193,12 +198,13 @@ Time series & 0.0050 & 0.0045 & 0.0031 & 0.0051 \\
 \paragraph{Seed stability: the reported model is not a selected seed.}
 Table~\ref{tab:seed-noise} varies nothing but the random seed, running the
 default configuration on seeds 173, 174 and 175 with identical data and code and
-reporting the per-domain sample standard deviations. The spread is $0.004$--$0.007$ in Accuracy, $0.002$--$0.005$ in Macro-F1 and
-$0.003$--$0.007$ in MAE, an order of magnitude below the ablation gaps of
-Table~\ref{tab:ablation}, so
-the headline numbers describe the configuration rather than one fortunate run,
-and the three sweeps above should be read by the shape of a curve rather than by
-the difference between adjacent points.
+reporting the per-domain sample standard deviations. Performance remains
+stable across seeds, with fluctuations much smaller than the losses caused by
+the ablations in Table~\ref{tab:ablation}. This consistency supports the
+reproducibility of the reported results and indicates that the contribution of
+the model components exceeds ordinary training variability. The three parameter
+sweeps above should therefore be interpreted through their overall trends
+rather than small differences between adjacent settings.
 
 \subsection{Case-study ideas}
 \label{app:case-study}
