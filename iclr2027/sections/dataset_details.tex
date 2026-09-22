@@ -5,23 +5,22 @@
 \label{app:dataset}
 
 \paragraph{Sources and idea extraction.}
-Papers are drawn from arXiv in three areas---graph machine learning, computer
+Papers are drawn from arXiv in three areas: graph machine learning, computer
 vision, and time series. Selection prefers work that was subsequently published
 and, among that, papers at major venues. From each paper's title, abstract and
 introduction an LLM extracts
 innovation claims and assigns each an innovation aspect; a second LLM pass
-discards claims that are not innovation claims at all---open-source and
-reproducibility statements, bare state-of-the-art assertions, and engineering
-deliverables---so that later stages judge substantive claims rather than
-boilerplate.
+discards claims that are not innovation claims at all, including open-source
+and reproducibility statements, bare state-of-the-art assertions, and
+engineering deliverables.
 
 \paragraph{Candidate priors.}
 Idea texts are embedded and indexed for top-$K$ nearest-neighbour recall, and
 candidate relations are formed under a hybrid rule: high similarity is accepted
 directly, low similarity is rejected directly, and the uncertain band is passed
 to an LLM. The base build pairs ideas of the same type only, which would record
-an idea whose closest relative is of another type---a theoretical contribution
-nearest to a method---as isolated; a cross-type pass recovers these.
+an idea whose closest relative is of another type as isolated. A cross-type
+pass recovers these relations.
 The retained priors are ranked for each target. Pairing stays within a source
 domain, and no cross-domain pair is labelled, so the three single-domain subsets
 and their union address the same ideas under identifiers namespaced by domain.
@@ -31,9 +30,10 @@ without a pair, and no temporal violation.
 
 \paragraph{Annotation.}
 All annotation stages use the same judge, \texttt{deepseek-v4-pro}. It labels
-pair coverage over the four classes, with the ambiguous band---related but not
-covering, partial cover, large cover, and high-similarity pairs the graph left
-unconnected---re-judged rather than accepted from the similarity rule. It then
+pair coverage over the four classes. Pairs in the ambiguous band are
+re-judged rather than accepted from the similarity rule. This band includes
+related but not covering, partial cover, large cover, and high-similarity
+pairs the graph left unconnected. It then
 estimates, for each target, the substantive residual that survives the retained
 evidence, the sufficiency of that evidence, and the extent to which the claimed
 difference is surface-level. Idea-level grades follow by applying

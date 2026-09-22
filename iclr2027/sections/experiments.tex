@@ -155,9 +155,7 @@ Qwen3.5 with the chain still scores below deepseek-flash without one.
 
 Structure alone is not what earns that gain. The three-stage UKPLab chain and
 GraphMind fall below the direct call in all nine cells on both metrics, Qwen3.5
-included, so a weak backbone gains nothing from being given stages as such ---
-only from being given a reading of the evidence better than its own. The
-backbone, rather than the chain, sets the level a system reaches: Qwen3.5 is the
+included. The backbone, rather than the chain, sets the level a system reaches: Qwen3.5 is the
 weakest of the three under every system in Table~\ref{tab:main}, and no chain
 moves it past a stronger backbone. Swapping the backbone under a fixed chain
 also moves Accuracy more than swapping the chain under a fixed backbone does.
@@ -165,9 +163,8 @@ also moves Accuracy more than swapping the chain under a fixed backbone does.
 Replacing the supplied priors with query-time dense retrieval costs ordinal
 agreement on every backbone: against the direct call on the same backbone and
 domain, Macro-F1 and QWK fall in all nine cells. Accuracy moves the other way on
-the weakest backbone, rising on Qwen3.5 while Macro-F1 falls --- the signature
-of predictions concentrating on the larger classes, these rows sitting at
-$0.318$--$0.372$ Accuracy, at or just above the majority-class band. The group
+the weakest backbone, rising on Qwen3.5 while Macro-F1 falls. Accuracy in
+these rows is $0.318$--$0.372$, at or just above the majority-class band. The group
 also compresses the backbone differences Table~\ref{tab:main} otherwise shows,
 its Accuracy spanning at most a quarter as much in any domain as the direct
 call's. What a system is given to compare against therefore moves the judgment
@@ -315,15 +312,12 @@ agreement and decomposition representations in assigning the exact grade.
 The three mechanisms inside the decomposition are not interchangeable; each
 removal degrades a different part of the prediction.
 \textbf{Collapsing semantic units} from eight to one costs on Accuracy, Macro-F1
-and MAE while QWK barely moves: one unit is enough
-to rank the ideas, not to place them on the right grade.
+and MAE while QWK barely moves.
 \textbf{Disabling slot competition}, which removes the softmax through which the
-units compete for each token, reverses that --- QWK falls while MAE stays where
-collapsing the units left it --- as one would expect if the units stopped
-dividing the target between them.
+units compete for each token, reverses that pattern: QWK falls while MAE stays
+where collapsing the units left it.
 \textbf{Removing noisy-OR support} costs the most of the three on all four
-metrics and most of all on the rank-sensitive ones, which is what aggregating
-per-prior support into one monotone score is for.
+metrics and most of all on the rank-sensitive ones.
 
 We also conduct parameter sensitivity experiments using the default configuration,
 with detailed results reported in

@@ -26,8 +26,8 @@ enter the later stages as fixed inputs, marked $\mathrm{sg}[\cdot]$.
 \textbf{(B)} $M$ learned queries partition a target token bank into semantic
 units $\boldsymbol{u}_m$; a support matrix $A_{km}$ aligns each unit with each
 prior, yielding the unit residual $\boldsymbol{z}_U$, the covered pooling
-$\boldsymbol{z}_C$, and---through co-support $\bar{A}_{ij}$---the interaction
-residual $\boldsymbol{z}_I$. \textbf{(C)} A gate modulates global context
+$\boldsymbol{z}_C$, and the interaction residual $\boldsymbol{z}_I$,
+which uses co-support $\bar{A}_{ij}$. \textbf{(C)} A gate modulates global context
 within residual fusion; the shared representation feeds three novelty branches
 and the moderate-to-high refinement, while the continuous score head supplies
 training supervision only.}
@@ -39,8 +39,9 @@ training supervision only.}
 
 Given a target idea $x$ with timestamp $t_x$, we restrict candidate priors to
 those predating it, $\mathcal{P}_x=\{p_k\mid t_{p_k}<t_x\}$, and retain the
-top-$K$ ranked candidates---or all of them, if fewer are available---as the
-evidence set $\mathcal{E}_x\subseteq\mathcal{P}_x$ ($K=5$ in our experiments).
+top-$K$ ranked candidates as the evidence set
+$\mathcal{E}_x\subseteq\mathcal{P}_x$. We use $K=5$ in our experiments
+and retain all candidates when fewer than $K$ are available.
 Each retained prior $p_k$ carries a vector of pair coverage features
 $\boldsymbol{f}_k\in\mathbb{R}^{11}$.
 
@@ -56,10 +57,10 @@ serve as fixed inputs to Stages~B and~C, grounding the residual decomposition
 and providing coverage information for novelty prediction.
 
 We summarize the evidence set in a global context vector $\boldsymbol{z}_G$, a
-learned projection of twenty-one scalars---the scaled target timestamp, ten
-pair-score statistics over $\mathcal{E}_x$, and ten joint-coverage
-features---concatenated with embeddings of two target facets (aspect and
-contribution type). Apart from the timestamp and the facets,
+learned projection of twenty-one scalars concatenated with embeddings of the
+target's aspect and contribution type. The scalars comprise the scaled target
+timestamp, ten pair-score statistics over $\mathcal{E}_x$, and ten
+joint-coverage features. Apart from the timestamp and the facets,
 $\boldsymbol{z}_G$ re-encodes the Stage~A outputs, and Stage~C consumes it as
 a summary of what the evidence collectively establishes.
 Appendix~\ref{app:method-evidence} lists the pair and context features and
@@ -81,8 +82,8 @@ features as $\widetilde{\boldsymbol{v}}_k=\boldsymbol{v}_k+f_P(\boldsymbol{f}_k)
 Averaging the contextual token states at matching positions across valid pairs
 yields a shared token bank $\{\boldsymbol{h}_j\}_{j=1}^{N}$ over the $N$ target
 tokens. We then use $M$ learned queries $\boldsymbol{q}_m$ to softly assign
-these tokens to semantic units \citep{carion2020detr,locatello2020slot} ($M=8$ in our
-experiments): the queries compete for each token,
+these tokens to semantic units \citep{carion2020detr,locatello2020slot}.
+We use $M=8$ in our experiments. The queries compete for each token,
 $B_{mj}=\operatorname{softmax}_{m}(\boldsymbol{q}_m^\top\boldsymbol{h}_j/\sqrt d)$,
 and the resulting assignments are normalized over tokens within each unit,
 $\alpha_{mj}=B_{mj}/(\sum_{j'\in\mathcal{V}}B_{mj'}+\varepsilon)$, giving
@@ -136,13 +137,10 @@ learned attention $\eta_{ij}$ includes a $\log(r_{ij}+\varepsilon)$ bias that
 favors pairs with larger residual weights. When different priors support the
 two units but no single prior strongly supports both, their unit residuals can
 be small while their interaction residual remains large, provided that
-$g_{ij}$ is high. Absent co-support is therefore read as an absence of
-evidence that the combination already exists, which is what a novel
-combination looks like in the historical record. Co-support only proxies for
-that evidence: a prior that supports both units need not cover the specific
+$g_{ij}$ is high. Co-support is only a proxy for evidence that the combination already exists: a prior that supports both units need not cover the specific
 way the target combines them. The pooling keeps the residual magnitude here
-as well---$r_{ij}$ multiplies $\boldsymbol{t}_{ij}$ after the attention
-weights are normalized---and an auxiliary classifier on $\boldsymbol{z}_I$ is
+as well: $r_{ij}$ multiplies $\boldsymbol{t}_{ij}$ after the attention
+weights are normalized. An auxiliary classifier on $\boldsymbol{z}_I$ is
 trained with idea-level labels for nontrivial combinations
 (Appendix~\ref{app:method-representations}).
 
@@ -187,10 +185,10 @@ We initialize the residual encoder from the Stage~A joint-coverage checkpoint
 and jointly optimize it with the decomposition and prediction modules, while
 keeping the Stage~A models fixed. The objective combines classification of the
 novelty grade and the residual type, smooth-$L_1$ supervision of five
-annotated scalars---substantive difference, surface change, evidence
-sufficiency, the reconstructed coverage $\widehat C_U$, and a continuous
-novelty score---and regularization of the decomposition against redundant
-token assignments, unused units, and coinciding unit coverages. Because level
+annotated scalars, and regularization of the decomposition against redundant
+token assignments, unused units, and coinciding unit coverages. The five
+scalars are substantive difference, surface change, evidence sufficiency,
+the reconstructed coverage $\widehat C_U$, and a continuous novelty score. Because level
 losses alone leave the scalar heads free to settle on the median of their
 target, each is also supervised in rank; the coverage term additionally
 penalizes disagreement with the fixed Stage~A prediction, weighted down where

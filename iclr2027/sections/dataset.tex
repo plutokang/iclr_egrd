@@ -34,11 +34,10 @@ work: an idea published after the target says nothing about the target's
 novelty, however similar the two are.
 
 \textsc{IdeaDelta} annotates each target at two levels. At the \emph{pair}
-level, every target--prior pair receives one of four coverage levels---%
+level, every target--prior pair receives one of four coverage levels:
 \textsc{not covering}, \textsc{related but not covering}, \textsc{partial
-cover}, \textsc{large cover}---recording how much of the target that single
-prior accounts for; a target's retained priors also come with a ranking, which
-supplies the ordering a model needs when it reads evidence one prior at a time.
+cover}, or \textsc{large cover}. These record how much of the target that
+single prior accounts for. Each target's retained priors are ranked.
 At the \emph{idea} level, the target receives an ordered novelty grade from
 \textsc{low} to \textsc{high}. The two levels answer different questions: pair
 labels say what each piece of evidence covers, the idea grade says what
@@ -66,9 +65,7 @@ We collect arXiv papers in graph machine learning, computer vision, and time
 series, preferring work that was subsequently published and, among that, work
 at major venues. An LLM extracts innovation claims from each title, abstract,
 and introduction. A second pass discards statements that make no substantive
-research claim---open-source announcements, bare state-of-the-art assertions,
-and engineering deliverables---so that later stages grade claims rather than
-boilerplate.
+research claim. Appendix~\ref{app:dataset} details the exclusion criteria.
 
 \paragraph{Prior retrieval.}
 For each target, nearest-neighbor search over idea embeddings
@@ -94,7 +91,7 @@ The result is $21{,}111$ annotated ideas and $92{,}876$ target--prior pairs
 spanning 2019-01 to 2026-09, split by date rather than at random so that no
 training target postdates an evaluation target;
 Appendix~\ref{app:dataset} reports the composition per domain.
-Because the labels are model-generated, we also check that they behave as
-novelty labels should---responding to the retrieved evidence rather than to
-target metadata alone, and falling when a prior already covers the target
-contribution---and report those checks in Appendix~\ref{app:dataset-validity}.
+Because the labels are model-generated, we also check that they respond to
+the retrieved evidence rather than to target metadata alone, and that novelty
+decreases when a prior already covers the target contribution.
+Appendix~\ref{app:dataset-validity} reports these checks.

@@ -71,7 +71,7 @@ For each target--prior pair $(x,p_k)$, the pair coverage model estimates how
 much of the target the prior accounts for. A cross-encoder predicts
 relatedness $a_k$, coverage conditional on relatedness $b_k$, and large
 coverage conditional on coverage $d_k$, which factorize into a distribution
-over four ordered classes---unrelated, related but uncovered, partially
+over four ordered classes, namely unrelated, related but uncovered, partially
 covered, and largely covered:
 \begin{equation}
  \boldsymbol{\pi}^{\mathrm{pair}}_k
@@ -115,10 +115,10 @@ $\beta_k$ and internal evidence scores $e_k$:
  \qquad e_k=\sigma(\boldsymbol{w}_e^\top\boldsymbol{h}^{J}_k+b_e).
 \end{equation}
 For a nonempty evidence set, noisy-OR pools the evidence scores as
-$e_{\cup}=1-\prod_{k=1}^{n}(1-e_k)$. Four statistics summarize the scores---
+$e_{\cup}=1-\prod_{k=1}^{n}(1-e_k)$. Four statistics summarize the scores:
 that aggregate, their maximum and mean, and the fraction of the $K$ evidence
-slots that are filled---and join the attention-pooled and elementwise
-maximum-pooled pair representations:
+slots that are filled. We concatenate these statistics with the attention-pooled
+and elementwise maximum-pooled pair representations:
 \begin{align}
  \boldsymbol{v}_E
  &=\left[e_{\cup},\;
@@ -217,8 +217,7 @@ compute attention over all $\binom{M}{2}$ unit pairs:
 The logarithmic bias directs attention toward pairs with larger residual
 weights. Multiplying by $r_{ij}$ after normalization then restores their
 scale, so that weak residuals contribute less than the softmax alone would
-allow---the same reason $\boldsymbol{z}_U$ is normalized by $M$ rather than by
-$\sum_m r_m$.
+allow.
 
 \paragraph{Masking and edge cases.}
 Padded evidence slots carry zero support: the evidence-availability flag masks
@@ -226,7 +225,7 @@ the support matrix, which is clamped to $[0,0.995]$ before use. Both
 aggregations remain well defined when fewer than $K$ priors are retained. The
 noisy-OR product runs over the retained priors only, while the co-support
 maximum is taken over all $K$ slots, so $\bar{A}_{ij}=0$ when none is
-retained---an empty record yields no evidence that the combination exists.
+retained.
 
 \subsection{Residual fusion, prediction heads, and decision rules}
 \label{app:method-heads}
@@ -247,8 +246,8 @@ Here $f_\gamma$ is a two-layer MLP with a $d/2$ bottleneck and a scalar
 output, so $\gamma$ scales $\boldsymbol{z}_G$ uniformly rather than gating it
 per dimension. The gated context $\gamma\boldsymbol{z}_G$ enters residual
 fusion alongside $\boldsymbol{z}_U$ and $\boldsymbol{z}_I$, while
-$\boldsymbol{z}_G$ reaches the shared representation---and through it the
-prediction heads---on an ungated path of its own.
+$\boldsymbol{z}_G$ reaches the shared representation on an ungated path of
+its own and thereby also reaches the prediction heads.
 
 \paragraph{Auxiliary predictions.}
 The auxiliary heads use the shared representation $\boldsymbol{h}$ to predict
@@ -318,7 +317,7 @@ where $\alpha_D,\alpha_O,\alpha_{MH}\geq0$ and
 $\alpha_D+\alpha_O+\alpha_{MH}=1$. Thresholding the weighted score, rather
 than requiring separate agreement from all three heads, promotes a
 \textsc{moderate} prediction to \textsc{high} whenever the heads are
-collectively confident---even when each of them favors a different grade. We
+collectively confident, even when each of them favors a different grade. We
 select the mixture weights and the refinement threshold on development data
 and fix them for testing; Appendix~\ref{app:method-training} reports the
 values.
@@ -335,7 +334,7 @@ This section defines the loss terms of the training objective and reports the
 settings of the residual stage.
 
 \paragraph{Objective.}
-Let $\mathcal{A}=\{\Delta,S,E,C,\nu\}$ index the annotated scalars---the
+Let $\mathcal{A}=\{\Delta,S,E,C,\nu\}$ index the annotated scalars: the
 substantive difference, surface change, and evidence sufficiency read off the
 auxiliary heads, the reconstructed coverage $\widehat C_U$, and the continuous
 novelty score. Each contributes a smooth-$L_1$ level loss $\mathcal{L}_a$
@@ -388,7 +387,8 @@ eligible pair.
 Ranking is not redundant with the level loss. At the transition $\delta$ and
 target spread used here the level loss operates in its $L_1$ regime, whose
 optimum is the median of the target, so a head supervised by it alone drifts
-towards a near-constant output---the evidence head most visibly. Ranking is
+towards a near-constant output. This drift is most visible in the evidence
+head. Ranking is
 scale-free and counteracts that drift, which is also why it takes most of the
 weight inside $\mathcal{L}_{\nu}$: thresholding reads the grade off the score,
 so only order matters there.
@@ -418,7 +418,7 @@ the $c_m$ within an example from coinciding.
 \paragraph{Curriculum and feature perturbation.}
 For a randomly sampled fraction of training examples, values derived from
 annotated joint coverage replace the joint-coverage features and the
-associated probability and entropy features---with probability $0.50$ in epoch
+associated probability and entropy features with probability $0.50$ in epoch
 1, $0.20$ in epoch 2, and $0$ thereafter. Development and test runs always use
 the upstream joint predictions.
 Selected joint-coverage features on the global-context path also receive

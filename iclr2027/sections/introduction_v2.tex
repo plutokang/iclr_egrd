@@ -45,7 +45,7 @@ contributions are:
 \begin{itemize}
   \item \textbf{\textsc{IdeaDelta}, a multi-domain evidence-paired dataset.}
   $21{,}111$ ideas paired with temporally admissible priors and annotated at the
-  idea and pair levels ($92{,}876$ pairs) across graph machine learning,
+  idea and pair levels, with $92{,}876$ pairs across graph machine learning,
   computer vision, and time series. Supplied rather than retrieved, the evidence
   can be intervened on: permuting priors while holding targets fixed drops
   Accuracy from $0.78$ to $0.35$, the majority-class band.
@@ -55,10 +55,8 @@ contributions are:
   relevant papers jointly cover a unit none covers alone; removing it costs
   $0.27$ quadratic weighted kappa (QWK).
   \item \textbf{Typed residuals.} We split what the priors leave over into unit
-  residuals (content no prior supports) and interaction residuals (combinations
-  no single prior puts together). Both read off the same support matrix, so an
-  unexplored contribution and an effective recombination are distinguished by
-  the model rather than by assertion.
+  residuals for content no prior supports and interaction residuals for
+  combinations no single prior puts together. Both are derived from the same support matrix.
   \item \textbf{Consistent gains across domains.}
   EGRD reaches $0.909/0.882/0.898$ QWK across the three domains against
   $0.579$ for the best prompted system given the same evidence, and $0.292$ for
