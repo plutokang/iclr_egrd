@@ -257,46 +257,37 @@ not as the problem solved.
 \subsection{Ablation}
 \label{sec:exp-ablation}
 
-\begin{table}[t]
+% Source values and plotting code: scripts/plot_ablation.py.
+\begin{figure}[t]
 \centering
-\scriptsize
-\setlength{\tabcolsep}{3pt}
-\renewcommand{\arraystretch}{1.0}
-\caption{\textbf{Full} is the unablated checkpoint of Table~\ref{tab:main}.
-The pipeline-stage rows intervene on that trained checkpoint at inference and
-the decomposition-design rows retrain the model without the component.}
-\label{tab:ablation}
-\begin{tabular}{@{}l rrrr@{}}
-\toprule
-System & Accuracy & Macro-F1 & QWK & MAE $\downarrow$ \\
-\midrule
-Full & \textbf{0.7796} & \textbf{0.7790} & \textbf{0.8958} & \textbf{0.2230} \\
-\addlinespace
-\multicolumn{5}{@{}l}{\emph{Pipeline stages}} \\
-Permuting prior evidence & 0.3471 & 0.3532 & 0.2241 & 0.8606 \\
-Permuting coverage & 0.6649 & 0.6605 & 0.5996 & 0.5702 \\
-Zeroing decomposition representations & 0.6371 & 0.6554 & 0.7878 & 0.4366 \\
-\addlinespace
-\multicolumn{5}{@{}l}{\emph{Decomposition design}} \\
-Collapsing semantic units & 0.6580 & 0.6292 & 0.8591 & 0.4073 \\
-Disabling slot competition & 0.6701 & 0.6874 & 0.7665 & 0.3985 \\
-Removing noisy-OR support & 0.6210 & 0.5520 & 0.6291 & 0.6068 \\
-\bottomrule
-\end{tabular}
-\end{table}
+\includegraphics[width=\textwidth]{pic/ablation/pipeline_stages.pdf}
+\caption{Pipeline-stage ablations on IdeaDelta. Full is the unablated checkpoint
+of Table~\ref{tab:main}; each intervention is applied at inference without
+retraining. Arrows indicate the preferred direction for each metric.}
+\label{fig:ablation-pipeline}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{pic/ablation/decomposition_design.pdf}
+\caption{Decomposition-design ablations on IdeaDelta. Each variant is retrained
+without the corresponding component and compared with the same Full model.
+Arrows indicate the preferred direction for each metric.}
+\label{fig:ablation-decomposition}
+\end{figure}
 
 Because the supplied evidence can be intervened on with the target held fixed,
 we can test what the trained model's predictions actually depend on. The three
-pipeline interventions cut the chain at successive points.
+pipeline interventions in Figure~\ref{fig:ablation-pipeline} cut the chain at
+successive points.
 \textbf{Permuting prior evidence} shuffles the retrieved prior texts across
-targets, destroying the semantic content the chain is built on;
-\textbf{permuting coverage} shuffles only the joint coverage score and leaves
-every prior text in place, destroying what the historical evidence inputs
-(\S\ref{sec:method-evidence}) infer from that content; \textbf{zeroing
-decomposition representations} sets the unit residual $\boldsymbol{z}_U$,
+targets, breaking the correspondence between each target and its evidence in
+Stage~A. \textbf{Permuting coverage} shuffles only the joint coverage score
+produced by Stage~A while leaving every prior text in place.
+\textbf{Zeroing decomposition representations} sets the unit residual $\boldsymbol{z}_U$,
 interaction residual $\boldsymbol{z}_I$ and covered-content representation
-$\boldsymbol{z}_C$ to zero, removing these three outputs of the decomposition
-(\S\ref{sec:method-decomposition}) together. All three reduce performance on
+$\boldsymbol{z}_C$ to zero, removing these three outputs of Stage~B
+together. All three reduce performance on
 every metric.
 
 Permuting prior evidence causes the largest loss across all four metrics,
@@ -309,8 +300,9 @@ but smaller grade errors on average. Together, these
 results suggest complementary roles for coverage in maintaining ordinal
 agreement and decomposition representations in assigning the exact grade.
 
-The three mechanisms inside the decomposition are not interchangeable; each
-removal degrades a different part of the prediction.
+Figure~\ref{fig:ablation-decomposition} shows that the three mechanisms inside
+the decomposition are not interchangeable; each removal degrades a different
+part of the prediction.
 \textbf{Collapsing semantic units} from eight to one costs on Accuracy, Macro-F1
 and MAE while QWK barely moves.
 \textbf{Disabling slot competition}, which removes the softmax through which the
