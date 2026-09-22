@@ -185,7 +185,7 @@ unlike the baselines' ranking among each other. DeepReviewer-7B transfers least:
 its ordinal agreement is near zero in all three domains and negative in two, so
 fine-tuning on paper review does not recover the grade ordering here.
 
-\subsection{Transfer to expert judgments}
+\subsection{Transfer Evaluation}
 \label{sec:exp-transfer}
 
 The comparison above is scored against \textsc{IdeaDelta}'s model-generated
@@ -210,9 +210,7 @@ Appendix~\ref{app:transfer} gives the protocol.
 \footnotesize
 \setlength{\tabcolsep}{5pt}
 \renewcommand{\arraystretch}{1.0}
-\caption{Transfer of the frozen checkpoint to the RINoBench test set, 277 ideas
-whose expert 1--5 ratings are folded to our four grades. Bold marks the best
-value in a column.}
+\caption{Results on RINoBench with expert ratings mapped to four ordinal grades.}
 \label{tab:transfer}
 \begin{tabular}{@{}p{5.1cm}rrrr@{}}
 \toprule
@@ -254,11 +252,12 @@ $15/60/87/115$, and it is that spread the rank-sensitive metrics register.
 
 The agreement is nonetheless partial, and two properties of the
 transfer bound it before any model is run. The first is coverage of the
-literature. \textsc{IdeaDelta} is built from three fields and RINoBench spans
-machine learning as a whole, so for most of its test ideas the model has never
-been trained to read the work it is now asked to compare against; a prior can
-only support a unit of a target the model is equipped to parse, and on those
-ideas the decomposition operates on evidence it cannot ground. The second is the
+literature. \textsc{IdeaDelta} is built from three fields, whereas RINoBench spans
+machine learning as a whole: only 30 of its 277 test ideas fall within
+these three fields. The remaining 247 ideas therefore test transfer beyond the
+domains covered by our task-specific training data. This shift may limit the
+model's ability to parse target units and identify their support in prior work,
+making the decomposition less reliable. The second is the
 label scale. Transferring a 1--5 expert rating onto four ordered grades requires
 merging two of its levels, and the merge is not neutral: it erases the
 distinction the experts drew at the top of their scale, and that is exactly
