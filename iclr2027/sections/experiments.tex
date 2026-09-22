@@ -347,25 +347,21 @@ every held-out test idea, coloured by gold grade, the three cases starred.}
 \label{fig:case-study}
 \end{figure}
 
-The ablations show that corrupting the evidence costs Accuracy, but not what
-the intact pipeline does with it: what the support matrix weights when every
-retrieved prior is on topic, and whether the residual representation contains
-linearly accessible grade information. Figure~\ref{fig:case-study} examines both
-on three correctly predicted test targets. Panel (a) reports
-the support $A_k$ and the joint coverage $C_J$ the trained model produces for
-each target, read off the forward pass with nothing fit. Panels (b) and (c) and
-the probe reported with them hold the three cases out and fit every supervised
-step on $80\%$ of the remaining test ideas, scoring out of fold
-(Appendix~\ref{app:case-study}).
+Figure~\ref{fig:case-study} illustrates the relationship between evidence
+coverage, residual embeddings, and novelty through three correctly predicted
+cases. Joint coverage decreases from the low- to the high-novelty case,
+illustrating how higher novelty corresponds to less coverage by prior work
+in these examples. Their residual embeddings $\boldsymbol{z}_R$ show contrasting spatial
+patterns in the heatmap: the low-novelty case has predominantly above-mean
+values in the left portion, whereas the high-novelty case shows this pattern
+in the right portion; the moderate case has weaker deviations overall.
+This contrast shows how novelty differences are reflected in the displayed
+embedding dimensions.
 
-Support follows the annotation rather than the retrieval. The \emph{large cover}
-prior of the low case takes $0.838$ of the support; in the high case, whose five
-priors were all retrieved on the target's own vocabulary and are therefore
-equally plausible to the retriever, no support exceeds $0.007$, with the
-moderate case between the two on its lone \emph{partial cover} prior. Joint
-coverage and the mean unit residual move monotonically across the three cases in
-opposite directions. The residual $\boldsymbol{z}_R$ carries this linearly: a
-probe on $\boldsymbol{z}_R$ alone reaches $0.730$ Accuracy
-against a majority baseline of $0.329$, and the held-out ideas lie along the
-first discriminant axis in grade order. The probe remains below the full model, so the grades are linearly
-accessible without being linearly separable or the prediction heads redundant.
+The supervised discriminant projection reveals a broader pattern: held-out
+ideas are broadly ordered by novelty along the first axis, although adjacent
+grades overlap. The three cases lie in regions consistent with their grades,
+linking their individual embedding patterns to the overall distribution.
+Together, these observations connect the coverage differences in the examples
+to a representation space whose organization reflects novelty levels.
+Visualization details are provided in Appendix~\ref{app:case-study}.
