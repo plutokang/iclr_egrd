@@ -82,24 +82,29 @@ $5\times10^{-5}$ on all four metrics.
 \subsection{RINoBench transfer protocol}
 \label{app:transfer}
 
-\paragraph{Labels and scale.}
-The 277 test ideas of RINoBench \citep{schopf2026rinobench} carry expert novelty
-ratings on a 1--5 scale. We fold them to the four ordered grades above by
-merging 4 and 5, and every system in Table~\ref{tab:transfer} --- ours and the
-comparison rows alike --- is scored on that folded scale by the same script
-that produces Table~\ref{tab:main}. The fold places $41.5\%$ of the ideas in the
-top class.
+\paragraph{Data and labels.}
+RINoBench \citep{schopf2026rinobench} draws research ideas from OpenReview
+submissions across machine learning and pairs each with admissible prior work.
+Its 277 test ideas are rated by domain experts for novelty on a 1--5 scale,
+providing human judgments beyond the model-generated labels and three-domain
+coverage of \textsc{IdeaDelta}. We merge ratings 4 and 5 to obtain four ordered
+grades, placing $41.5\%$ of the test ideas in the top class.
 
 \paragraph{Evidence and inference.}
-Each target is paired with the 25 prior ideas the benchmark supplies, in place
-of the five of the \textsc{IdeaDelta} protocol. The checkpoint is the one
-reported in Table~\ref{tab:main} and its trained input budget of $K{=}5$ is left
-unchanged, so the 25 priors are split into five blocks of five and the network
-runs once per block: every prior is read at the width the decomposition was
-trained for, and no input slot is repurposed. Each pass produces a continuous
-substantive-difference score for the target, the five scores are reduced to one,
-and three thresholds cut that score into the four ordered grades. No weight is
-retrained or fine-tuned on RINoBench data.
+We use the checkpoint reported in Table~\ref{tab:main} without retraining or
+fine-tuning on RINoBench. Each target has 25 benchmark-supplied prior ideas,
+compared with five in the \textsc{IdeaDelta} protocol. To retain the trained
+input budget of $K{=}5$, we split the 25 priors into five blocks of five and
+run the network once per block. Each pass produces a continuous
+substantive-difference score; the five scores are aggregated into one, which
+is mapped to four ordered grades using three thresholds.
+
+\paragraph{Baselines and scoring.}
+We rerun Qwen3.5, GraphMind, and the UKPLab three-stage pipeline on the same
+benchmark evidence and include the predictions released by the RINoBench
+authors. DeepReviewer-7B is evaluated using its local weights.
+All systems in Table~\ref{tab:transfer} are scored on the same four-grade scale
+using the evaluation script that produces Table~\ref{tab:main}.
 
 \subsection{Parameter sensitivity}
 \label{app:sensitivity}

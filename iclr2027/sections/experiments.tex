@@ -188,22 +188,12 @@ fine-tuning on paper review does not recover the grade ordering here.
 \subsection{Transfer Evaluation}
 \label{sec:exp-transfer}
 
-The comparison above is scored against \textsc{IdeaDelta}'s model-generated
-labels. To ask what survives outside that setting, we transfer to human
-expertise. RINoBench \citep{schopf2026rinobench} draws ideas from OpenReview
-submissions across machine learning as a whole, pairs each with the prior work
-admissible for it, and has domain experts rate its novelty from 1 to 5; the
-benchmark then measures how closely language models reproduce those ratings.
-Its 277 test ideas give a label source independent of ours in both respects
-that matter here: the grades are human rather than model-generated, and the
-ideas span the field rather than three of its areas. We evaluate the checkpoint
-of Table~\ref{tab:main} on them frozen, with no retraining and no fine-tuning,
-folding the expert scale to our four grades by merging 4 and 5 and reading the
-25 priors the benchmark supplies per target at the trained input width. The
-comparison rows are three chains we rerun on the same evidence together with
-the systems the benchmark itself reports, all rescored on the folded scale by
-the script that produces Table~\ref{tab:main}.
-Appendix~\ref{app:transfer} gives the protocol.
+To evaluate transfer beyond \textsc{IdeaDelta}'s model-generated labels, we
+test the frozen checkpoint from Table~\ref{tab:main} on RINoBench
+\citep{schopf2026rinobench}, which contains 277 expert-rated ideas spanning
+machine learning. Table~\ref{tab:transfer} reports agreement with expert ratings
+mapped to four ordinal grades. Appendix~\ref{app:transfer} details the data,
+label mapping, inference procedure, and baseline evaluation.
 
 \begin{table}[t]
 \centering
