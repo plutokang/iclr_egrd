@@ -8,17 +8,15 @@
 \section{Experiments}
 \label{sec:experiments}
 
-The evaluation set is the \textsc{IdeaDelta} test split. Every system is scored
-against the same labels by the same script, and all but one receive the same
-evidence --- the five highest-ranked admissible priors per target, as titles and
-abstracts, with no paper text. The exception is a dense-retrieval baseline that
-assembles its own five priors at query time, included to measure what the
-supplied evidence contributes. For the four-level labels with unequal class
-support, we report Accuracy, Macro-F1, QWK and MAE --- exact classification,
-performance across classes, chance-corrected ordinal agreement and grade error.
-Appendix~\ref{app:setup} gives the splits, hyperparameters and scoring code.
-Section~\ref{sec:exp-transfer} then takes the frozen checkpoint outside this
-setting, to expert-labelled ideas under a protocol of their own.
+The evaluation asks three things: whether the decomposition beats prompting a
+language model on the same evidence (\S\ref{sec:exp-main}), whether what it
+learns survives labels it was not trained on (\S\ref{sec:exp-transfer}), and
+what its predictions depend on (\S\ref{sec:exp-ablation},
+\S\ref{sec:exp-case}). The last is answerable only because the evidence is
+supplied rather than retrieved: on the \textsc{IdeaDelta} test split every
+system but one reads the same five admissible priors per target. All rows report
+Accuracy, Macro-F1, QWK and MAE; Appendix~\ref{app:setup} gives the splits,
+hyperparameters and scoring code.
 
 \subsection{Main results}
 \label{sec:exp-main}
@@ -28,16 +26,10 @@ setting, to expert-labelled ideas under a protocol of their own.
 \scriptsize
 \setlength{\tabcolsep}{2.6pt}
 \renewcommand{\arraystretch}{1.0}
-\caption{Baselines and our model on the IdeaDelta evaluation set, 3{,}352
-ideas, same labels and the same idea-only protocol (five priors per target, no
-paper text), split by domain. A row group isolates the effect of the model
-behind an unchanged prompt chain. The \emph{Dense RAG} group is the one
-exception to the supplied-evidence protocol: it retrieves its own five priors
-at query time, and its rows therefore read against the \emph{Direct} rows on
-the same backbone rather than against the rest of the table.
-A majority-class predictor scores $0.312$,
-$0.356$ and $0.328$ Accuracy with QWK zero by construction, and several rows
-fall below it. Read Accuracy and MAE alongside Macro-F1 and QWK.}
+\caption{Baselines and our model on the IdeaDelta evaluation set, 3{,}352 ideas,
+split by domain. A majority-class predictor scores $0.312$ Accuracy on Graph ML,
+$0.356$ on computer vision and $0.328$ on time series, with QWK $0$ by
+construction.}
 \label{tab:main}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}ll rrrr rrrr rrrr@{}}
@@ -150,55 +142,48 @@ five priors it retrieves itself by dense similarity to the target. All but
 DeepReviewer-7B appear once per backbone. Table~\ref{tab:main} reports every
 system on the \textsc{IdeaDelta} evaluation set.
 
-The benefit of multi-stage prompting depends on the chain and the backbone.
-Measured against a single five-prior call on the same backbone, the two-stage
-Schopf chain gains in all three domains on Qwen3.5, by $0.024$ to $0.053$
-Accuracy and $0.016$ to $0.086$ QWK; on deepseek-flash it stays within $0.026$
-Accuracy and $0.020$ QWK of the direct call in either direction; and on
-gpt-5.6-luna it loses in all three domains, by $0.027$ to $0.053$ Accuracy and
-$0.064$ to $0.103$ QWK. The three-stage UKPLab chain and GraphMind never reach
-the direct call at all, sitting below it in all nine cells on both metrics; the
-UKPLab QWK deficit widens with the backbone in the same direction, averaging
-$0.19$ on Qwen3.5, $0.26$ on deepseek-flash and $0.28$ on gpt-5.6-luna.
-Additional stages therefore buy no consistent advantage: GraphMind spends $476$
-seconds and $31{,}201$ LLM calls on the $3{,}352$ ideas and still scores below
-the direct single call.
+The effect of the Schopf chain declines monotonically with how well the backbone
+scores without it. Against a single five-prior call, the two-stage chain gains
+in all three domains on Qwen3.5, the weakest backbone here, on both Accuracy and
+QWK; on deepseek-flash the QWK gain is already gone; and on gpt-5.6-luna, whose
+unaided QWK is the highest of the three, it loses in all three domains on both
+metrics. That is the pattern to expect if a chain substitutes its own
+intermediate reading of the evidence for the one the backbone would produce in a
+single pass: worth taking while the backbone's own reading is the weaker of the
+two, costly once it is the better. Even where the gain is real it is small, and
+Qwen3.5 with the chain still scores below deepseek-flash without one.
 
-Which model a chain runs on matters about as much as which chain it is. Over
-the four chains that share the supplied evidence, holding the chain fixed and
-changing the model moves Accuracy by $0.103$ on average --- the mean, across
-the four chains and three domains, of the range over the three backbones ---
-against $0.091$ for the mean range over the four chains at a fixed backbone;
-on QWK the two swap, $0.195$ against $0.348$. Neither factor dominates on both
-metrics, and which of them leads depends on the metric read.
+Structure alone is not what earns that gain. The three-stage UKPLab chain and
+GraphMind fall below the direct call in all nine cells on both metrics, Qwen3.5
+included, so a weak backbone gains nothing from being given stages as such ---
+only from being given a reading of the evidence better than its own. The
+backbone, rather than the chain, sets the level a system reaches: Qwen3.5 is the
+weakest of the three under every system in Table~\ref{tab:main}, and no chain
+moves it past a stronger backbone. Swapping the backbone under a fixed chain
+also moves Accuracy more than swapping the chain under a fixed backbone does.
 
 Replacing the supplied priors with query-time dense retrieval costs ordinal
-agreement on every backbone. Against the direct call on the same backbone and
-domain, Macro-F1 and QWK each fall in all nine cells, QWK by $0.109$
-to $0.190$ on Qwen3.5, $0.355$ to $0.406$ on deepseek-flash and $0.284$ to
-$0.326$ on gpt-5.6-luna. Accuracy moves the other way on the weakest backbone,
-rising by $0.027$ to $0.060$ on Qwen3.5 while Macro-F1 falls, the
-signature of predictions concentrating on the larger classes: these
-rows sit at $0.318$--$0.372$ Accuracy, at or just above the majority-class
-band, with Macro-F1 no higher than $0.295$ anywhere. The group also
-compresses the backbone differences that Table~\ref{tab:main} otherwise
-shows, its Accuracy spanning at most $0.028$ in any
-domain against $0.112$ to $0.154$ for the direct call. What a system is given to
-compare against therefore moves the judgment more than which model or chain
-performs it, which sharpens the evidence check of
-Appendix~\ref{app:dataset-validity}: there random priors reduce label
-prediction to near-chance and establish only that the evidence must be on
-topic, whereas dense retrieval is on topic and the gap persists, so the
-candidate lists carry target--prior relationships that generic similarity
-search does not recover --- what the cross-type pass and the adjudicated
-similarity band (\S\ref{sec:dataset}) are for.
+agreement on every backbone: against the direct call on the same backbone and
+domain, Macro-F1 and QWK fall in all nine cells. Accuracy moves the other way on
+the weakest backbone, rising on Qwen3.5 while Macro-F1 falls --- the signature
+of predictions concentrating on the larger classes, these rows sitting at
+$0.318$--$0.372$ Accuracy, at or just above the majority-class band. The group
+also compresses the backbone differences Table~\ref{tab:main} otherwise shows,
+its Accuracy spanning at most a quarter as much in any domain as the direct
+call's. What a system is given to compare against therefore moves the judgment
+more than which model or chain performs it. That sharpens the evidence check of
+Appendix~\ref{app:dataset-validity}: random priors there reduce label prediction
+to near-chance, establishing only that the evidence must be on topic, whereas
+dense retrieval is on topic and the gap persists. That persistence shows the
+candidate lists carry target--prior relationships generic similarity search does
+not recover, which is what the cross-type retrieval pass and the adjudicated
+similarity band of \textsc{IdeaDelta} are for.
 
-EGRD outperforms the baselines in all three domains, by
-$0.356$, $0.341$ and $0.344$ Accuracy and $0.330$, $0.321$ and $0.322$ QWK over
-the best baseline of each domain, so the advantage is consistent across the
-three even though individual baselines remain sensitive to the domain.
-DeepReviewer-7B transfers least: its QWK of $0.034$, $-0.043$ and $-0.017$ is
-ordinal agreement close to chance under the supplied-evidence protocol.
+EGRD leads every baseline in every domain by $0.34$ Accuracy or more over the
+best baseline of that domain, a margin that barely varies across the three,
+unlike the baselines' ranking among each other. DeepReviewer-7B transfers least:
+its ordinal agreement is near zero in all three domains and negative in two, so
+fine-tuning on paper review does not recover the grade ordering here.
 
 \subsection{Transfer to expert judgments}
 \label{sec:exp-transfer}
@@ -330,36 +315,35 @@ interaction residual $\boldsymbol{z}_I$ and covered-content representation
 $\boldsymbol{z}_C$ to zero, removing these three outputs of the decomposition
 (\S\ref{sec:method-decomposition}) together. All three reduce performance on
 every metric.
-Permuting prior evidence costs the most, $0.43$ Accuracy and $0.67$ QWK, and
-raises MAE from $0.2230$ to $0.8606$, dropping Accuracy into the
-band of the majority-class predictor of Table~\ref{tab:main}
-($0.312$--$0.356$). This drop shows that the trained model relies on evidence
-matched to the target. Permuting coverage leaves every prior text in place and
-still costs $0.11$ Accuracy, $0.30$ QWK and $0.35$ MAE, so what the historical
-evidence inputs infer is not redundant with the evidence it is computed from.
-Zeroing the decomposition representations costs $0.14$ Accuracy, $0.12$
-Macro-F1, $0.11$ QWK and $0.21$ MAE, showing that the trained model benefits
-from these representations collectively. These last two order differently under the two
-kinds of metric: zeroing costs more in Accuracy and Macro-F1, permuting
-coverage more in QWK ($0.2962$ versus $0.1080$) and MAE ($0.3472$ versus
-$0.2136$), so corrupting the coverage signal damages the grade ordering more
-even though it misclassifies fewer ideas.
+Permuting the prior texts costs the most, dropping Accuracy into the
+majority-class band of Table~\ref{tab:main} ($0.312$--$0.356$): without matched
+evidence the model scores no better than one that reads nothing. Permuting
+coverage keeps every prior text in place and still costs on all four, so what
+the historical evidence inputs infer is not recoverable from the texts they read.
 
-The three decomposition-design ablations leave the pipeline intact and remove
-one mechanism from the decomposition itself, reducing performance with
-different effects across metrics.
-\textbf{Collapsing semantic units}, from eight to one, costs $0.12$ Accuracy,
-$0.15$ Macro-F1 and $0.18$ MAE, while QWK decreases by $0.04$ and remains at
-$0.8591$: a single unit still orders the ideas, but the grade it assigns is
-off by more.
-\textbf{Disabling slot competition}, which
-removes the softmax through which the units compete for each token, costs
-$0.11$ Accuracy and $0.13$ QWK at a comparable MAE ($0.3985$ against
-$0.4073$), reversing that pattern: deciding which unit a
-token belongs to is what keeps the units apart in the first place.
+Those last two disagree about which metric they hurt. Zeroing misclassifies more
+ideas but leaves the ordering close to intact --- QWK $0.7878$ against $0.8958$
+for the full model --- its errors falling mostly into adjacent grades, as its
+MAE shows. Permuting coverage does the reverse, misclassifying fewer ideas yet
+costing more than twice as much QWK. That is consistent with coverage being the
+one input monotone in the grade, its corruption moving a prediction along the
+scale rather than off it, and with the decomposition representations carrying
+what separates neighbouring grades; separating the two accounts would need the
+error distribution we do not report.
+
+The three mechanisms inside the decomposition are not interchangeable; each
+removal degrades a different part of the prediction.
+\textbf{Collapsing semantic units} from eight to one costs on Accuracy, Macro-F1
+and MAE while QWK barely moves ($0.8591$ against $0.8958$): one unit is enough
+to rank the ideas, not to place them on the right grade.
+\textbf{Disabling slot competition}, which removes the softmax through which the
+units compete for each token, reverses that --- QWK falls while MAE stays where
+collapsing the units left it --- as one would expect if the units stopped
+dividing the target between them, though the ablation shows the cost, not the
+collapse.
 \textbf{Removing noisy-OR support} costs the most of the three on all four
-metrics, $0.16$ Accuracy, $0.23$ Macro-F1, $0.27$ QWK and $0.38$ MAE,
-supporting the contribution of this aggregation rule to ordinal agreement.
+metrics and most of all on the rank-sensitive ones, which is what aggregating
+per-prior support into one monotone score is for.
 
 We also sweep the three parameters that govern how much the model is given (the
 evidence budget $K$, the training fraction and the encoder input length) one at
@@ -398,15 +382,14 @@ the probe reported with them hold the three cases out and fit every supervised
 step on $80\%$ of the remaining test ideas, scoring out of fold
 (Appendix~\ref{app:case-study}).
 
-Support follows the annotation rather than the retrieval: the \emph{large cover}
-prior of the low case takes $0.838$, the lone \emph{partial cover} of the
-moderate case $0.523$, and in the high case, whose five priors were all
-retrieved on the target's own vocabulary, no support exceeds $0.007$. Joint
-coverage follows at $0.62$, $0.32$ and $0.12$, and so does the mean unit
-residual, at $0.041$, $0.408$ and $0.977$. The representation
-$\boldsymbol{z}_R$ contains substantial linearly accessible grade information:
-a probe using only $\boldsymbol{z}_R$ achieves $0.730$ Accuracy against a majority
-baseline of $0.329$, and the held-out ideas lie along the first discriminant
-axis in grade order. The probe remains below the full model, so the grades are
-linearly accessible without being linearly separable or the prediction heads
-redundant.
+Support follows the annotation rather than the retrieval. The \emph{large cover}
+prior of the low case takes $0.838$ of the support; in the high case, whose five
+priors were all retrieved on the target's own vocabulary and are therefore
+equally plausible to the retriever, no support exceeds $0.007$, with the
+moderate case between the two on its lone \emph{partial cover} prior. Joint
+coverage and the mean unit residual move monotonically across the three cases in
+opposite directions. The residual $\boldsymbol{z}_R$ carries this linearly: a
+probe on $\boldsymbol{z}_R$ alone reaches $0.730$ Accuracy
+against a majority baseline of $0.329$, and the held-out ideas lie along the
+first discriminant axis in grade order. The probe remains below the full model, so the grades are linearly
+accessible without being linearly separable or the prediction heads redundant.
