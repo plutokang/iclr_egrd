@@ -59,13 +59,12 @@ contributions are:
   no single prior puts together). Both read off the same support matrix, so an
   unexplored contribution and an effective recombination are distinguished by
   the model rather than by assertion.
-  \item \textbf{Consistent gains across domains and transfer to expert judgments.}
+  \item \textbf{Consistent gains across domains.}
   EGRD reaches $0.909/0.882/0.898$ QWK across the three domains against
   $0.579$ for the best prompted system given the same evidence, and $0.292$ for
-  the best one that selects its own priors. On RINoBench
-  \citep{schopf2026rinobench}, the frozen checkpoint outperforms all baselines
-  in Table~\ref{tab:panel-b} on QWK ($0.2245$ against $0.1469$) and
-  Macro-F1 ($0.3407$ against $0.2457$); that margin is modest.
+  the best one that selects its own priors. A separate transfer experiment
+  carries the frozen checkpoint to the expert labels of RINoBench
+  \citep{schopf2026rinobench} in \S\ref{sec:exp-transfer}.
 \end{itemize}
 
 Appendix~\ref{app:related} situates EGRD against automated idea generation,

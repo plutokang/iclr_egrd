@@ -2,7 +2,8 @@ Two bounds on the claims of this paper are worth stating directly.
 
 \paragraph{Three domains.}
 \textsc{IdeaDelta} is drawn from graph machine learning, computer vision and
-time series, and the RINoBench transfer indicates what lies outside them:
+time series, and the RINoBench transfer (\S\ref{sec:exp-transfer}) indicates
+what lies outside them:
 roughly $30$ of its $277$ test ideas fall in these three fields, and the model
 reads the remainder without ever having been trained on their literature.
 Coverage of a field is what the decomposition needs, since a prior can only
@@ -10,15 +11,11 @@ support a unit of a target the model is equipped to read, so we do not claim
 the reported Accuracy outside the three.
 
 \paragraph{Transfer to expert judgment is partial.}
-On RINoBench the frozen checkpoint leads every baseline on the rank-sensitive
-metrics, at $0.2245$ QWK and $0.3407$ Macro-F1 against $0.1469$ and $0.2457$ for
-the best other system on each, and it is the only system above $0.15$ QWK. But
-$0.2245$ is a modest level of agreement, and Accuracy adds nothing to it: our
-row reaches $0.4152$, exactly the constant predictor, with a prediction that is
-not constant. What transfers is the ordering of ideas, not the grade an idea
-receives. Two properties of the setting bound how far that can be pushed within
-the present design: most RINoBench ideas lie outside the three fields above, and
-folding the expert 1--5 scale to four levels merges a distinction the experts
-chose to draw, placing $41.5\%$ of the ideas in one class. We read the result as
-partial agreement with expert judgment rather than as evidence that the two
-scales coincide.
+The transfer experiment of \S\ref{sec:exp-transfer} shows the frozen checkpoint
+leading on the rank-sensitive metrics at $0.2245$ QWK, but $0.2245$ is a modest
+level of agreement, and Accuracy adds nothing to it: our row reaches exactly the
+constant predictor's $0.4152$ with a prediction that is not constant. What
+transfers is the ordering of ideas, not the grade an idea receives, and the
+label source, the domain mix and the folded scale all shift at once, so the
+result is partial agreement with expert judgment rather than evidence that the
+two scales coincide.

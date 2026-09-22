@@ -1,6 +1,7 @@
-% Appendix companion to Section 5. Setup, seed variability, and the three
-% parameter sweeps (evidence budget, training fraction, encoder input length),
-% each with its figure, protocol note and the bounds on what it licenses.
+% Appendix companion to Section 5. Setup, the RINoBench transfer protocol,
+% seed variability, and the three parameter sweeps (evidence budget, training
+% fraction, encoder input length), each with its figure, protocol note and the
+% bounds on what it licenses.
 
 \subsection{Setup}
 \label{app:setup}
@@ -20,7 +21,7 @@ is selected on dev; test is traversed once, at final evaluation, and is not used
 to select a checkpoint.
 
 \paragraph{Dense retrieval baseline.}
-The dense-RAG rows of Table~\ref{tab:panel-a} replace the stored candidate
+The dense-RAG rows of Table~\ref{tab:main} replace the stored candidate
 lists with retrieval performed at query time \citep{karpukhin2020dpr}. We
 embed every canonical idea
 with \texttt{bge-large-en-v1.5} \citep{xiao2024cpack}, index the ideas whose
@@ -71,18 +72,40 @@ gold-label distribution minimizes MAE; this does not characterize the best
 input-dependent predictor. We therefore interpret MAE alongside the other
 metrics. Every table in the paper reports these four. On RINoBench the expert
 1--5 scale is folded to the same four levels before any of them is computed, so
-every number in Table~\ref{tab:panel-b} is on the scale described here.
+every number in Table~\ref{tab:transfer} is on the scale described here.
 
 \paragraph{Per-domain metrics.}
 Per-domain figures are recomputed from the stored predictions rather than read
 from the trainer, and reconcile with the trainer's own pooled figures to within
 $5\times10^{-5}$ on all four metrics.
 
+\subsection{RINoBench transfer protocol}
+\label{app:transfer}
+
+\paragraph{Labels and scale.}
+The 277 test ideas of RINoBench \citep{schopf2026rinobench} carry expert novelty
+ratings on a 1--5 scale. We fold them to the four ordered grades above by
+merging 4 and 5, and every system in Table~\ref{tab:transfer} --- ours and the
+comparison rows alike --- is scored on that folded scale by the same script
+that produces Table~\ref{tab:main}. The fold places $41.5\%$ of the ideas in the
+top class.
+
+\paragraph{Evidence and inference.}
+Each target is paired with the 25 prior ideas the benchmark supplies, in place
+of the five of the \textsc{IdeaDelta} protocol. The checkpoint is the one
+reported in Table~\ref{tab:main} and its trained input budget of $K{=}5$ is left
+unchanged, so the 25 priors are split into five blocks of five and the network
+runs once per block: every prior is read at the width the decomposition was
+trained for, and no input slot is repurposed. Each pass produces a continuous
+substantive-difference score for the target, the five scores are reduced to one,
+and three thresholds cut that score into the four ordered grades. No weight is
+retrained or fine-tuned on RINoBench data.
+
 \subsection{Parameter sensitivity}
 \label{app:sensitivity}
 
 Each sweep varies one parameter from the default configuration of
-Table~\ref{tab:panel-a} and holds the rest fixed: the upstream pair and joint
+Table~\ref{tab:main} and holds the rest fixed: the upstream pair and joint
 products, the encoder initialisation, the evaluation files and the seed. Every
 point is a single run at seed 173, except for the seed sweep below.
 
@@ -90,7 +113,7 @@ point is a single run at seed 173, except for the seed sweep below.
 \centering
 \includegraphics[width=\textwidth]{pic/param_sensitivity/topk.png}
 \caption{Sensitivity to the evidence budget $K$ in the three domains. The
-default is $K{=}5$, the checkpoint of Table~\ref{tab:panel-a}. $K$ specifies
+default is $K{=}5$, the checkpoint of Table~\ref{tab:main}. $K$ specifies
 the number of input slots, including padding when fewer priors are available.}
 \label{fig:topk}
 \end{figure}
