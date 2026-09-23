@@ -18,19 +18,17 @@ the target; padded priors are masked out.
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{pic/framework.png}
-\caption{Overview of EGRD. \textbf{(A)} Only priors predating the target are
-admissible; the retained top-$K$ evidence carries pair coverage features
-$\boldsymbol{f}_k$, and a multiple-instance model predicts joint coverage
-$C_J$ and its four-class distribution $\boldsymbol{\pi}^{J}$. Stage~A outputs
-enter the later stages as fixed inputs, marked $\mathrm{sg}[\cdot]$.
-\textbf{(B)} $M$ learned queries partition a target token bank into semantic
-units $\boldsymbol{u}_m$; a support matrix $A_{km}$ aligns each unit with each
-prior, yielding the unit residual $\boldsymbol{z}_U$, the covered pooling
-$\boldsymbol{z}_C$, and the interaction residual $\boldsymbol{z}_I$,
-which uses co-support $\bar{A}_{ij}$. \textbf{(C)} A gate modulates global context
-within residual fusion; the shared representation feeds three novelty branches
-and the moderate-to-high refinement, while the continuous score head supplies
-training supervision only.}
+\caption{Overview of Evidence-Grounded Residual Decomposition (EGRD).
+\textbf{(A)} Historical evidence selection and coverage estimation provide
+fixed inputs for novelty assessment.
+\textbf{(B)} Learned queries decompose the target into semantic units, whose
+support from prior ideas yields covered content, unit residuals for content
+with limited support, and interaction residuals for combinations with limited
+co-support within any single prior.
+\textbf{(C)} The residuals are fused with gated global context and combined
+with covered content and the target representation for novelty prediction,
+using auxiliary supervision, three prediction branches, and a
+moderate-to-high refinement.}
 \label{fig:framework}
 \end{figure}
 
