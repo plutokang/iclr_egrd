@@ -79,92 +79,86 @@ $13{,}815/3{,}944/3{,}352$ ideas for training, validation, and test.
 \subsection{Validation of Research Novelty Labels}
 \label{app:dataset-validity}
 
-Our novelty labels assess the substantive contribution of a target idea beyond
-its retrieved prior work. We validate this interpretation through complementary
-experiments. First, we examine how well metadata and retrieved prior content
-predict the existing labels. We then modify the evidence and repeat annotation
-to test whether novelty decreases when the target contribution is already
-covered and remains stable when its substantive contribution is unchanged.
+Our novelty labels are intended to describe the contribution remaining beyond
+retrieved prior work. We examine this interpretation in two ways: supervised
+probes predict the stored labels from alternative inputs, and an exploratory
+blind re-assessment tests responses to controlled changes in evidence.
 
-\paragraph{Prediction from metadata.}
-We first test whether simple metadata can account for the novelty labels
-without describing the technical content of prior work. We consider six
-variables: character length, word count, publication year, the innovation
-aspect and contribution type, and the number of retrieved priors. Over all $21{,}111$ ideas, we
-measure their individual associations with the novelty grade using Spearman
-$\rho$ for continuous variables and $\varepsilon^2$ for categorical variables.
-We set the thresholds in advance at $|\rho|\ge0.20$ and
-$\varepsilon^2\ge0.06$.
+\paragraph{Prediction from metadata and coverage features.}
+We first measure associations with the continuous novelty score, recomputed
+from the stored annotation components using Sec.~\ref{sec:dataset-task}.
+Numeric features are target character length, word count, publication date,
+number of retained priors, mean target--prior semantic
+similarity, and mean prior coverage score. Categorical features are innovation
+aspect, contribution type, and task family. We use Spearman $\rho$ for numeric
+features and Kruskal--Wallis $\varepsilon^2$ for categorical features, with
+reporting thresholds $|\rho|\ge0.20$ and $\varepsilon^2\ge0.06$.
+Text length, word count, and publication date have weak associations
+($\rho=+0.049$, $+0.058$, and $-0.130$); all three categorical effects are
+$\varepsilon^2\le0.033$. Prior count, mean semantic similarity, and mean
+coverage have negative associations ($\rho=-0.286$, $-0.232$, and $-0.471$).
 
-Text length, word count, and publication year show weak associations
-($\rho=+0.049$, $+0.058$, and $-0.130$, respectively), while the innovation
-aspect and contribution type have $\varepsilon^2\le0.033$. All remain below the
-corresponding thresholds. The number of priors and their mean coverage are
-negatively correlated with novelty ($\rho=-0.286$ and $-0.471$, respectively).
-The negative association with coverage is consistent with the intended meaning
-of the labels: contributions already covered by prior work receive lower
-novelty grades.
+To test their combined predictive value, we fit two class-balanced logistic
+regression classifiers to the stored four-class novelty labels. The first uses
+all features listed above except mean coverage; the second adds mean coverage
+to that same feature set.
 
-Individual associations may overlook information available from several
-variables together. We therefore train a classifier on all six metadata
-variables to predict the four novelty grades. We use the date-ordered split of
-Appendix~\ref{app:dataset}, with $13{,}815$ training ideas and
-$3{,}352$ test ideas, and evaluate quadratic weighted kappa (QWK), which accounts
-for the ordering of the grades. For comparison, we train the same classifier
-using only mean prior coverage. QWK increases from $0.227$ with metadata to
-$0.539$ with coverage alone. Coverage thus predicts the labels more accurately
-than the metadata considered here, supporting the relevance of the relationship
-between the target and prior work.
+Quadratic weighted kappa (QWK) against the stored labels rises from $0.227$ without coverage to $0.539$ with coverage. This
+comparison shows the additional predictive value of the coverage annotation
+beyond the other recorded features.
 
 \paragraph{Prediction with retrieved and random priors.}
-We next examine whether the specific retrieved content matters for label
-prediction. In the \textsc{true} condition, each target is paired with its five
-retrieved priors. In the \textsc{random} condition, these are replaced by five
-ideas sampled uniformly from those published before the target. The two
-conditions use the same number of priors and total evidence text volume, and
-all priors precede the target. We hold the model, hyperparameters, date-ordered
-split, and random seeds fixed. Models are trained separately from scratch and
-evaluated on the same held-out targets against their original labels.
+We next train a text probe to test whether the choice of prior content affects
+prediction of the same stored labels. In the \textsc{true} condition, the input
+concatenates the target text and up to five retained prior texts. In the
+\textsc{random} condition, it concatenates the same target with up to five
+priors sampled uniformly without replacement from the deduplicated prior pool,
+restricted to dates earlier than the target.
 
-Across the three seeds, QWK decreases from $0.196$ with retrieved priors to
-$0.005\pm0.021$ with random priors. The gap of $0.192$ is about an order of
-magnitude larger than the between-seed standard deviation of $0.015$.
-Replacing retrieved priors with random earlier work therefore reduces
-prediction to near-chance agreement. This comparison supports the importance
-of the retrieved content, beyond the amount of evidence supplied.
+The probe is TF--IDF followed by class-balanced logistic regression. TF--IDF
+uses lowercased unigrams and bigrams, sublinear term frequency, a minimum
+document frequency of two, and at most $200{,}000$ features.
+
+Test QWK is $0.196$ with retrieved priors and $0.005\pm0.021$ with random
+priors (mean and standard deviation across seeds), a gap of $0.192$.
+Retrieved prior content therefore carries more information about the stored
+labels than random earlier content under this probe.
 
 \paragraph{Response to evidence covering the target contribution.}
-The prediction experiments keep the labels fixed. We now test whether the
-annotation procedure responds appropriately when the evidence changes.
-If an earlier study already contains the target contribution, the assigned
-novelty should decrease. We sample $30$ targets across the four grades and
-construct one synthetic prior for each target. This prior describes the same
-technical contribution and is dated before the target. After adding it to the
-evidence set, we repeat the complete annotation procedure: pair coverage
-labeling, residual contribution estimation, and grading according to
-the novelty rule of Sec.~\ref{sec:dataset-task}. Synthetic priors have dedicated identifiers and
-are marked \texttt{synthetic\_control}. They do not refer to real papers,
-authors, or DOIs and are excluded from the released dataset.
+The prediction experiments keep the labels fixed. We now test whether novelty
+judgments respond appropriately when the evidence changes. If an earlier study
+already contains the target contribution, the assigned novelty should decrease.
+We sample $30$ targets across the four grades and construct one synthetic prior
+for each target by copying its technical text and assigning a date one month
+earlier. After adding it to the evidence set, we use \texttt{deepseek-flash}
+to perform a blind re-assessment of pair coverage, joint coverage, residual
+contribution, evidence sufficiency, and surface-level difference. The judge sees
+only the texts, dates, and anonymized prior identifiers; the novelty score and
+grade are computed using the rule of Sec.~\ref{sec:dataset-task}. Synthetic
+priors have dedicated identifiers and are marked \texttt{synthetic\_control}
+in the experiment records. They do not refer to real papers, authors, or DOIs
+and are excluded from the released dataset.
 
-Each modified target is compared with five independent annotations of its
-original evidence set to account for variation across repeated annotations.
-We evaluate recognition of the added prior as large coverage, changes in joint
-coverage and residual contribution, and decreases in the novelty score and
-grade. Ties are excluded from the exact sign test.
+Each modified target is compared with the medians of five independent blind
+assessments of its original evidence set to account for variation across
+repeated assessments. We evaluate recognition of the added prior as large
+coverage, changes in joint coverage and residual contribution, and decreases
+in the novelty score and grade. Ties are excluded from the exact two-sided
+sign tests.
 
 The added prior is labeled large coverage in all $29$ comparable cases.
-Joint coverage increases, while residual contribution and novelty score
-decrease. The novelty grade decreases for $82.8\%$ of targets
-(sign test $p=2.2\times10^{-7}$). These results show that the annotation
-procedure lowers novelty when the evidence covers the target contribution.
+Joint coverage increases and residual contribution decreases in $27$ cases
+each (sign test $p=2.2\times10^{-7}$ for each component). The novelty score
+decreases in $27/29$ cases ($p=1.6\times10^{-6}$), and the novelty grade
+decreases for $82.8\%$ of targets. These results show that the blind judge
+lowers novelty when the supplied evidence covers the target contribution.
 
 \paragraph{Stability under changes that preserve the contribution.}
 A novelty judgment should also remain stable when the evidence changes without
 altering the substantive contribution of the target. For the same $30$ targets,
 we reorder the priors, duplicate existing priors, or add unrelated papers.
-The novelty grades before and after these changes show high agreement:
-Cohen's $\kappa$ \citep{cohen1960kappa} $=0.970$, $0.902$, and $1.000$,
-respectively. These results complement
-the coverage experiment: the judgments respond to evidence that reduces the
-remaining contribution and remain comparatively stable under changes that
-preserve it.
+The novelty grades before and after these changes show agreement measured by
+quadratic weighted Cohen's $\kappa$ \citep{cohen1960kappa} of $0.710$, $0.812$,
+and $0.889$, respectively. These results complement the coverage experiment:
+the judgments respond to evidence that reduces the remaining contribution and
+remain comparatively stable under changes that preserve it.
