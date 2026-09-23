@@ -93,4 +93,30 @@ representing residual contributions.
 
 \input{sections/limitations}
 
+\section{AI Use Statement}
+\label{app:ai-use}
+We used generative AI tools to assist with the construction of
+\textsc{IdeaDelta}, including extracting and filtering research ideas,
+assessing target--prior coverage, and annotating research novelty, as
+described in Section~\ref{sec:dataset} and Appendix~\ref{app:dataset-details}.
+The resulting labels are model-generated, and we manually inspected samples
+from each stage of the construction pipeline. We also used generative AI tools
+to polish the language of the manuscript and improve its clarity and
+readability. The authors take responsibility for the final content of this
+work, including its text, claims, and AI-assisted artifacts.
+
+\section{Ethics Statement}
+\label{app:ethics}
+This work studies research novelty relative to a retrieved set of prior works.
+The labels in \textsc{IdeaDelta} are model-generated assessments rather than
+authoritative judgments of scientific merit. Incomplete retrieval, errors in
+idea extraction, and biases of the annotation model may affect these
+assessments, and uneven coverage across research fields may lead to unequal
+reliability. The resulting scores should therefore support human examination
+of the underlying evidence and should not serve as the sole basis for
+publication decisions, evaluations of researchers, or allegations of
+plagiarism. The synthetic priors used in the controlled validation experiment
+are explicitly marked, do not represent real publications, and are excluded
+from the released dataset, as described in Appendix~\ref{app:dataset-validity}.
+
 \end{document}
