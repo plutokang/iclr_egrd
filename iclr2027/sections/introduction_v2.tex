@@ -25,20 +25,45 @@ against expert judgments, \citet{schopf2026rinobench} find that the reasoning
 such models produce mirrors human rationales, yet that alignment does not
 translate into accurate grades.
 
-Such a workflow also compresses the comparison into a single score, and three
-distinctions do not survive. Coverage can be \emph{dispersed}: several papers
-may jointly account for an idea that no single paper resembles. Ideas at equal
-coverage differ in \emph{what remains}: one leaves an implementation detail
-unexplained, another introduces a new mechanism. And individually covered
-components may form a \emph{combination} that no single prior work puts
-together. Each distinction asks about a particular part of the idea and the
-particular prior work responsible for it, and a score that discards that
-correspondence cannot be post-processed to recover it. Assessing novelty calls
-instead for a representation that keeps it.
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{pic/introduction.png}
+\caption{Contrasting novelty assessment approaches under the same target idea
+and temporally admissible prior works. \textbf{(a)} Prompt-based assessment
+leaves the correspondence between target content and supporting evidence
+implicit; \textbf{(b)} EGRD explicitly models this correspondence to aggregate
+dispersed support and represent unit and interaction residuals for novelty
+prediction.}
+\label{fig:motivation}
+\end{figure}
 
-We propose Evidence-Grounded Residual Decomposition (EGRD), which decomposes a
-target against ranked historical evidence into what that evidence accounts for
-and what it leaves, then predicts an ordered novelty grade from the two. Because
+Even when the target idea and the available prior works are held fixed,
+novelty assessment depends on how their relationship is represented. As
+illustrated in Figure~\ref{fig:motivation}(a), a prompt-based judge compares
+the target with earlier publications, but leaves the correspondence between
+individual parts of the target and their supporting evidence implicit. This
+correspondence matters for three reasons. First, support can be \emph{dispersed}
+across multiple papers, each accounting for a different part of the idea.
+Second, similar overall coverage can leave substantively different content
+unsupported, such as an implementation detail in one case and a central
+mechanism in another. Third, support for individual components does not
+necessarily establish support for their \emph{combination}. These distinctions
+motivate an explicit representation of what the supplied evidence supports
+and what remains unsupported.
+
+We propose Evidence-Grounded Residual Decomposition (EGRD) to make this
+representation explicit. As illustrated in Figure~\ref{fig:motivation}(b),
+EGRD represents the target as latent semantic units and learns a support matrix
+linking these units to the supplied prior works. It aggregates support across
+papers and represents the remaining content through \emph{unit residuals}.
+It further models \emph{interaction residuals}, using support for both units
+within a single prior as a proxy for whether their combination has precedent.
+These complementary residuals are combined with the evidence context to
+predict an ordered novelty grade. The resulting assessment is therefore
+conditioned on both the content that remains unsupported and the historical
+support for interactions among its components.
+
+Because
 existing benchmarks do not pair ideas with the evidence admissible when they
 were proposed, we also construct \textsc{IdeaDelta} to supply that pairing. Our
 contributions are:
@@ -47,22 +72,19 @@ contributions are:
   $21{,}111$ ideas paired with temporally admissible priors and annotated at the
   idea and pair levels, with $92{,}876$ pairs across graph machine learning,
   computer vision, and time series. Supplied rather than retrieved, the evidence
-  can be intervened on: permuting priors while holding targets fixed drops
-  Accuracy from $0.78$ to $0.35$, the majority-class band.
+  supports controlled interventions that isolate the effect of prior work on
+  novelty judgments.
   \item \textbf{Unit-level coverage over dispersed evidence.} We model coverage
   at the level of latent semantic units, aligning each unit with each prior
   through a learned support matrix. Noisy-OR aggregation lets several partially
-  relevant papers jointly cover a unit none covers alone; removing it costs
-  $0.27$ quadratic weighted kappa (QWK).
+  relevant papers jointly cover a unit none covers alone.
   \item \textbf{Typed residuals.} We split what the priors leave over into unit
   residuals for content no prior supports and interaction residuals for
   combinations no single prior puts together. Both are derived from the same support matrix.
   \item \textbf{Consistent gains across domains.}
-  EGRD reaches $0.909/0.882/0.898$ QWK across the three domains against
-  $0.579$ for the best prompted system given the same evidence, and $0.292$ for
-  the best one that selects its own priors. A separate transfer experiment
-  carries the frozen checkpoint to the expert labels of RINoBench
-  \citep{schopf2026rinobench} in \S\ref{sec:exp-transfer}.
+  EGRD consistently outperforms all evaluated baselines across all three
+  domains. We further evaluate transfer to expert annotations on RINoBench
+  \citep{schopf2026rinobench} using a frozen checkpoint.
 \end{itemize}
 
 Appendix~\ref{app:related} situates EGRD against automated idea generation,
