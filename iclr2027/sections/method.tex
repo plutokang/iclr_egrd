@@ -54,15 +54,11 @@ The retained evidence, pair features, and coverage predictions
 serve as fixed inputs to Stages~B and~C, grounding the residual decomposition
 and providing coverage information for novelty prediction.
 
-We summarize the evidence set in a global context vector $\boldsymbol{z}_G$, a
-learned projection of twenty-one scalars concatenated with embeddings of the
-target's aspect and contribution type. The scalars comprise the scaled target
-timestamp, ten pair-score statistics over $\mathcal{E}_x$, and ten
-joint-coverage features. Apart from the timestamp and the facets,
-$\boldsymbol{z}_G$ re-encodes the Stage~A outputs, and Stage~C consumes it as
-a summary of what the evidence collectively establishes.
-Appendix~\ref{app:method-evidence} lists the pair and context features and
-specifies the pair-scoring rule and the joint model.
+The global context $\boldsymbol{z}_G$ projects twenty-one scalars---the target
+timestamp, ten pair-score statistics, and ten joint-coverage features---together
+with embeddings of the target's aspect and contribution type.
+Appendix~\ref{app:method-evidence} specifies these features, the pair-scoring
+rule, and the joint model.
 
 \subsection{Stage B: Evidence-Grounded Residual Decomposition}
 \label{sec:method-decomposition}
@@ -111,15 +107,12 @@ are independent sources of support
 (Appendix~\ref{app:method-representations}). An active unit with little
 historical support therefore receives a large residual weight.
 
-Throughout Stage~B we preserve the magnitude of the residuals rather than
-normalize it away. We divide $\boldsymbol{z}_U$ by the fixed number of units
-$M$ rather than by $\sum_m r_m$, so that the pooled representation retains the
-total residual mass; the supported content is pooled the same way, as
-$\boldsymbol{z}_C=M^{-1}\sum_m \phi_mc_m\boldsymbol{u}_m$. To connect unit
-coverage to supervision, a learned, activity-weighted pooling of $c_m$
-reconstructs joint coverage $\widehat C_U$, supervised by annotated coverage
-and the fixed Stage~A prediction. The support entries themselves are latent
-strengths learned without unit-level alignment labels.
+Dividing by the fixed unit count $M$ preserves residual magnitude. We pool
+covered content similarly as
+$\boldsymbol{z}_C=M^{-1}\sum_m\phi_mc_m\boldsymbol{u}_m$.
+A learned, activity-weighted pooling of $c_m$ reconstructs joint coverage
+$\widehat C_U$, supervised by annotated coverage and the fixed Stage~A
+prediction, without unit-level alignment labels.
 
 \paragraph{Interaction residuals.}
 \label{sec:method-interaction}
@@ -136,28 +129,22 @@ favors pairs with larger residual weights. When different priors support the
 two units but no single prior strongly supports both, their unit residuals can
 be small while their interaction residual remains large, provided that
 $g_{ij}$ is high. Co-support is only a proxy for evidence that the combination already exists: a prior that supports both units need not cover the specific
-way the target combines them. The pooling keeps the residual magnitude here
-as well: $r_{ij}$ multiplies $\boldsymbol{t}_{ij}$ after the attention
-weights are normalized. An auxiliary classifier on $\boldsymbol{z}_I$ is
+way the target combines them. Multiplication by $r_{ij}$ after attention normalization preserves residual
+magnitude. An auxiliary classifier on $\boldsymbol{z}_I$ is
 trained with idea-level labels for nontrivial combinations
 (Appendix~\ref{app:method-representations}).
 
 \subsection{Stage C: Novelty Prediction}
 \label{sec:method-prediction}
 
-Stage~C predicts an ordered novelty grade from the residual representations
-and the evidence context. Because evidence availability and uncertainty vary
-across targets, a learned gate $\gamma$ scales the global context within the
-residual branch: the gate reads $\boldsymbol{z}_U$, $\boldsymbol{z}_I$,
-$\boldsymbol{z}_G$ and the entropy of the Stage~A coverage prediction, and
-fusion yields
+Stage~C combines residuals with evidence context to predict a novelty grade.
+A learned gate $\gamma$, conditioned on the residuals, context, and coverage
+uncertainty, yields
 $\boldsymbol{z}_R=f_R([\boldsymbol{z}_U;\boldsymbol{z}_I;\gamma\boldsymbol{z}_G])$.
-Layer normalization over the fused residual, the covered content, the target
-representation $\hbar_x$, and the context then gives the shared representation
+We combine this with covered content, the target representation $\hbar_x$,
+and ungated context:
 $\boldsymbol{h}=\operatorname{LayerNorm}([\boldsymbol{z}_R;\boldsymbol{z}_C;
-\hbar_x;\boldsymbol{z}_G])$. Since $\boldsymbol{z}_G$ also enters
-$\boldsymbol{h}$ directly, the gate controls context only within residual
-fusion.
+\hbar_x;\boldsymbol{z}_G])$.
 
 Auxiliary heads predict substantive difference, surface change, evidence
 sufficiency, and residual type. These predictions, together with

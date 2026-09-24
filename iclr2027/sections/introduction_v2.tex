@@ -51,17 +51,11 @@ necessarily establish support for their \emph{combination}. These distinctions
 motivate an explicit representation of what the supplied evidence supports
 and what remains unsupported.
 
-We propose Evidence-Grounded Residual Decomposition (EGRD) to make this
-representation explicit. As illustrated in Figure~\ref{fig:motivation}(b),
-EGRD represents the target idea as latent semantic units and learns a support matrix
-linking these units to the supplied prior works. It aggregates support across
-papers and represents the remaining content through \emph{unit residuals}.
-It further models \emph{interaction residuals}, using support for both units
-within a single prior as a proxy for whether their combination has precedent.
-These complementary residuals are combined with the evidence context to
-predict an ordered novelty grade. The resulting assessment is therefore
-conditioned on both the content that remains unsupported and the historical
-support for interactions among its components.
+We propose Evidence-Grounded Residual Decomposition (EGRD) for idea-level
+novelty prediction. As illustrated in Figure~\ref{fig:motivation}(b), EGRD aligns latent semantic
+units with supplied prior works and combines residuals for unsupported content
+and potentially novel combinations with the evidence context to predict an
+ordered novelty grade.
 
 Because
 existing benchmarks do not pair ideas with the evidence admissible when they

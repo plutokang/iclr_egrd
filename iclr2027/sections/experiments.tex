@@ -142,23 +142,35 @@ five priors it retrieves itself by dense similarity to the target. All but
 DeepReviewer-7B appear once per backbone. Table~\ref{tab:main} reports every
 system on the \textsc{IdeaDelta} evaluation set.
 
-Prompt chaining has backbone-dependent effects. Relative to the direct call,
-Schopf 2-stage improves Accuracy and QWK in all three domains on Qwen3.5,
-but provides no QWK gain on deepseek-flash and reduces both metrics on
-gpt-5.6-luna. UKPLab 3-stage and GraphMind fall below the direct call on
-both metrics across all nine backbone--domain combinations. These results
-show that adding intermediate judgments does not consistently improve novelty
-assessment.
+The effect of the Schopf chain declines monotonically with how well the backbone
+scores without it. Against a single five-prior call, the two-stage chain gains
+in all three domains on Qwen3.5, the weakest backbone here, on both Accuracy and
+QWK; on deepseek-flash the QWK gain is already gone; and on gpt-5.6-luna, whose
+unaided QWK is the highest of the three, it loses in all three domains on both
+metrics. We interpret this pattern as intermediate evidence interpretations
+helping weaker backbones while potentially interfering with stronger backbones'
+own judgments. Even with these gains,
+Qwen3.5 with the chain still scores below deepseek-flash without one.
+UKPLab 3-stage and GraphMind also fall below the direct call on both metrics
+in all nine backbone--domain combinations. Additional structure alone therefore
+does not guarantee gains: the effect of prompt chaining depends on both the
+backbone and the specific workflow.
 
-Replacing supplied priors with dense retrieval reduces Macro-F1 and QWK
-across all nine backbone--domain combinations. Accuracy remains between
-$0.318$ and $0.372$, near the majority-class baselines, even though it increases
-on Qwen3.5. Thus, relevant evidence retrieved by generic similarity does not
-recover the benefit of the supplied target--prior relationships. This
-complements the random-prior intervention in
-Appendix~\ref{app:dataset-validity}, which tests whether evidence is on topic:
-the dense-retrieval comparison additionally tests whether topical relevance
-alone suffices.
+Replacing the supplied priors with query-time dense retrieval costs ordinal
+agreement on every backbone: against the direct call on the same backbone and
+domain, Macro-F1 and QWK fall in all nine cells. Accuracy moves the other way on
+the weakest backbone, rising on Qwen3.5 while Macro-F1 falls. Accuracy in
+these rows is $0.318$--$0.372$, at or just above the majority-class band. The group
+also compresses the backbone differences Table~\ref{tab:main} otherwise shows,
+its Accuracy spanning at most a quarter as much in any domain as the direct
+call's. What a system is given to compare against therefore moves the judgment
+more than which model or chain performs it. That sharpens the evidence check of
+Appendix~\ref{app:dataset-validity}: random priors there reduce label prediction
+to near-chance, establishing only that the evidence must be on topic, whereas
+dense retrieval is on topic and the gap persists. That persistence shows the
+candidate lists carry target--prior relationships generic similarity search does
+not recover, which is what the cross-type retrieval pass and the adjudicated
+similarity band of \textsc{IdeaDelta} are for.
 
 EGRD leads every baseline in every domain by $0.34$ Accuracy or more over the
 best baseline of that domain, a margin that barely varies across the three,
@@ -209,21 +221,30 @@ DeepReviewer-7B & 0.1913 & 0.1425 & 0.0145 & 1.3610 \\
 \end{tabular}
 \end{table}
 
-EGRD achieves the highest Macro-F1 ($0.3407$) and QWK ($0.2245$),
-although other systems lead on Accuracy and MAE. The folded label distribution
-places $41.5\%$ of ideas in one class, so a constant prediction already attains
-$0.4152$ Accuracy while yielding zero QWK. EGRD reaches the same Accuracy
-with predictions distributed across all four grades: $16/36/76/149$, against
-gold counts of $15/60/87/115$. Its higher Macro-F1 and QWK therefore provide
-complementary evidence of agreement with expert judgments.
+EGRD leads both metrics that reward ordering the ideas the way the experts did,
+and on QWK no other system reaches two thirds of its value while most of the
+table sits near zero. Accuracy and MAE belong to other rows, but reading those
+leads as closer agreement mistakes what the folded scale rewards. Merging the
+top two expert levels leaves $41.5\%$ of the ideas in a single class, so
+answering with that class alone scores $0.4152$ Accuracy and a competitive MAE
+while ordering nothing, and the systems that lead those two metrics come close
+to doing exactly that: their ordinal agreement is at or near zero, the value a
+constant answer earns by construction. Our row reaches the same $0.4152$ from a
+prediction spread over all four grades, $16/36/76/149$ against a gold
+$15/60/87/115$, and it is that spread the rank-sensitive metrics register.
 
-Transfer remains limited by domain and label differences. Only 30 of the 277
-RINoBench ideas fall within \textsc{IdeaDelta}'s three fields; the remaining
-247 test generalization beyond the task-specific training domains. Moreover,
-mapping five expert levels to four grades merges the top two levels and
-prevents evaluation of distinctions within that merged class. We interpret
-these results as partial transfer from model-generated supervision to expert
-judgments.
+The agreement is nonetheless partial, and two properties of the
+transfer bound it before any model is run. The first is coverage of the
+literature. \textsc{IdeaDelta} is built from three fields, whereas RINoBench spans
+machine learning as a whole: only 30 of its 277 test ideas fall within
+these three fields. The remaining 247 ideas therefore test transfer beyond the
+domains covered by our task-specific training data. This shift may limit the
+model's ability to parse target units and identify their support in prior work,
+making the decomposition less reliable. The second is the
+label scale: mapping five expert levels to four grades merges the top two,
+where many examples lie, so differences within that class cannot be evaluated.
+We therefore interpret the results as partial agreement between residual
+structure learned from model-generated labels and expert judgment.
 
 \subsection{Ablation}
 \label{sec:exp-ablation}
@@ -304,12 +325,21 @@ every held-out test idea, coloured by gold grade, the three cases starred.}
 \label{fig:case-study}
 \end{figure}
 
-Figure~\ref{fig:case-study} traces three correctly predicted cases from
-evidence coverage to residual representations. Joint coverage decreases from
-the low- to the high-novelty case, while their residual embeddings show
-distinct patterns. In the supervised discriminant projection, held-out ideas
-are broadly ordered by novelty along the first axis, with overlap between
-adjacent grades; the three cases occupy regions consistent with their labels.
-These examples illustrate the association between evidence coverage and
-novelty-sensitive representations. Appendix~\ref{app:case-study} provides
-visualization details.
+Figure~\ref{fig:case-study} illustrates the relationship between evidence
+coverage, residual embeddings, and novelty through three correctly predicted
+cases. Joint coverage decreases from the low- to the high-novelty case,
+illustrating how higher novelty corresponds to less coverage by prior work
+in these examples. Their residual embeddings $\boldsymbol{z}_R$ show contrasting spatial
+patterns in the heatmap: the low-novelty case has predominantly above-mean
+values in the left portion, whereas the high-novelty case shows this pattern
+in the right portion; the moderate case has weaker deviations overall.
+This contrast shows how novelty differences are reflected in the displayed
+embedding dimensions.
+
+The supervised discriminant projection reveals a broader pattern: held-out
+ideas are broadly ordered by novelty along the first axis, although adjacent
+grades overlap. The three cases lie in regions consistent with their grades,
+linking their individual embedding patterns to the overall distribution.
+Together, these observations connect the coverage differences in the examples
+to a representation space whose organization reflects novelty levels.
+Additional case-study details are provided in Appendix~\ref{app:case-study}.
