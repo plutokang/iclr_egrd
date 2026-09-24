@@ -39,22 +39,22 @@ Assessing the novelty of a research idea requires identifying what remains
 beyond prior work, even when coverage is dispersed across several papers or
 the contribution lies in a new combination of familiar components. We propose
 Evidence-Grounded Residual Decomposition (EGRD), a supervised framework for
-predicting ordered novelty grades relative to an explicit set of prior works
-published before the target. EGRD decomposes the target into latent semantic
-units and learns a support matrix aligning each unit with each prior.
+idea-level novelty prediction, assigning ordered grades relative to an explicit
+set of prior works published before the target idea. Given temporally
+admissible prior evidence, EGRD first estimates its joint coverage of the
+target idea, providing an evidence basis for subsequent novelty assessment.
+It then decomposes the target idea into latent semantic units and learns a
+support matrix aligning each unit with each prior.
 Aggregating support across priors yields unit residuals for insufficiently
 covered content, while within-prior co-support yields interaction residuals
 for potentially novel combinations. The model predicts novelty from these
 residuals together with coverage and contextual representations. To support
 training and evaluation, we construct \textsc{IdeaDelta}, which pairs research
-ideas with temporally admissible priors and provides model-generated coverage
+ideas with temporally admissible priors and provides coverage
 and novelty annotations across graph machine learning, computer vision, and
 time series. On temporally held-out ideas, EGRD consistently outperforms
-prompted baselines across these domains, whether those baselines read the same
-evidence or select their own priors from the same admissible pool.
-In a separate transfer experiment, the frozen model evaluated against the
-expert labels of RINoBench yields higher ordinal agreement and Macro-F1 than
-the systems that benchmark reports. Ablations show that predictions depend on
+prompted baselines across these domains and shows strong transfer performance
+on RINoBench. Ablations show that predictions depend on
 matched prior evidence and benefit from aggregating support across priors and
 representing residual contributions.
 \end{abstract}
