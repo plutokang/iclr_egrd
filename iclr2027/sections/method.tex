@@ -172,11 +172,7 @@ grades, so a moderate-to-high refinement revisits that boundary once the
 initial grade is set. The refinement upgrades an initial \textsc{moderate}
 prediction when a weighted combination of the direct and ordinal
 \textsc{high}-class probabilities and a separate binary-head score exceeds a
-threshold. We select
-the mixture weights and the refinement threshold on development data and fix
-them for testing (Appendix~\ref{app:method-heads}). A separate continuous
-novelty head supplies auxiliary supervision during training and stays out of
-the inference-time grading rule.
+threshold.
 
 \paragraph{Training.}
 We initialize the residual encoder from the Stage~A joint-coverage checkpoint

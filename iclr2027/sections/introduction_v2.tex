@@ -15,8 +15,8 @@ measures \citep{uzzi2013atypical} to document-level embeddings
 submission as a whole \citep{zhu2025deepreview}. But a paper bundles
 contributions of uneven novelty, and one score over the bundle does not say
 which contribution it describes. Systems that do operate on ideas assemble the
-judgment as a language-model workflow: retrieve related work, then prompt a
-model to compare against it
+judgment as an LLM workflow: retrieve related work, then
+prompt an LLM to compare the target idea against it
 \citep{wang2024scimon,dasilva2025graphmind,afzal2026beyond}. Here the evidence
 is selected by the system being evaluated, so no verdict can be attributed to
 the retrieval or to the comparison, and the comparison itself is elicited by a
@@ -53,7 +53,7 @@ and what remains unsupported.
 
 We propose Evidence-Grounded Residual Decomposition (EGRD) to make this
 representation explicit. As illustrated in Figure~\ref{fig:motivation}(b),
-EGRD represents the target as latent semantic units and learns a support matrix
+EGRD represents the target idea as latent semantic units and learns a support matrix
 linking these units to the supplied prior works. It aggregates support across
 papers and represents the remaining content through \emph{unit residuals}.
 It further models \emph{interaction residuals}, using support for both units
@@ -93,5 +93,4 @@ anonymized repository at
 is available under an anonymized account at
 \url{https://huggingface.co/datasets/holaholaIDEADELTA/IdeaDelta}.
 
-Appendix~\ref{app:related} situates EGRD against automated idea generation,
-prior novelty judges, and decomposed verification against evidence.
+Related work is discussed in Appendix~\ref{app:related}.
