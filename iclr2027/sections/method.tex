@@ -182,9 +182,9 @@ novelty grade and the residual type, smooth-$L_1$ supervision of five
 annotated scalars, and regularization of the decomposition against redundant
 token assignments, unused units, and coinciding unit coverages. The five
 scalars are substantive difference, surface change, evidence sufficiency,
-the reconstructed coverage $\widehat C_U$, and a continuous novelty score. Because level
-losses alone leave the scalar heads free to settle on the median of their
-target, each is also supervised in rank; the coverage term additionally
+the reconstructed coverage $\widehat C_U$, and a continuous novelty score.
+Ranking supervision complements scalar regression by encouraging predictions
+to preserve the annotated order; the coverage term additionally
 penalizes disagreement with the fixed Stage~A prediction, weighted down where
 that prediction has higher entropy.
 Appendix~\ref{app:method-training} states the full objective, defines each

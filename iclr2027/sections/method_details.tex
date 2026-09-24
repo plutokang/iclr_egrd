@@ -330,17 +330,17 @@ inference, so this score never enters the decision rule.
 \subsection{Training and implementation details}
 \label{app:method-training}
 
-This section defines the loss terms of the training objective and reports the
-settings of the residual stage.
+\paragraph{Optimization scope.}
+We initialize the residual encoder from the Stage~A joint-coverage checkpoint
+and jointly train it with the semantic decomposition, residual fusion, and
+prediction modules. The Stage~A pair and joint coverage models remain fixed.
 
 \paragraph{Objective.}
 Let $\mathcal{A}=\{\Delta,S,E,C,\nu\}$ index the annotated scalars: the
 substantive difference, surface change, and evidence sufficiency read off the
 auxiliary heads, the reconstructed coverage $\widehat C_U$, and the continuous
-novelty score. Each contributes a smooth-$L_1$ level loss $\mathcal{L}_a$
-against its annotation, and the ranking terms of $\Delta$, $S$, $E$ and $C$
-are collected into a single $\mathcal{L}_{\mathrm{rank}}$, the novelty score
-carrying its own inside $\mathcal{L}_{\nu}$:
+novelty score. Their losses combine scalar regression with auxiliary ranking
+and coverage consistency terms, as specified below. The full objective is
 \begin{equation}
  \mathcal{L}=\sum_{a\in\mathcal{A}}\lambda_{a}\mathcal{L}_{a}
  +\lambda_{\mathrm{rank}}\mathcal{L}_{\mathrm{rank}}
@@ -357,7 +357,7 @@ combinations; and $\mathcal{L}_{\mathrm{dec}}$ and
 $\mathcal{L}_{\mathrm{var}}$ regularize the decomposition.
 Each coefficient $\lambda$ weights its term in the sum.
 
-\paragraph{Supervision.}
+\paragraph{Novelty and residual-type supervision.}
 $\mathcal{L}_{\mathrm{nov}}$ trains the direct and MLP
 classifiers with class-weighted cross-entropy, the ordinal outputs against
 $\mathbf{1}[y\geq\ell]$, $\ell=1,2,3$, with weighted binary cross-entropy, and
@@ -373,10 +373,10 @@ from the annotated coverage, substantive difference, evidence sufficiency and
 surface change of the target, and that the dataset thresholds into the four
 grades.
 
-\paragraph{Scalar heads: level and ranking terms.}
+\paragraph{Scalar regression and ranking.}
 Let $\ell_\delta$ denote smooth-$L_1$ loss and $w_x$ the example weight. For
-$a\in\mathcal{A}$, the level loss is
-$\mathcal{L}_a=\sum_xw_x\ell_\delta(\widehat a_x-a^*_x)/\sum_xw_x$, where
+$a\in\mathcal{A}$, the regression component is
+$\mathcal{L}^{\mathrm{reg}}_a=\sum_xw_x\ell_\delta(\widehat a_x-a^*_x)/\sum_xw_x$, where
 $a^*_x$ is the annotation and $\widehat a_x$ the prediction. The ranking term
 takes within-minibatch pairs separated by $|a^*_x-a^*_{x'}|\geq0.05$ and
 contributes
@@ -384,21 +384,23 @@ $[0.02-\operatorname{sgn}(a^*_x-a^*_{x'})(\widehat a_x-\widehat a_{x'})]_+$,
 weighted by $\sqrt{w_xw_{x'}}$; it is dropped when a minibatch holds no
 eligible pair.
 
-Ranking is not redundant with the level loss. At the transition $\delta$ and
-target spread used here the level loss operates in its $L_1$ regime, whose
-optimum is the median of the target, so a head supervised by it alone drifts
-towards a near-constant output. This drift is most visible in the evidence
-head. Ranking is
-scale-free and counteracts that drift, which is also why it takes most of the
-weight inside $\mathcal{L}_{\nu}$: thresholding reads the grade off the score,
-so only order matters there.
+Regression supervises the numerical values, while ranking explicitly
+encourages separation in the annotated order. The fixed margin also sets a
+minimum desired separation between predictions. Ranking terms for $\Delta$,
+$S$, $E$, and $C$ are collected in $\mathcal{L}_{\mathrm{rank}}$; the
+continuous novelty loss $\mathcal{L}_{\nu}$ combines its own regression and
+ranking terms. The continuous score provides auxiliary training supervision
+and does not determine the inference-time novelty grade.
 
-\paragraph{Coverage, decomposition, and variance terms.}
+\paragraph{Coverage consistency.}
 Beyond its level loss against the annotated joint value $C^*$,
 $\mathcal{L}_{C}$ adds a consistency loss against the upstream score $C_J$ at
 relative weight $0.2$, reweighted by $1-H_J$ so that examples with uncertain
-upstream coverage count for less; no unit-level support matrix is supplied as
-a target. $\mathcal{L}_{\mathrm{dec}}$ combines three terms: attention
+upstream coverage count for less. This constrains reconstructed joint coverage;
+no unit-level support matrix is supplied as a target.
+
+\paragraph{Decomposition regularization.}
+$\mathcal{L}_{\mathrm{dec}}$ combines three terms: attention
 regularization penalizes the squared entries of
 $\widetilde\alpha\widetilde\alpha^\top-I$ for the row-normalized attention
 matrix $\widetilde\alpha$, plus half the mean off-diagonal cosine similarity;
@@ -412,8 +414,10 @@ coefficient,
  \mathcal{L}_{\mathrm{var}}
  =\mathbb{E}_x\bigl[[\nu-\operatorname{Var}_m(c_{x,m})]_+/\nu\bigr],
 \end{equation}
-and acts on the unit coverages rather than on the token assignments, keeping
-the $c_m$ within an example from coinciding.
+where $\nu$ here denotes the positive variance floor. This term acts on unit
+coverages rather than token assignments and discourages identical coverage
+estimates within an example. It imposes a preference for differentiated unit
+coverages, rather than providing additional coverage labels.
 
 \paragraph{Curriculum and feature perturbation.}
 For a randomly sampled fraction of training examples, values derived from
@@ -426,19 +430,34 @@ Gaussian noise of standard deviation $0.03$ and independent feature dropout at
 probability $0.10$, which leaves untouched both the direct coverage inputs to
 the novelty heads and the entropy input to the fusion gate.
 
-\paragraph{Inputs and initialization.}
+\paragraph{Input handling.}
 The input adapter reconstructs pair probabilities missing from a ranking
 record from the available coverage label and score; pair labels and scores
-also appear in the pair text input. The two facet embeddings entering
-$\boldsymbol{z}_G$ have dimension $32$ each. The model uses DeBERTa-v3-base
-with hidden dimension $768$, maximum pair-input length $384$, $K=5$ and $M=8$;
-the residual encoder is initialized from the learned joint model, and upstream
-checkpoints stay fixed. Padded priors have zero support, support values are
-capped at $0.995$, and an empty evidence set falls back to a target-containing
-input with all prior support masked out. Training uses refinement weights
-$(\alpha_D,\alpha_O,\alpha_{MH})=(0.40,0.30,0.30)$ and mixture weights
-$(\lambda_D,\lambda_O,\lambda_R)=(0.50,0.35,0.15)$; development-set
-calibration selects $(0.60,0.20,0.20)$ and $\theta_{MH}=0.32$ for inference,
-fixed thereafter. The reported checkpoint was selected on development data at
-epoch 5 of 8.
+also appear in the pair text input. Padded priors have zero support. When the
+evidence set is empty, the input contains the target text and all prior
+support is masked out. Table~\ref{tab:residual-settings} summarizes the model
+and training settings.
 
+\begin{table}[t]
+\centering
+\small
+\caption{Model and training settings for residual decomposition and novelty prediction.}
+\label{tab:residual-settings}
+\begin{tabular}{ll}
+\toprule
+Setting & Value \\
+\midrule
+Encoder & DeBERTa-v3-base \\
+Hidden dimension $d$ & $768$ \\
+Maximum pair-input length & $384$ tokens \\
+Maximum retained priors $K$ & $5$ \\
+Semantic units $M$ & $8$ \\
+Dimension of each facet embedding & $32$ \\
+Support upper bound & $0.995$ \\
+Annotated-feature replacement probability & $0.50$, $0.20$, then $0$ \\
+Context-feature noise standard deviation & $0.03$ \\
+Context-feature dropout probability & $0.10$ \\
+Training epochs / selected epoch & $8$ / $5$ \\
+\bottomrule
+\end{tabular}
+\end{table}
