@@ -8,13 +8,12 @@
 \section{Experiments}
 \label{sec:experiments}
 
-The evaluation asks three things: whether the decomposition beats prompting a
-language model on the same evidence (\S\ref{sec:exp-main}), whether what it
+The evaluation asks three things: whether EGRD improves on prompted baselines
+and a supervised encoder baseline (\S\ref{sec:exp-main}), whether what it
 learns survives labels it was not trained on (\S\ref{sec:exp-transfer}), and
 what its predictions depend on (\S\ref{sec:exp-ablation},
-\S\ref{sec:exp-case}). The last is answerable only because the evidence is
-supplied rather than retrieved: on the \textsc{IdeaDelta} test split every
-system but one reads the same five admissible priors per target. All rows report
+\S\ref{sec:exp-case}). Supplied evidence enables these interventions:
+all systems except dense RAG read the same five admissible priors per test target. All rows report
 Accuracy, Macro-F1, QWK and MAE; Appendix~\ref{app:setup} gives the splits,
 hyperparameters and scoring code.
 
@@ -103,8 +102,7 @@ UKPLab 3-stage & Qwen3.5
 % The Qwen run covers the evaluation set directly; the deepseek and gpt runs
 % carry their own idea ids and their own gold labels, so their targets are
 % matched to the evaluation set by target text and rescored against its labels,
-% the ones every other row uses. Coverage: Graph ML 771/850 and 783/850,
-% computer vision 1137/1137, time series 1120/1190.
+% the ones every other row uses.
 GraphMind & Qwen3.5
 & 0.264 & 0.205 & 0.154 & 1.027
 & 0.264 & 0.182 & 0.108 & 0.959
@@ -124,8 +122,8 @@ DeepReviewer & DeepReviewer-7B
 & 0.296 & 0.222 & $-$0.017 & 0.964 \\
 \addlinespace
 % Source: supervised_deberta_flat_5priors_s173/README.md, Section 5.
-% Seed 173; dev-selected epoch 4; domain sample counts: 850 / 1137 / 1190.
-Supervised, flat 5 priors & DeBERTa-v3-base
+% Seed 173; dev-selected epoch 4.
+DeBERTa, flat 5 priors & DeBERTa-v3-base
 & 0.552 & 0.551 & 0.722 & 0.499
 & 0.528 & 0.535 & 0.680 & 0.529
 & 0.598 & 0.584 & 0.733 & 0.452 \\
@@ -138,16 +136,14 @@ Supervised, flat 5 priors & DeBERTa-v3-base
 \end{tabular}}
 \end{table}
 
-We compare against a \emph{direct} single call; two multi-stage prompt chains,
-\emph{Schopf 2-stage}, the evaluation prompt accompanying RINoBench
-\citep{schopf2026rinobench}, and \emph{UKPLab 3-stage}
-\citep{afzal2026beyond}; \emph{GraphMind} \citep{dasilva2025graphmind}, which
-labels each prior as supporting or contrasting before rating;
-\emph{DeepReviewer-7B} \citep{zhu2025deepreview}, a reviewer model fine-tuned on
-paper review; and a \emph{dense RAG} group running the \emph{direct} call on
-five priors it retrieves itself by dense similarity to the target. All but
-DeepReviewer-7B appear once per backbone. Table~\ref{tab:main} reports every
-system on the \textsc{IdeaDelta} evaluation set.
+Table~\ref{tab:main} compares a \emph{direct} single call;
+\emph{Schopf 2-stage} \citep{schopf2026rinobench} and \emph{UKPLab 3-stage}
+\citep{afzal2026beyond} prompt chains; \emph{GraphMind}
+\citep{dasilva2025graphmind}, which labels priors as supporting or contrasting
+before rating; and \emph{dense RAG}, which uses the direct prompt with five
+priors retrieved by dense similarity. These workflows use three LLM backbones.
+We also evaluate \emph{DeepReviewer-7B} \citep{zhu2025deepreview}, fine-tuned on
+paper review, and a supervised \emph{DeBERTa} encoder baseline with five priors.
 
 The effect of the Schopf chain declines monotonically with how well the backbone
 scores without it. Against a single five-prior call, the two-stage chain gains
@@ -156,8 +152,7 @@ QWK; on deepseek-flash the QWK gain is already gone; and on gpt-5.6-luna, whose
 unaided QWK is the highest of the three, it loses in all three domains on both
 metrics. We interpret this pattern as intermediate evidence interpretations
 helping weaker backbones while potentially interfering with stronger backbones'
-own judgments. Even with these gains,
-Qwen3.5 with the chain still scores below deepseek-flash without one.
+own judgments.
 UKPLab 3-stage and GraphMind also fall below the direct call on both metrics
 in all nine backbone--domain combinations. Additional structure alone therefore
 does not guarantee gains: the effect of prompt chaining depends on both the
@@ -179,11 +174,14 @@ candidate lists carry target--prior relationships generic similarity search does
 not recover, which is what the cross-type retrieval pass and the adjudicated
 similarity band of \textsc{IdeaDelta} are for.
 
-EGRD leads every baseline in every domain by $0.34$ Accuracy or more over the
-best baseline of that domain, a margin that barely varies across the three,
-unlike the baselines' ranking among each other. DeepReviewer-7B transfers least:
-its ordinal agreement is near zero in all three domains and negative in two, so
-fine-tuning on paper review does not recover the grade ordering here.
+The supervised DeBERTa encoder is the strongest baseline on all four metrics in all
+three domains, indicating that \textsc{IdeaDelta} provides useful training
+signal for a general-purpose encoder. EGRD further improves Accuracy by
+$24.7$, $23.3$ and $19.1$ percentage points on Graph ML, computer vision and
+time series, respectively, and improves all other metrics. These gains support
+the full EGRD framework beyond the supervised encoder baseline.
+DeepReviewer-7B has near-zero QWK in all three domains, negative in two:
+paper-review fine-tuning alone does not recover the grade ordering here.
 
 \subsection{Transfer Evaluation}
 \label{sec:exp-transfer}
@@ -240,9 +238,8 @@ constant answer earns by construction. Our row reaches the same $0.4152$ from a
 prediction spread over all four grades, $16/36/76/149$ against a gold
 $15/60/87/115$, and it is that spread the rank-sensitive metrics register.
 
-The agreement is nonetheless partial, and two properties of the
-transfer bound it before any model is run. The first is coverage of the
-literature. \textsc{IdeaDelta} is built from three fields, whereas RINoBench spans
+Two properties of the transfer limit agreement. First, \textsc{IdeaDelta}
+covers three fields, whereas RINoBench spans
 machine learning as a whole: only 30 of its 277 test ideas fall within
 these three fields. The remaining 247 ideas therefore test transfer beyond the
 domains covered by our task-specific training data. This shift may limit the
@@ -275,10 +272,9 @@ Arrows indicate the preferred direction for each metric.}
 \label{fig:ablation-decomposition}
 \end{figure}
 
-Because the supplied evidence can be intervened on with the target held fixed,
-we can test what the trained model's predictions actually depend on. The three
-pipeline interventions in Figure~\ref{fig:ablation-pipeline} cut the chain at
-successive points.
+Holding the target fixed, three evidence and representation interventions
+in Figure~\ref{fig:ablation-pipeline} test prediction dependencies at successive
+pipeline stages.
 \textbf{Permuting prior evidence} shuffles the retrieved prior texts across
 targets, breaking the correspondence between each target and its evidence in
 Stage~A. \textbf{Permuting coverage} shuffles only the joint coverage score
@@ -310,9 +306,8 @@ where collapsing the units left it.
 \textbf{Removing noisy-OR support} costs the most of the three on all four
 metrics and most of all on the rank-sensitive ones.
 
-We also conduct parameter sensitivity experiments using the default configuration,
-with detailed results reported in
-Appendix~\ref{app:sensitivity}.
+Appendix~\ref{app:sensitivity} reports parameter sensitivity experiments around
+the default configuration.
 
 \subsection{Case study}
 \label{sec:exp-case}
