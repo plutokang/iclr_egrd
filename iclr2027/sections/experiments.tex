@@ -178,8 +178,10 @@ The supervised DeBERTa encoder is the strongest baseline on all four metrics in 
 three domains, indicating that \textsc{IdeaDelta} provides useful training
 signal for a general-purpose encoder. EGRD further improves Accuracy by
 $24.7$, $23.3$ and $19.1$ percentage points on Graph ML, computer vision and
-time series, respectively, and improves all other metrics. These gains support
-the full EGRD framework beyond the supervised encoder baseline.
+time series, respectively, and improves all other metrics. Compared with direct
+prompting and flat text encoding, EGRD explicitly models evidence coverage and
+residual contributions, which may help distinguish substantive novelty from
+semantic differences.
 DeepReviewer-7B has near-zero QWK in all three domains, negative in two:
 paper-review fine-tuning alone does not recover the grade ordering here.
 
